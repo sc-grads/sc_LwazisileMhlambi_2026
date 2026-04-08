@@ -1,11 +1,10 @@
-#map()
-#Allows to map a function to an interval
+#eval()
+#evaluate, run as a source
+#is a security risk
 
-numbers: list[int] = [1,2,3,4,5]
+result: int = eval("1+10+100")
+print(result)
 
-def double(number: int) -> int:
-    return number * 2
-
-doubled: map = map(double, numbers)
-print(doubled)
-print(list(doubled))
+while True:
+    user_input: str = input("Please enter an equation: ")
+    print(eval(user_input))
