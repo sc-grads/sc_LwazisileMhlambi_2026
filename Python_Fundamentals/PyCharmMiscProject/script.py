@@ -1,35 +1,57 @@
-#OOP - Object-Oriented Programming
-#Classes and Objects
-class Car:
-    def __init__(self, brand: str, wheels: int) -> None:
-        self.brand =brand
-        self.wheels = wheels
+#Abstract Method
+
+from abc import ABC, abstractmethod
+
+class Appliance(ABC): #Abstract base class (Class - Blueprint)
+    def __init__(self, brand: str, version_no: int) -> None:
+        self.brand = brand
+        self.version_no = version_no
+        self.is_turned_on: bool = False
+
+    @abstractmethod
+    def turn_on(self) -> None:
+        ...
+    @abstractmethod
+    def turn_off(self) -> None:
+        ...
+
+class Lamp(Appliance):
+    def __init__(self, brand: str, version_no: int) -> None:
+        super().__init__(brand, version_no)
 
     def turn_on(self) -> None:
-        print(f"Turning on: {self.brand}")
+        if self.is_turned_on:
+            print(f"{self.brand} is turned on!")
+        else:
+            self.is_turned_on = True
+            print(f"{self.brand} is already turned on!")
 
     def turn_off(self) -> None:
-        print(f"Turning off: {self.brand}")
+        if self.is_turned_on:
+            self.is_turned_on = False
+            print(f"{self.brand} is turned off!")
+        else:
+            print(f"{self.brand} is already turned off!")
 
-    def drive(self, km: float) -> None:
-        print(f"Driving : {self.brand} for {km}km")
+class Oven(Appliance):
+    def __init__(self, brand: str, version_no: int) -> None:
+        super().__init__(brand, version_no)
 
-    def describe(self) -> None:
-        print(f"{self.brand} is a car with {self.wheels} wheels")
+    def turn_on(self) -> None:
+        raise NotImplementedError("Need to add functionality")
+
+    def turn_off(self) -> None:
+        raise NotImplementedError("Need to add functionality")
 
 def main() -> None:
-    bmw: Car = Car("BMW", 4)
-    bmw.turn_on()
-    bmw.drive(10)
-    bmw.turn_off()
-    bmw.describe()
-
-    volvo: Car = Car("Volvo", 6)
-    volvo.turn_on()
-    volvo.drive(30)
-    volvo.turn_off()
-    volvo.describe()
+    lamp: Lamp = Lamp("Z-Lite", 1)
+    lamp.turn_on()
+    lamp.turn_on()
+    lamp.turn_off()
+    lamp.turn_off()
+    lamp.turn_on()
+    lamp.turn_off()
 
 
 if __name__ == "__main__":
-        main()
+    main()
