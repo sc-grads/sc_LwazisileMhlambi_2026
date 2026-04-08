@@ -153,3 +153,37 @@ def main() -> None:
 if __name__ == "__main__":
     main()
 
+#Name Mangling
+#Encapsulate data, making it harder to access data outside the class
+#Prevent name clashes in the event of inheritance
+
+class Car:
+    __YEAR: int = 2000 #Constant
+
+    def __init__(self, brand: str, fuel_type: str) -> None:
+        self.__brand = brand
+        self.__fuel_type = fuel_type
+
+        self.var: str = "red"
+
+    def drive(self) -> None:
+        print(f"Driving: {self.__brand}")
+
+    def __get_description(self) -> None:
+        print(f"{self.__brand}: {self.__fuel_type}")
+
+    def display_colour(self) -> None:
+        print(f"{self.__brand} is \"{self.var.capitalize()}\"")
+
+class Toyota(Car):
+    def __init__(self, fuel_type: str) -> None:
+        super().__init__("Toyota", fuel_type)
+        self.var = 100
+
+def main() -> None:
+
+    print(car._Car__brand)
+    car._Car__get_description()
+
+if __name__ == "__main__":
+    main()
