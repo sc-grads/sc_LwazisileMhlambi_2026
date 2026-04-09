@@ -1,28 +1,35 @@
-#==VS Is
-#IS is unreliable for checking values
+#Task
+#Scheduled, independently managed coroutine
 
-a: int = 1000
-b: int = int("1000")
+import asyncio
+from asyncio import create_task
+from datetime import datetime
 
-print(a == b)
-print(a is b)
+async def fetch_data (input_data: int, *, delay: int) -> dict:
+    print("Fetching data...")
 
-print(f"{id(a)=}")
-print(f"{id(b)=}") #Have different memory addresses
+    #Times the code
+    start_time: datetime = datetime.now()
+    await asyncio.sleep(delay)
+    end_time: datetime = datetime.now()
+    print("Data retrieved...")
 
-var: int | None = None
+    return {"input": input_data,
+            "start_time": f"{start_time:%H:%M:%S}",
+            "end_time": f"{end_time:%H:%M:%S}"}
 
-if var is None:
-    print("There is no variable")
-else:
-    print(f"var is: {var}")
 
-class Animal:
-    ...
+async def main() -> None:
+    task: Task[dict] = asyncio.create_task(fetch_data(5, delay=30))
 
-cat: Animal = Animal()
-dog: Animal = Animal()
+    try:
+        data: dict = await asyncio.wait_for(task, timeout=3)
+        print(data)
+    except asyncio.TimeoutError:
+        print("Timeout error")
 
-print(id(cat))
-print(id(dog))
-print(cat is dog)
+
+
+
+if __name__ == "__main__":
+    asyncio.run(main = main())
