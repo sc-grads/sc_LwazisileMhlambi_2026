@@ -1,10 +1,28 @@
-#eval()
-#evaluate, run as a source
-#is a security risk
+#==VS Is
+#IS is unreliable for checking values
 
-result: int = eval("1+10+100")
-print(result)
+a: int = 1000
+b: int = int("1000")
 
-while True:
-    user_input: str = input("Please enter an equation: ")
-    print(eval(user_input))
+print(a == b)
+print(a is b)
+
+print(f"{id(a)=}")
+print(f"{id(b)=}") #Have different memory addresses
+
+var: int | None = None
+
+if var is None:
+    print("There is no variable")
+else:
+    print(f"var is: {var}")
+
+class Animal:
+    ...
+
+cat: Animal = Animal()
+dog: Animal = Animal()
+
+print(id(cat))
+print(id(dog))
+print(cat is dog)

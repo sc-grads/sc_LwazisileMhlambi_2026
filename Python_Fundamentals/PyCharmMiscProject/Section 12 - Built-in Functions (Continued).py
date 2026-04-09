@@ -83,3 +83,34 @@ print(result)
 while True:
     user_input: str = input("Please enter an equation: ")
     print(eval(user_input))
+
+# exec()
+# executes code
+# risky, prone to code injection
+
+code: str = """
+x: int = 10
+y: int = 20
+
+print(x + y)
+print("Hello, World!")
+
+for i in range (3):
+    print(i)
+
+"""
+
+exec(code)
+
+while True:
+    user_input: str = input("Command: ")
+    exec(user_input)
+
+#zip()
+#grouping function
+numbers: list[int] = [1, 2, 3, 4]
+letters: list[str] = ["A", "B", "C", "D"]
+symbols: list[str] = ["!", "$", "&"]
+
+zipped: zip = zip(numbers, symbols)
+print(list(zipped))
