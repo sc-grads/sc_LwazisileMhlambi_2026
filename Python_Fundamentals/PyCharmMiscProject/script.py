@@ -1,10 +1,13 @@
-#eval()
-#evaluate, run as a source
-#is a security risk
+#JSON
+import json
+data: dict = {"name": "Bob", "age": 25, "job": None}
 
-result: int = eval("1+10+100")
-print(result)
+with open("new_json.json", "w") as file:
+    json.dump(data, file)
+    
+file_path: str = "data.json"
+with open(file_path, "r") as file:
 
-while True:
-    user_input: str = input("Please enter an equation: ")
-    print(eval(user_input))
+with open(file_path, "r") as file:
+    data: dict = json.load(file)
+    print(data)
