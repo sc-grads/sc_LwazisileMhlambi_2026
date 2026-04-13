@@ -14,12 +14,14 @@ jobs:
             - name: Install NodeJS
               uses: actions/setup-node@v3
               with:
-                    node-version: 18
+                    node-version: 24
 
             - name: Install dependencies
+              working-directory: "GitHub Actions/02+Starting+Project/02 Starting Project"
               run: npm ci
-              
+
             - name: Run tests
+              working-directory: "GitHub Actions/02+Starting+Project/02 Starting Project"
               run: npm test
 
                     
