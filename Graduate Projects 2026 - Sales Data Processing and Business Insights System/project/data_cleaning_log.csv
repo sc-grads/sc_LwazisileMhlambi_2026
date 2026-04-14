@@ -1,0 +1,30 @@
+2026-04-14 15:57:26,457 INFO - Loading the Uncleaned Dataset
+2026-04-14 15:57:26,495 INFO - Viewing the different data types in the document
+2026-04-14 15:57:26,513 INFO - Changing date datatype from string to datetime
+2026-04-14 15:57:26,535 INFO - Changing from integer to float (decimal)
+2026-04-14 15:57:26,561 INFO - Rechecking data types
+2026-04-14 15:57:26,581 INFO - Looking for duplicates
+2026-04-14 15:57:26,598 INFO - Dropping duplicated entries
+2026-04-14 15:57:26,620 INFO - Counting for empty rows in the dataframe
+2026-04-14 15:57:26,640 INFO - Showcasing specific empty rows
+2026-04-14 15:57:26,665 INFO - Filling in the empty salesperson rows
+2026-04-14 15:57:26,688 INFO - Calculating the average number of chairs
+2026-04-14 15:57:26,690 INFO - Filling in the empty chair values
+2026-04-14 15:57:26,759 INFO - Resetting the index
+2026-04-14 15:57:26,784 INFO - Inserting revenue column
+2026-04-14 15:57:26,807 INFO - Adding month column
+2026-04-14 15:57:26,852 INFO - Exporting Cleaned Dataset
+2026-04-14 15:57:26,853 INFO - Data Cleaning Complete
+2026-04-14 15:57:26,869 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-14 15:57:26,898 INFO - Aggregating Sales by Region
+2026-04-14 15:57:26,938 INFO - Saving to sales_by_region.csv
+2026-04-14 15:57:26,952 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-14 15:57:26,978 INFO - Aggregating Sales by Product
+2026-04-14 15:57:27,018 INFO - Saving to sales_by_product.csv
+2026-04-14 15:57:27,034 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-14 15:57:27,060 INFO - Aggregating Monthly Revenue
+2026-04-14 15:57:27,102 INFO - Saving to monthly_revenue.csv
+2026-04-14 15:57:27,117 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-14 15:57:27,143 INFO - Aggregating Salesperson Performance
+2026-04-14 15:57:27,190 INFO - Saving to salesperson_performance.csv
+2026-04-14 15:57:27,190 INFO - Data Cleaning and Transformation Complete

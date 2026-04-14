@@ -1,0 +1,5 @@
+region,total_sales_revenue,total_quantity_sold,total_number_of_orders,average_sales_revenue
+East,270000.0,43.0,12,22500.0
+North,260500.0,47.0,13,20038.46
+South,225000.0,43.0,13,17307.69
+West,163000.0,36.0,12,13583.33
