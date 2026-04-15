@@ -1,0 +1,387 @@
+2026-04-14 15:57:26,457 INFO - Loading the Uncleaned Dataset
+2026-04-14 15:57:26,495 INFO - Viewing the different data types in the document
+2026-04-14 15:57:26,513 INFO - Changing date datatype from string to datetime
+2026-04-14 15:57:26,535 INFO - Changing from integer to float (decimal)
+2026-04-14 15:57:26,561 INFO - Rechecking data types
+2026-04-14 15:57:26,581 INFO - Looking for duplicates
+2026-04-14 15:57:26,598 INFO - Dropping duplicated entries
+2026-04-14 15:57:26,620 INFO - Counting for empty rows in the dataframe
+2026-04-14 15:57:26,640 INFO - Showcasing specific empty rows
+2026-04-14 15:57:26,665 INFO - Filling in the empty salesperson rows
+2026-04-14 15:57:26,688 INFO - Calculating the average number of chairs
+2026-04-14 15:57:26,690 INFO - Filling in the empty chair values
+2026-04-14 15:57:26,759 INFO - Resetting the index
+2026-04-14 15:57:26,784 INFO - Inserting revenue column
+2026-04-14 15:57:26,807 INFO - Adding month column
+2026-04-14 15:57:26,852 INFO - Exporting Cleaned Dataset
+2026-04-14 15:57:26,853 INFO - Data Cleaning Complete
+2026-04-14 15:57:26,869 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-14 15:57:26,898 INFO - Aggregating Sales by Region
+2026-04-14 15:57:26,938 INFO - Saving to sales_by_region.csv
+2026-04-14 15:57:26,952 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-14 15:57:26,978 INFO - Aggregating Sales by Product
+2026-04-14 15:57:27,018 INFO - Saving to sales_by_product.csv
+2026-04-14 15:57:27,034 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-14 15:57:27,060 INFO - Aggregating Monthly Revenue
+2026-04-14 15:57:27,102 INFO - Saving to monthly_revenue.csv
+2026-04-14 15:57:27,117 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-14 15:57:27,143 INFO - Aggregating Salesperson Performance
+2026-04-14 15:57:27,190 INFO - Saving to salesperson_performance.csv
+2026-04-14 15:57:27,190 INFO - Data Cleaning and Transformation Complete
+2026-04-15 08:48:54,542 INFO - Loading the Uncleaned Dataset
+2026-04-15 08:53:00,531 INFO - Loading the Uncleaned Dataset
+2026-04-15 08:53:00,561 INFO - Viewing the different data types in the document
+2026-04-15 08:53:00,562 INFO - Changing date datatype from string to datetime
+2026-04-15 08:53:00,587 INFO - Changing from integer to float (decimal)
+2026-04-15 08:53:00,588 INFO - Rechecking data types
+2026-04-15 08:53:00,591 INFO - Looking for duplicates
+2026-04-15 08:53:00,594 INFO - Dropping duplicated entries
+2026-04-15 08:53:00,597 INFO - Counting for empty rows in the dataframe
+2026-04-15 08:53:00,598 INFO - Showcasing specific empty rows
+2026-04-15 08:53:00,598 INFO - Filling in the empty salesperson rows
+2026-04-15 08:53:00,604 INFO - Calculating the average number of chairs
+2026-04-15 08:53:00,605 INFO - Filling in the empty chair values
+2026-04-15 08:53:00,605 INFO - Resetting the index
+2026-04-15 08:53:00,606 INFO - Inserting revenue column
+2026-04-15 08:53:00,606 INFO - Adding month column
+2026-04-15 08:53:00,610 INFO - Exporting Cleaned Dataset
+2026-04-15 08:53:00,611 INFO - Data Cleaning Complete
+2026-04-15 08:53:00,625 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 08:53:00,636 INFO - Aggregating Sales by Region
+2026-04-15 08:53:00,645 INFO - Saving to sales_by_region.csv
+2026-04-15 08:53:00,649 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 08:53:00,653 INFO - Aggregating Sales by Product
+2026-04-15 08:53:00,657 INFO - Saving to sales_by_product.csv
+2026-04-15 08:53:00,661 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 08:53:00,664 INFO - Aggregating Monthly Revenue
+2026-04-15 08:53:00,668 INFO - Saving to monthly_revenue.csv
+2026-04-15 08:53:00,672 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 08:53:00,675 INFO - Aggregating Salesperson Performance
+2026-04-15 08:53:00,681 INFO - Saving to salesperson_performance.csv
+2026-04-15 08:53:00,681 INFO - Data Cleaning and Transformation Complete
+2026-04-15 08:55:39,649 INFO - Loading the Uncleaned Dataset
+2026-04-15 08:55:39,660 INFO - Viewing the different data types in the document
+2026-04-15 08:55:39,660 INFO - Changing date datatype from string to datetime
+2026-04-15 08:55:39,680 INFO - Changing from integer to float (decimal)
+2026-04-15 08:55:39,681 INFO - Rechecking data types
+2026-04-15 08:55:39,683 INFO - Looking for duplicates
+2026-04-15 08:55:39,686 INFO - Dropping duplicated entries
+2026-04-15 08:55:39,689 INFO - Counting for empty rows in the dataframe
+2026-04-15 08:55:39,690 INFO - Showcasing specific empty rows
+2026-04-15 08:55:39,690 INFO - Filling in the empty salesperson rows
+2026-04-15 08:55:39,694 INFO - Calculating the average number of chairs
+2026-04-15 08:55:39,695 INFO - Filling in the empty chair values
+2026-04-15 08:55:39,695 INFO - Resetting the index
+2026-04-15 08:55:39,696 INFO - Inserting revenue column
+2026-04-15 08:55:39,696 INFO - Adding month column
+2026-04-15 08:55:39,700 INFO - Exporting Cleaned Dataset
+2026-04-15 08:55:39,700 INFO - Data Cleaning Complete
+2026-04-15 08:55:39,713 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 08:55:39,717 INFO - Aggregating Sales by Region
+2026-04-15 08:55:39,725 INFO - Saving to sales_by_region.csv
+2026-04-15 08:55:39,729 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 08:55:39,733 INFO - Aggregating Sales by Product
+2026-04-15 08:55:39,736 INFO - Saving to sales_by_product.csv
+2026-04-15 08:55:39,740 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 08:55:39,744 INFO - Aggregating Monthly Revenue
+2026-04-15 08:55:39,747 INFO - Saving to monthly_revenue.csv
+2026-04-15 08:55:39,751 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 08:55:39,754 INFO - Aggregating Salesperson Performance
+2026-04-15 08:55:39,759 INFO - Saving to salesperson_performance.csv
+2026-04-15 08:55:39,759 INFO - Data Cleaning and Transformation Complete
+2026-04-15 09:04:47,131 INFO - Loading the Uncleaned Dataset
+2026-04-15 09:04:47,141 INFO - Viewing the different data types in the document
+2026-04-15 09:04:47,141 INFO - Changing date datatype from string to datetime
+2026-04-15 09:04:47,161 INFO - Changing from integer to float (decimal)
+2026-04-15 09:04:47,162 INFO - Rechecking data types
+2026-04-15 09:04:47,164 INFO - Looking for duplicates
+2026-04-15 09:04:47,167 INFO - Dropping duplicated entries
+2026-04-15 09:04:47,169 INFO - Counting for empty rows in the dataframe
+2026-04-15 09:04:47,169 INFO - Showcasing specific empty rows
+2026-04-15 09:04:47,170 INFO - Filling in the empty salesperson rows
+2026-04-15 09:04:47,173 INFO - Calculating the average number of chairs
+2026-04-15 09:04:47,174 INFO - Filling in the empty chair values
+2026-04-15 09:04:47,175 INFO - Resetting the index
+2026-04-15 09:04:47,175 INFO - Inserting revenue column
+2026-04-15 09:04:47,176 INFO - Adding month column
+2026-04-15 09:04:47,179 INFO - Exporting Cleaned Dataset
+2026-04-15 09:04:47,180 INFO - Data Cleaning Complete
+2026-04-15 09:04:47,191 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 09:04:47,196 INFO - Aggregating Sales by Region
+2026-04-15 09:04:47,203 INFO - Saving to sales_by_region.csv
+2026-04-15 09:04:47,207 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 09:04:47,210 INFO - Aggregating Sales by Product
+2026-04-15 09:04:47,214 INFO - Saving to sales_by_product.csv
+2026-04-15 09:04:47,217 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 09:04:47,221 INFO - Aggregating Monthly Revenue
+2026-04-15 09:04:47,224 INFO - Saving to monthly_revenue.csv
+2026-04-15 09:04:47,228 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 09:04:47,232 INFO - Aggregating Salesperson Performance
+2026-04-15 09:04:47,237 INFO - Saving to salesperson_performance.csv
+2026-04-15 09:04:47,237 INFO - Data Cleaning and Transformation Complete
+2026-04-15 09:28:04,949 INFO - Loading the Uncleaned Dataset
+2026-04-15 09:28:04,960 INFO - Viewing the different data types in the document
+2026-04-15 09:28:04,960 INFO - Changing date datatype from string to datetime
+2026-04-15 09:28:04,981 INFO - Changing from integer to float (decimal)
+2026-04-15 09:28:04,982 INFO - Rechecking data types
+2026-04-15 09:28:04,985 INFO - Looking for duplicates
+2026-04-15 09:28:04,987 INFO - Dropping duplicated entries
+2026-04-15 09:28:04,991 INFO - Counting for empty rows in the dataframe
+2026-04-15 09:28:04,992 INFO - Showcasing specific empty rows
+2026-04-15 09:28:04,992 INFO - Filling in the empty salesperson rows
+2026-04-15 09:28:04,996 INFO - Calculating the average number of chairs
+2026-04-15 09:28:04,997 INFO - Filling in the empty chair values
+2026-04-15 09:28:04,997 INFO - Resetting the index
+2026-04-15 09:28:04,998 INFO - Inserting revenue column
+2026-04-15 09:28:04,999 INFO - Adding month column
+2026-04-15 09:28:05,002 INFO - Exporting Cleaned Dataset
+2026-04-15 09:28:05,002 INFO - Data Cleaning Complete
+2026-04-15 09:28:05,016 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 09:28:05,020 INFO - Aggregating Sales by Region
+2026-04-15 09:28:05,029 INFO - Saving to sales_by_region.csv
+2026-04-15 09:28:05,033 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 09:28:05,036 INFO - Aggregating Sales by Product
+2026-04-15 09:28:05,040 INFO - Saving to sales_by_product.csv
+2026-04-15 09:28:05,045 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 09:28:05,048 INFO - Aggregating Monthly Revenue
+2026-04-15 09:28:05,051 INFO - Saving to monthly_revenue.csv
+2026-04-15 09:28:05,056 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 09:28:05,059 INFO - Aggregating Salesperson Performance
+2026-04-15 09:28:05,064 INFO - Saving to salesperson_performance.csv
+2026-04-15 09:28:05,064 INFO - Data Cleaning and Transformation Complete
+2026-04-15 10:04:21,589 INFO - Loading the Uncleaned Dataset
+2026-04-15 10:04:21,600 ERROR - File not found
+2026-04-15 10:04:21,601 INFO - Viewing the different data types in the document
+2026-04-15 10:04:21,601 INFO - Changing date datatype from string to datetime
+2026-04-15 10:04:21,621 INFO - Changing from integer to float (decimal)
+2026-04-15 10:04:21,622 INFO - Rechecking data types
+2026-04-15 10:04:21,625 INFO - Looking for duplicates
+2026-04-15 10:04:21,628 INFO - Dropping duplicated entries
+2026-04-15 10:04:21,631 INFO - Counting for empty rows in the dataframe
+2026-04-15 10:04:21,631 INFO - Showcasing specific empty rows
+2026-04-15 10:04:21,632 INFO - Filling in the empty salesperson rows
+2026-04-15 10:04:21,635 INFO - Calculating the average number of chairs
+2026-04-15 10:04:21,636 INFO - Filling in the empty chair values
+2026-04-15 10:04:21,636 INFO - Resetting the index
+2026-04-15 10:04:21,637 INFO - Inserting revenue column
+2026-04-15 10:04:21,638 INFO - Adding month column
+2026-04-15 10:04:21,641 INFO - Exporting Cleaned Dataset
+2026-04-15 10:04:21,642 INFO - Data Cleaning Complete
+2026-04-15 10:04:21,654 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 10:04:21,658 INFO - Aggregating Sales by Region
+2026-04-15 10:04:21,666 INFO - Saving to sales_by_region.csv
+2026-04-15 10:04:21,670 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 10:04:21,674 INFO - Aggregating Sales by Product
+2026-04-15 10:04:21,678 INFO - Saving to sales_by_product.csv
+2026-04-15 10:04:21,682 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 10:04:21,686 INFO - Aggregating Monthly Revenue
+2026-04-15 10:04:21,690 INFO - Saving to monthly_revenue.csv
+2026-04-15 10:04:21,695 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 10:04:21,698 INFO - Aggregating Salesperson Performance
+2026-04-15 10:04:21,704 INFO - Saving to salesperson_performance.csv
+2026-04-15 10:04:21,704 INFO - Data Cleaning and Transformation Complete
+2026-04-15 10:04:34,365 INFO - Loading the Uncleaned Dataset
+2026-04-15 10:04:34,376 ERROR - File not found
+2026-04-15 10:04:34,376 INFO - Viewing the different data types in the document
+2026-04-15 10:04:34,377 INFO - Changing date datatype from string to datetime
+2026-04-15 10:04:34,398 INFO - Changing from integer to float (decimal)
+2026-04-15 10:04:34,399 INFO - Rechecking data types
+2026-04-15 10:04:34,402 INFO - Looking for duplicates
+2026-04-15 10:04:34,404 INFO - Dropping duplicated entries
+2026-04-15 10:04:34,407 INFO - Counting for empty rows in the dataframe
+2026-04-15 10:04:34,408 INFO - Showcasing specific empty rows
+2026-04-15 10:04:34,408 INFO - Filling in the empty salesperson rows
+2026-04-15 10:04:34,412 INFO - Calculating the average number of chairs
+2026-04-15 10:04:34,412 INFO - Filling in the empty chair values
+2026-04-15 10:04:34,414 INFO - Resetting the index
+2026-04-15 10:04:34,414 INFO - Inserting revenue column
+2026-04-15 10:04:34,415 INFO - Adding month column
+2026-04-15 10:04:34,419 INFO - Exporting Cleaned Dataset
+2026-04-15 10:04:34,419 INFO - Data Cleaning Complete
+2026-04-15 10:04:34,432 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 10:04:34,436 INFO - Aggregating Sales by Region
+2026-04-15 10:04:34,444 INFO - Saving to sales_by_region.csv
+2026-04-15 10:04:34,448 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 10:04:34,451 INFO - Aggregating Sales by Product
+2026-04-15 10:04:34,455 INFO - Saving to sales_by_product.csv
+2026-04-15 10:04:34,459 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 10:04:34,462 INFO - Aggregating Monthly Revenue
+2026-04-15 10:04:34,465 INFO - Saving to monthly_revenue.csv
+2026-04-15 10:04:34,469 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 10:04:34,473 INFO - Aggregating Salesperson Performance
+2026-04-15 10:04:34,479 INFO - Saving to salesperson_performance.csv
+2026-04-15 10:04:34,479 INFO - Data Cleaning and Transformation Complete
+2026-04-15 10:21:12,980 INFO - Loading the Uncleaned Dataset
+2026-04-15 10:21:12,991 ERROR - File not found
+2026-04-15 10:21:12,991 INFO - Viewing the different data types in the document
+2026-04-15 10:21:12,992 INFO - Changing date datatype from string to datetime
+2026-04-15 10:21:13,014 INFO - Changing from integer to float (decimal)
+2026-04-15 10:21:13,014 INFO - Rechecking data types
+2026-04-15 10:21:13,017 INFO - Looking for duplicates
+2026-04-15 10:21:13,019 INFO - Dropping duplicated entries
+2026-04-15 10:21:13,023 INFO - Counting for empty rows in the dataframe
+2026-04-15 10:21:13,023 INFO - Showcasing specific empty rows
+2026-04-15 10:21:13,024 INFO - Filling in the empty salesperson rows
+2026-04-15 10:21:13,027 INFO - Calculating the average number of chairs
+2026-04-15 10:21:13,028 INFO - Filling in the empty chair values
+2026-04-15 10:21:13,029 INFO - Resetting the index
+2026-04-15 10:21:13,029 INFO - Inserting revenue column
+2026-04-15 10:21:13,030 INFO - Adding month column
+2026-04-15 10:21:13,033 INFO - Exporting Cleaned Dataset
+2026-04-15 10:21:13,034 INFO - Data Cleaning Complete
+2026-04-15 10:21:13,098 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:21:13,098 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 10:21:13,102 INFO - Aggregating Sales by Region
+2026-04-15 10:21:13,110 INFO - Saving to sales_by_region.csv
+2026-04-15 10:21:13,115 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:21:13,115 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 10:21:13,118 INFO - Aggregating Sales by Product
+2026-04-15 10:21:13,121 INFO - Saving to sales_by_product.csv
+2026-04-15 10:21:13,126 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:21:13,126 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 10:21:13,129 INFO - Aggregating Monthly Revenue
+2026-04-15 10:21:13,132 INFO - Saving to monthly_revenue.csv
+2026-04-15 10:21:13,137 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:21:13,138 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 10:21:13,141 INFO - Aggregating Salesperson Performance
+2026-04-15 10:21:13,146 INFO - Saving to salesperson_performance.csv
+2026-04-15 10:21:13,146 INFO - Data Cleaning and Transformation Complete
+2026-04-15 10:21:13,151 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:22:54,054 INFO - Loading the Uncleaned Dataset
+2026-04-15 10:22:54,086 ERROR - File not found
+2026-04-15 10:22:54,086 INFO - Viewing the different data types in the document
+2026-04-15 10:22:54,087 INFO - Changing date datatype from string to datetime
+2026-04-15 10:22:54,142 INFO - Changing from integer to float (decimal)
+2026-04-15 10:22:54,144 INFO - Rechecking data types
+2026-04-15 10:22:54,148 INFO - Looking for duplicates
+2026-04-15 10:22:54,155 INFO - Dropping duplicated entries
+2026-04-15 10:22:54,162 INFO - Counting for empty rows in the dataframe
+2026-04-15 10:22:54,163 INFO - Showcasing specific empty rows
+2026-04-15 10:22:54,165 INFO - Filling in the empty salesperson rows
+2026-04-15 10:22:54,173 INFO - Calculating the average number of chairs
+2026-04-15 10:22:54,175 INFO - Filling in the empty chair values
+2026-04-15 10:22:54,177 INFO - Resetting the index
+2026-04-15 10:22:54,178 INFO - Inserting revenue column
+2026-04-15 10:22:54,179 INFO - Adding month column
+2026-04-15 10:22:54,187 INFO - Exporting Cleaned Dataset
+2026-04-15 10:22:54,187 INFO - Data Cleaning Complete
+2026-04-15 10:22:54,285 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:22:54,285 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 10:22:54,295 INFO - Aggregating Sales by Region
+2026-04-15 10:22:54,312 INFO - Saving to sales_by_region.csv
+2026-04-15 10:22:54,324 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:22:54,325 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 10:22:54,333 INFO - Aggregating Sales by Product
+2026-04-15 10:22:54,340 INFO - Saving to sales_by_product.csv
+2026-04-15 10:22:54,362 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:22:54,363 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 10:22:54,371 INFO - Aggregating Monthly Revenue
+2026-04-15 10:22:54,378 INFO - Saving to monthly_revenue.csv
+2026-04-15 10:22:54,400 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:22:54,401 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 10:22:54,409 INFO - Aggregating Salesperson Performance
+2026-04-15 10:22:54,420 INFO - Saving to salesperson_performance.csv
+2026-04-15 10:22:54,421 INFO - Data Cleaning and Transformation Complete
+2026-04-15 10:22:54,433 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 10:50:39,327 INFO - Loading the Uncleaned Dataset
+2026-04-15 10:50:39,381 INFO - Viewing the different data types in the document
+2026-04-15 10:50:39,400 INFO - Changing date datatype from string to datetime
+2026-04-15 10:50:39,429 INFO - Changing from integer to float (decimal)
+2026-04-15 10:50:39,455 INFO - Rechecking data types
+2026-04-15 10:50:39,478 INFO - Looking for duplicates
+2026-04-15 10:50:39,499 INFO - Dropping duplicated entries
+2026-04-15 10:50:39,522 INFO - Counting for empty rows in the dataframe
+2026-04-15 10:50:39,538 INFO - Showcasing specific empty rows
+2026-04-15 10:50:39,568 INFO - Filling in the empty salesperson rows
+2026-04-15 10:50:39,592 INFO - Calculating the average number of chairs
+2026-04-15 10:50:39,594 INFO - Filling in the empty chair values
+2026-04-15 10:50:39,649 INFO - Resetting the index
+2026-04-15 10:50:39,681 INFO - Inserting revenue column
+2026-04-15 10:50:39,713 INFO - Adding month column
+2026-04-15 10:50:39,775 INFO - Exporting Cleaned Dataset
+2026-04-15 10:50:39,776 INFO - Data Cleaning Complete
+2026-04-15 10:50:39,797 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 10:50:39,834 INFO - Aggregating Sales by Region
+2026-04-15 10:50:39,877 INFO - Saving to sales_by_region.csv
+2026-04-15 10:50:39,892 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 10:50:39,919 INFO - Aggregating Sales by Product
+2026-04-15 10:50:39,958 INFO - Saving to sales_by_product.csv
+2026-04-15 10:50:39,974 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 10:50:39,999 INFO - Aggregating Monthly Revenue
+2026-04-15 10:50:40,040 INFO - Saving to monthly_revenue.csv
+2026-04-15 10:50:40,055 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 10:50:40,082 INFO - Aggregating Salesperson Performance
+2026-04-15 10:50:40,129 INFO - Saving to salesperson_performance.csv
+2026-04-15 10:50:40,129 INFO - Data Cleaning and Transformation Complete
+2026-04-15 11:21:57,152 INFO - Loading the Uncleaned Dataset
+2026-04-15 11:21:57,195 ERROR - File not found
+2026-04-15 11:21:57,196 INFO - Viewing the different data types in the document
+2026-04-15 11:21:57,197 INFO - Changing date datatype from string to datetime
+2026-04-15 11:21:57,271 INFO - Changing from integer to float (decimal)
+2026-04-15 11:21:57,273 INFO - Rechecking data types
+2026-04-15 11:21:57,278 INFO - Looking for duplicates
+2026-04-15 11:21:57,287 INFO - Dropping duplicated entries
+2026-04-15 11:21:57,296 INFO - Counting for empty rows in the dataframe
+2026-04-15 11:21:57,297 INFO - Showcasing specific empty rows
+2026-04-15 11:21:57,299 INFO - Filling in the empty salesperson rows
+2026-04-15 11:21:57,312 INFO - Calculating the average number of chairs
+2026-04-15 11:21:57,313 INFO - Filling in the empty chair values
+2026-04-15 11:21:57,315 INFO - Resetting the index
+2026-04-15 11:21:57,316 INFO - Inserting revenue column
+2026-04-15 11:21:57,318 INFO - Adding month column
+2026-04-15 11:21:57,328 INFO - Exporting Cleaned Dataset
+2026-04-15 11:21:57,329 INFO - Data Cleaning Complete
+2026-04-15 11:21:57,438 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 11:21:57,439 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 11:21:57,448 INFO - Aggregating Sales by Region
+2026-04-15 11:21:57,472 INFO - Saving to sales_by_region.csv
+2026-04-15 11:21:57,484 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 11:21:57,485 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 11:21:57,496 INFO - Aggregating Sales by Product
+2026-04-15 11:21:57,503 INFO - Saving to sales_by_product.csv
+2026-04-15 11:21:57,516 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 11:21:57,517 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 11:21:57,526 INFO - Aggregating Monthly Revenue
+2026-04-15 11:21:57,533 INFO - Saving to monthly_revenue.csv
+2026-04-15 11:21:57,545 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 11:21:57,546 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 11:21:57,556 INFO - Aggregating Salesperson Performance
+2026-04-15 11:21:57,573 INFO - Saving to salesperson_performance.csv
+2026-04-15 11:21:57,574 INFO - Data Cleaning and Transformation Complete
+2026-04-15 11:21:57,587 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 16:10:20,030 INFO - Loading the Uncleaned Dataset
+2026-04-15 16:10:20,072 ERROR - File not found
+2026-04-15 16:10:20,073 INFO - Viewing the different data types in the document
+2026-04-15 16:10:20,073 INFO - Changing date datatype from string to datetime
+2026-04-15 16:10:20,153 INFO - Changing from integer to float (decimal)
+2026-04-15 16:10:20,155 INFO - Rechecking data types
+2026-04-15 16:10:20,161 INFO - Looking for duplicates
+2026-04-15 16:10:20,171 INFO - Dropping duplicated entries
+2026-04-15 16:10:20,180 INFO - Counting for empty rows in the dataframe
+2026-04-15 16:10:20,181 INFO - Showcasing specific empty rows
+2026-04-15 16:10:20,183 INFO - Filling in the empty salesperson rows
+2026-04-15 16:10:20,194 INFO - Calculating the average number of chairs
+2026-04-15 16:10:20,197 INFO - Filling in the empty chair values
+2026-04-15 16:10:20,200 INFO - Resetting the index
+2026-04-15 16:10:20,201 INFO - Inserting revenue column
+2026-04-15 16:10:20,203 INFO - Adding month column
+2026-04-15 16:10:20,212 INFO - Exporting Cleaned Dataset
+2026-04-15 16:10:20,213 INFO - Data Cleaning Complete
+2026-04-15 16:10:20,369 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 16:10:20,370 INFO - Reading Cleaned Data for Sales by Region Aggregation
+2026-04-15 16:10:20,381 INFO - Aggregating Sales by Region
+2026-04-15 16:10:20,402 INFO - Saving to sales_by_region.csv
+2026-04-15 16:10:20,416 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 16:10:20,417 INFO - Reading Cleaned Data for Sales by Product Aggregation
+2026-04-15 16:10:20,427 INFO - Aggregating Sales by Product
+2026-04-15 16:10:20,434 INFO - Saving to sales_by_product.csv
+2026-04-15 16:10:20,447 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 16:10:20,447 INFO - Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-15 16:10:20,458 INFO - Aggregating Monthly Revenue
+2026-04-15 16:10:20,465 INFO - Saving to monthly_revenue.csv
+2026-04-15 16:10:20,478 ERROR - Something went wrong reason: No module named 'openpyxl'
+2026-04-15 16:10:20,478 INFO - Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-15 16:10:20,488 INFO - Aggregating Salesperson Performance
+2026-04-15 16:10:20,501 INFO - Saving to salesperson_performance.csv
+2026-04-15 16:10:20,502 INFO - Data Cleaning and Transformation Complete
+2026-04-15 16:10:20,515 ERROR - Something went wrong reason: No module named 'openpyxl'
