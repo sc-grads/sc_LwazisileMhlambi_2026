@@ -6,7 +6,7 @@ import logging as lg
 # %%
 lg.basicConfig(filename="../data_cleaning_log.csv",
                level=lg.INFO,
-               format='%(asctime)s %(levelname)s - %(message)s'
+               format='%(asctime)s %(levelname)s %(message)s'
                )
 
 # %%
