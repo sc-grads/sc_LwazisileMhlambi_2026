@@ -41,6 +41,8 @@ jobs:
       
       - name: Build project
         run: npm run build
+        working-directory: "GitHub Actions Course/GitHub Actions/02+Starting+Project/02 Starting Project"
+        
       - name: Deploy
         run: echo "Deploying..."
                     
