@@ -802,3 +802,65 @@
 2026-04-20 09:24:31,782 INFO Aggregating Salesperson Performance
 2026-04-20 09:24:31,787 INFO Saving to salesperson_performance.csv
 2026-04-20 09:24:31,787 INFO Data Cleaning and Transformation Complete
+2026-04-20 09:53:22,374 INFO Loading the Uncleaned Dataset
+2026-04-20 09:53:22,388 ERROR File not found
+2026-04-20 09:53:23,965 INFO Viewing the different data types in the document
+2026-04-20 09:53:27,039 INFO Changing date datatype from string to datetime
+2026-04-20 09:53:28,062 INFO Changing from integer to float (decimal)
+2026-04-20 09:53:30,110 INFO Rechecking data types
+2026-04-20 09:53:31,142 INFO Looking for duplicates
+2026-04-20 09:53:33,691 INFO Dropping duplicated entries
+2026-04-20 09:53:34,700 INFO Counting for empty rows in the dataframe
+2026-04-20 09:53:35,731 INFO Showcasing specific empty rows
+2026-04-20 09:53:36,754 INFO Filling in the empty salesperson rows
+2026-04-20 09:53:37,786 INFO Calculating the average number of chairs
+2026-04-20 09:53:37,788 INFO Filling in the empty chair values
+2026-04-20 09:53:37,789 INFO Resetting the index
+2026-04-20 09:53:37,790 INFO Inserting revenue column
+2026-04-20 09:53:37,791 INFO Adding month column
+2026-04-20 09:53:38,796 INFO Exporting Cleaned Dataset
+2026-04-20 09:53:38,797 INFO Data Cleaning Complete
+2026-04-20 09:53:39,839 INFO Reading Cleaned Data for Sales by Region Aggregation
+2026-04-20 09:53:39,845 INFO Aggregating Sales by Region
+2026-04-20 09:53:39,854 INFO Saving to sales_by_region.csv
+2026-04-20 09:53:39,858 INFO Reading Cleaned Data for Sales by Product Aggregation
+2026-04-20 09:53:39,863 INFO Aggregating Sales by Product
+2026-04-20 09:53:39,866 INFO Saving to sales_by_product.csv
+2026-04-20 09:53:39,870 INFO Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-20 09:53:39,873 INFO Aggregating Monthly Revenue
+2026-04-20 09:53:39,877 INFO Saving to monthly_revenue.csv
+2026-04-20 09:53:39,880 INFO Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-20 09:53:39,884 INFO Aggregating Salesperson Performance
+2026-04-20 09:53:39,889 INFO Saving to salesperson_performance.csv
+2026-04-20 09:53:39,889 INFO Data Cleaning and Transformation Complete
+2026-04-20 10:52:43,242 INFO Loading the Uncleaned Dataset
+2026-04-20 10:52:43,268 ERROR File not found
+2026-04-20 10:52:44,877 INFO Viewing the different data types in the document
+2026-04-20 10:52:47,925 INFO Changing date datatype from string to datetime
+2026-04-20 10:52:48,989 INFO Changing from integer to float (decimal)
+2026-04-20 10:52:50,041 INFO Rechecking data types
+2026-04-20 10:52:51,070 INFO Looking for duplicates
+2026-04-20 10:52:53,624 INFO Dropping duplicated entries
+2026-04-20 10:52:54,637 INFO Counting for empty rows in the dataframe
+2026-04-20 10:52:55,668 INFO Showcasing specific empty rows
+2026-04-20 10:52:56,680 INFO Filling in the empty salesperson rows
+2026-04-20 10:52:57,724 INFO Calculating the average number of chairs
+2026-04-20 10:52:57,726 INFO Filling in the empty chair values
+2026-04-20 10:52:57,727 INFO Resetting the index
+2026-04-20 10:52:57,728 INFO Inserting revenue column
+2026-04-20 10:52:57,729 INFO Adding month column
+2026-04-20 10:52:58,746 INFO Exporting Cleaned Dataset
+2026-04-20 10:52:58,747 INFO Data Cleaning Complete
+2026-04-20 10:52:59,796 INFO Reading Cleaned Data for Sales by Region Aggregation
+2026-04-20 10:52:59,801 INFO Aggregating Sales by Region
+2026-04-20 10:52:59,819 INFO Saving to sales_by_region.csv
+2026-04-20 10:52:59,823 INFO Reading Cleaned Data for Sales by Product Aggregation
+2026-04-20 10:52:59,828 INFO Aggregating Sales by Product
+2026-04-20 10:52:59,832 INFO Saving to sales_by_product.csv
+2026-04-20 10:52:59,835 INFO Reading Cleaned Data for Monthly Revenue Aggregation
+2026-04-20 10:52:59,838 INFO Aggregating Monthly Revenue
+2026-04-20 10:52:59,842 INFO Saving to monthly_revenue.csv
+2026-04-20 10:52:59,846 INFO Reading Cleaned Data for Salesperson Performance Aggregation
+2026-04-20 10:52:59,849 INFO Aggregating Salesperson Performance
+2026-04-20 10:52:59,855 INFO Saving to salesperson_performance.csv
+2026-04-20 10:52:59,855 INFO Data Cleaning and Transformation Complete
