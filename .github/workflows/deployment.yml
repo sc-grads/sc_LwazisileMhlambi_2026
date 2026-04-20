@@ -18,7 +18,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/02+Starting+Project/02 Starting Project"
-        run: npm install
+        run: npm ci
 
       - name: Run tests
         working-directory: "GitHub Actions Course/GitHub Actions/02+Starting+Project/02 Starting Project"
@@ -37,7 +37,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/02+Starting+Project/02 Starting Project"
-        run: npm install
+        run: npm ci
       
       - name: BUild project
         run: npm run build
