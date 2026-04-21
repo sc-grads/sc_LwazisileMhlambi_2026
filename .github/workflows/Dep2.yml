@@ -1,0 +1,63 @@
+name: Deployment Exercise 1
+on: push
+jobs:
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+        
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+        
+      - name: Install dependencies
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+        run: npm ci
+
+      - name: Lint
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+        run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+
+      - name: Test
+        run: npm run test
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+
+      - name: Build code
+        run: npm run build
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+
+      - name: Deploy code
+        run: echo "Deploying..."
