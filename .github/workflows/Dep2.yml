@@ -6,7 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@v3 
+        uses: actions/checkout@v3
+        
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
         
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
@@ -22,6 +27,11 @@ jobs:
       - name: Get code
         uses: actions/checkout@v3
 
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm ci
@@ -35,6 +45,11 @@ jobs:
     steps:
       - name: Get code
         uses: actions/checkout@v3
+
+      - name: Install NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
 
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
