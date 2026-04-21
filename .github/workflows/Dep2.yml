@@ -1,15 +1,17 @@
 name: Deployment Exercise 1
 on: push
 jobs:
-    
+
   lint:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
         uses: actions/checkout@V3 
+        
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
         run: npm ci
+
       - name: Lint
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
         run: npm run lint
@@ -18,10 +20,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@V3
+        uses: actions/checkout@v3
+
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
         run: npm ci
+
       - name: Test
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
         run: npm run test
@@ -30,12 +34,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@V3
+        uses: actions/checkout@v3
+
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
         run: npm ci
+
       - name: Build code
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
         run: npm run build
+
       - name: Deploy code
         run: echo "Deploying..."
