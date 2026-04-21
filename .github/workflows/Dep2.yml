@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
-        uses: actions/checkout@V3 
+        uses: actions/checkout@v3 
         
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
