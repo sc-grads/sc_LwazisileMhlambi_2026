@@ -22,6 +22,7 @@ jobs:
         run: npm run lint
 
   test:
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Get code
@@ -41,6 +42,7 @@ jobs:
         working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project"
 
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Get code
