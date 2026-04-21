@@ -10,13 +10,21 @@ jobs:
     steps:
       - name: Output event data
         run: echo "${{ toJSON(github.event) }}"
+
       - name: Get code
         uses: actions/checkout@v3
+
       - name: Install dependencies
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 4 Project/01 Starting Project"
         run: npm ci
+
       - name: Test code
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 4 Project/01 Starting Project"
         run: npm run test
+
       - name: Build code
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 4 Project/01 Starting Project"
         run: npm run build
+        
       - name: Deploy project
         run: echo "Deploying..."
