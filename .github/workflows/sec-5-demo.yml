@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist-files
-          path: dist
+          path: GitHub Actions Course/GitHub Actions/Section 5 Project/01 Starting Project/dist
           #path: |
             #dist
             #package.json
@@ -52,5 +52,11 @@ jobs:
     steps:
       - name: Get build artifacts
         uses: actions/download-artifact@v4
+        with:
+          name: dist-files
+          
+      - name: Output contents
+        run: ls
+
       - name: Deploy
         run: echo "Deploying..."
