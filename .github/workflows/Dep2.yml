@@ -9,11 +9,11 @@ jobs:
         uses: actions/checkout@v3 
         
       - name: Install dependencies
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm ci
 
       - name: Lint
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm run lint
 
   test:
@@ -23,11 +23,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install dependencies
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm ci
 
       - name: Test
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm run test
 
   deploy:
@@ -37,11 +37,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install dependencies
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm ci
 
       - name: Build code
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practics Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm run build
 
       - name: Deploy code
