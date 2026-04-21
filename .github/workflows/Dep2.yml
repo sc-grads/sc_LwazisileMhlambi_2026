@@ -33,12 +33,12 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm ci
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
 
       - name: Test
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm run test
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
 
   deploy:
     runs-on: ubuntu-latest
@@ -52,12 +52,12 @@ jobs:
           node-version: 24
 
       - name: Install dependencies
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm ci
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
 
       - name: Build code
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
         run: npm run build
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
 
       - name: Deploy code
         run: echo "Deploying..."
