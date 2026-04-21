@@ -1,4 +1,4 @@
-name: Deployment Exercise 1
+name: Deployment Exercise 2
 on: push
 jobs:
 
@@ -14,14 +14,15 @@ jobs:
           node-version: 24
         
       - name: Install dependencies
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project"
         run: npm ci
 
       - name: Lint
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project"
         run: npm run lint
 
   test:
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Get code
@@ -34,13 +35,14 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project"
 
       - name: Test
         run: npm run test
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project"
 
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Get code
@@ -53,11 +55,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project"
 
       - name: Build code
         run: npm run build
-        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project (Start)"
+        working-directory: "GitHub Actions Course/GitHub Actions/04+Practice+Project+(Start)/04 Practice Project"
 
       - name: Deploy code
         run: echo "Deploying..."
