@@ -1,4 +1,4 @@
-name: Deployment Sectoion 6
+name: Deployment Section 6
 on:
   push:
     
@@ -48,4 +48,4 @@ jobs:
       - name: Output information
         run: |        
           echo "MONGODB_USERNAME: ${{ env.MONGODB_USERNAME }}"
-          ech "MONGODB_DB_NAME: $MONGODB_DB_NAME"
+          echo "MONGODB_DB_NAME: $MONGODB_DB_NAME"
