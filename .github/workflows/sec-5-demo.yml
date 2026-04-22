@@ -40,7 +40,8 @@ jobs:
 
       - name: Publish JS filename
         id: publish
-        run: find "GitHub Actions Course/GitHub Actions/Section 5 Project/01 Starting Project/dist" \
+        run: |
+          find "GitHub Actions Course/GitHub Actions/Section 5 Project/01 Starting Project/dist" \
           -type f   
           -name "assets*.js" \
           -execdir echo 'script-file={}' >> $GITHUB_OUTPUT \;
