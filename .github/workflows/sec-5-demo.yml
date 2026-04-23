@@ -1,14 +1,19 @@
 name: Deploy website
 on:
   push:
-    branches:
-      - main
+    
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - name: Get code
         uses: actions/checkout@v3
+
+      - name: Cache dependecies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('**/package-lock,json') }}
 
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/Section 5 Project/01 Starting Project"
@@ -31,6 +36,12 @@ jobs:
       - name: Get code
         uses: actions/checkout@v3
 
+      - name: Cache dependecies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: deps-node-modules-${{ hashFiles('**/package-lock,json') }}
+
       - name: Install dependencies
         working-directory: "GitHub Actions Course/GitHub Actions/Section 5 Project/01 Starting Project"
         run: npm ci
@@ -41,9 +52,10 @@ jobs:
 
       - name: Publish JS filename
         id: publish
-        run: find "GitHub Actions Course/GitHub Actions/Section 5 Project/01 Starting Project/dist" \
-          -name "assets*.js" \  
-          -type f 
+        run: |
+          find "GitHub Actions Course/GitHub Actions/Section 5 Project/01 Starting Project/dist" \
+          -type f \
+          -name "assets*.js" \
           -execdir echo 'script-file={}' >> $GITHUB_OUTPUT \;
         
       - name: Upload Artifacts
