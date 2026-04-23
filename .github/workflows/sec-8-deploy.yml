@@ -5,10 +5,14 @@ on:
 env:
   CACHE_KEY: node-deps
   MONGODB_DB_NAME: gha-demo
+
 jobs:
   test:
     environment: testing
     runs-on: ubuntu-latest
+    container: 
+      image: node:16
+
     env:
       MONGODB_CONNECTION_PROTOCOL: mongodb+srv
       MONGODB_CLUSTER_ADDRESS: cluster0.vzqgbus.mongodb.net
@@ -18,7 +22,7 @@ jobs:
     steps:
       - name: Get Code
         uses: actions/checkout@v3
-        
+
       - name: Cache dependencies
         uses: actions/cache@v3
         with:
@@ -40,6 +44,7 @@ jobs:
       - name: Output information
         run: |
           echo "MONGODB_USERNAME: $MONGODB_USERNAME"
+
   deploy:
     needs: test
     runs-on: ubuntu-latest
