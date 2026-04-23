@@ -30,15 +30,15 @@ jobs:
           key: ${{ env.CACHE_KEY }}-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install dependencies
-        working-directory: "GitHub Actions Course/GitHub Actions/Section 8 Project/01 Starting Project"
+        working-directory: "GitHub\ Actions\ Course/GitHub\ Actions/Section\ 8\ Project/01\ Starting\ Project"
         run: npm ci
 
       - name: Run server
-        working-directory: "GitHub Actions Course/GitHub Actions/Section 8 Project/01 Starting Project"
+        working-directory: "GitHub\ Actions\ Course/GitHub\ Actions/Section\ 8\ Project/01\ Starting\ Project"
         run: npm start & npx wait-on http://127.0.0.1:$PORT # requires MongoDB Atlas to accept requests from anywhere!
 
       - name: Run tests
-        working-directory: "GitHub Actions Course/GitHub Actions/Section 8 Project/01 Starting Project"
+        working-directory: "GitHub\ Actions\ Course/GitHub\ Actions/Section\ 8\ Project/01\ Starting\ Project"
         run: npm test
 
       - name: Output information
