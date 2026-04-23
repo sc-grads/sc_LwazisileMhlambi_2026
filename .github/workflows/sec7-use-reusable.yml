@@ -1,0 +1,101 @@
+name: Using Reusable Workflow
+on:
+  push:
+  
+    
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: nodes_modules
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 7 Project/01 Starting Project"
+        run: npm ci
+        
+      - name: Lint code
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 7 Project/01 Starting Project"
+        run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: nodes_modules
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 7 Project/01 Starting Project"
+        run: npm ci
+
+      - name: Test code
+        id: run-tests
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 7 Project/01 Starting Project"
+        run: npm run test
+
+      - name: Upload test report
+        if: failure() && steps.run-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: GitHub Actions Course/GitHub Actions/Section 7 Project/01 Starting Project/test.json
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: nodes_modules
+          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 7 Project/01 Starting Project"
+        run: npm ci
+        
+      - name: Build website
+        id: build-website
+        working-directory: "GitHub Actions Course/GitHub Actions/Section 7 Project/01 Starting Project"
+        run: npm run build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: | 
+            GitHub Actions Course/GitHub Actions/Section 7 Project/01 Starting Project/dist
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/sec7-reusable.yml
+
+  report:
+    needs: [lint, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output information
+        run: |
+          echo "Something went wrong"
+          echo "${{ toJson(github) }}"
