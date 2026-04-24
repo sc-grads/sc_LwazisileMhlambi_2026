@@ -22,17 +22,8 @@ jobs:
       - name: Get code
         uses: actions/checkout@v3
 
-      - name: Cache dependencies
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        working-directory: "GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project"
-        run: npm ci
+      - name: Load and Cache Dependencies
+        uses: ./.github/actions/cached-deps
 
       - name: Test code
         working-directory: "GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project"
@@ -53,17 +44,8 @@ jobs:
       - name: Get code
         uses: actions/checkout@v3
 
-      - name: Cache dependencies
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: node_modules
-          key: deps-node-modules-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Install dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        working-directory: "GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project"
-        run: npm ci
+      - name: Load and Cache Dependencies
+        uses: ./.github/actions/cached-deps
 
       - name: Build website
         working-directory: "GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project"
