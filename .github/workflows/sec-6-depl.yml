@@ -1,6 +1,6 @@
 name: Deployment Section 6
 on:
-  #push:
+  push:
     
 
 env:

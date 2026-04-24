@@ -1,5 +1,5 @@
 name: Deployment Exercise 2
-on: #push
+on: push
 jobs:
 
   lint:

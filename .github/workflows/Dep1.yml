@@ -1,5 +1,5 @@
 name: Deployment Exercise 1
-on: #push
+on: push
 jobs:
   deploy:
     runs-on: ubuntu-latest

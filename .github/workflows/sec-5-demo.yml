@@ -1,6 +1,6 @@
 name: Deploy website
 on:
-  #push:
+  push:
     
 jobs:
   test:
