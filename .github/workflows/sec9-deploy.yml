@@ -11,6 +11,12 @@ jobs:
 
       - name: Load and Cache Dependencies
         uses: ./.github/actions/cached-deps
+        id: cache-deps
+        with: 
+          caching: 'false'
+
+      - name: Output information
+        run: echo "Cache used? ${{ steps.cache-deps.outputs.used-cache }}"
 
       - name: Lint code
         working-directory: "GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project"
