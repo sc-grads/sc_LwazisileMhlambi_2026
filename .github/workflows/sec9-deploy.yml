@@ -1,0 +1,98 @@
+name: Section 9 Deployment
+on:
+  push:
+    
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Load and Cache Dependencies
+        uses: ./.github/actions/cached-deps
+        id: cache-deps
+        with: 
+          caching: 'false'
+
+      - name: Output information
+        run: echo "Cache used? ${{ steps.cache-deps.outputs.used-cache }}"
+
+      - name: Lint code
+        working-directory: "GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project"
+        run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Load and Cache Dependencies
+        uses: ./.github/actions/cached-deps
+
+      - name: Test code
+        working-directory: "GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project"
+        id: run-tests
+        run: npm run test
+
+      - name: Upload test report
+        if: failure() && steps.run-tests.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project/test.json
+
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Load and Cache Dependencies
+        uses: ./.github/actions/cached-deps
+
+      - name: Build website
+        working-directory: "GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project"
+        run: npm run build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-files
+          path: | 
+            GitHub-Actions-Course/GitHub-Actions/Section-9-Project/01 Starting Project/dist
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code
+        uses: actions/checkout@v3
+
+      - name: Get build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-files
+          path: ./dist
+
+      - name: Output contents
+        run: ls
+
+      - name: Deploy site
+        id: deploy
+        uses: ./.github/actions/deploy-s3-javascript
+        #env:
+          #AWS_ACCESS_KEY_ID:
+          #AWS_SECRET_ACCESS_KEY:
+        with:
+          bucket: gha-custom-action-hosting
+          dist-folder: ./dist
+
+      - name: Output information
+        run: |
+          echo "Live URL: ${{ steps.deploy.outputs.website-url }}"
+
+          
+  
+  
