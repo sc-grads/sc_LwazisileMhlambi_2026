@@ -80,13 +80,19 @@ jobs:
         run: ls
 
       - name: Deploy site
-        run: echo "Deploying..."
-  
-  information:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get Code
-        uses: actions/checkout@v3
-
-      - name: Run custom action
+        id: deploy
         uses: ./.github/actions/deploy-s3-javascript
+        #env:
+          #AWS_ACCESS_KEY_ID:
+          #AWS_SECRET_ACCESS_KEY:
+        with:
+          bucket: gha-custom-action-hosting
+          dist-folder: ./dist
+
+      - name: Output information
+        run: |
+          echo "Live URL: ${{ steps.deploy.outputs.website-url }}"
+
+          
+  
+  
