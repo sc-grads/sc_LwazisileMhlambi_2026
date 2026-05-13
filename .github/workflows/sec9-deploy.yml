@@ -81,7 +81,7 @@ jobs:
 
       - name: Deploy site
         id: deploy
-        uses: ./.github/actions/deploy-s3-javascript
+        uses: ./.github/actions/deploy-s3-docker 
         #env:
           #AWS_ACCESS_KEY_ID:
           #AWS_SECRET_ACCESS_KEY:
