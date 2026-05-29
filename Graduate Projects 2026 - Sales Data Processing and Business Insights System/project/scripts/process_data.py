@@ -173,7 +173,8 @@ Filling Empty Salesperson Rows
 time.sleep(1)
 try:
     lg.info("Filling in the empty salesperson rows")
-    df['salesperson'] = df.groupby('region')['salesperson'].transform(lambda x: x.fillna(x.mode()[0]))
+    df['salesperson'] = df['salesperson'].fillna('Unknown')
+    #groupby('region')['salesperson'].transform(lambda x: x.fillna(x.mode()[0]))
     df.isna().sum()
     print("""
 ---------------------------------------------     
@@ -186,27 +187,32 @@ except Exception as e:
 
 # %%
 #Calculating the average number of chairs
+#print("""
+#---------------------------------------------     
+#Calculating Average No. of Chairs
+#---------------------------------------------      
+#""")
+time.sleep(1)
+#try:
+#    lg.info("Calculating the average number of chairs")
+#   avg_chairs.round(0)
+#    print("""
+#---------------------------------------------     
+#Filling In Empty Chairs...
+#---------------------------------------------     
 print("""
 ---------------------------------------------     
-Calculating Average No. of Chairs
----------------------------------------------      
+Droppin Empty Quantities...
+--------------------------------------------- 
 """)
-time.sleep(1)
 try:
-    lg.info("Calculating the average number of chairs")
-    avg_chairs = df[df['product'] == 'Chair']['quantity'].mean()
-    avg_chairs.round(0)
-    print("""
----------------------------------------------     
-Filling In Empty Chairs...
----------------------------------------------      
-""")
-    lg.info("Filling in the empty chair values")
+    lg.info("Dropping in the empty chair values")
 #Filling in the empty chair values
-    df.fillna({'quantity': avg_chairs.round(0)}, inplace=True)
+    df.dropna(subset=['quantity'], inplace=True)
+ #   df.fillna({'quantity': avg_chairs.round(0)}, inplace=True)
     print("""
 ---------------------------------------------     
-Empty Chairs Filled Successfully!
+Empty Quantities Dropped Successfully!
 ---------------------------------------------      
 """)
     df.isna().sum()
