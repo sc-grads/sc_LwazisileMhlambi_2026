@@ -26,4 +26,4 @@ jobs:
 
           curl -H "Content-Type: application/json" \
           -d "{\"text\": \"$MESSAGE\"}" \
-          ${{ secrets.TEAMS_WEBHOOK_URL }}
+          ${{ secrets.TEAMS_WEBHOOK }}
