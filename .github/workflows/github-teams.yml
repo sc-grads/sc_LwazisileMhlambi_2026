@@ -22,7 +22,7 @@ jobs:
           elif [ "$EVENT_NAME" = "pull_request" ]; then
             MESSAGE="⬇️ Pull Request event in ${{ github.repository }} by: .\n${{ github.actor }}.\n\nTitle: ${{ github.event.pull_request.title }}\n\nLink: ${{ github.event.pull_request.html_url }}"
 
-          elif [ "$EVENT_NAME" = "pull_request_review" ] && [ "${{ github.event.review.state }}" = "approved" ];; then
+          elif [ "$EVENT_NAME" = "pull_request_review" ] && [ "${{ github.event.review.state }}" = "approved" ]; then
             MESSAGE="Pull Request event in ${{ github.repository }} was approved by: .\n${{ github.actor }}"
 
 
