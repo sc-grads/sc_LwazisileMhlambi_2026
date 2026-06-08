@@ -20,6 +20,10 @@ jobs:
           if [ "$EVENT_NAME" = "push" ]; then
             MESSAGE="🛫Push event in ${{ github.repository }} \n\n\nBy: ${{ github.actor }}\n\nCommit: ${{ github.event.head_commit.message }}
             \n\nLink: ${{ github.event.head_commit.url }}"
+
+           if [ "$EVENT_NAME" = "create" ] && [ "${{ github.event.ref_type }}" = "branch" ]; then
+             MESSAGE="🛫 Branch created in ${{ github.repository }} \n\n\nBranch: ${{ github.event.ref }} \n\n\nBy: ${{ github.actor }} 
+              \n\n\nLink: https://github.com/${{ github.repository }}/tree/${{ github.event.ref }}"
           
           elif [ "$EVENT_NAME" = "pull_request" ]; then
             MESSAGE=" Pull Request event in ${{ github.repository }} \n\n\nBy: ${{ github.actor }}\n\nTitle: ${{ github.event.pull_request.title }}
