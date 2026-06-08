@@ -15,13 +15,17 @@ jobs:
           EVENT_NAME="${{ github.event_name }}"
 
           if [ "$EVENT_NAME" = "push" ]; then
-            MESSAGE="🚀 Push event in ${{ github.repository }} by ${{ github.actor }}.\n\nCommit: ${{ github.event.head_commit.message }}\n🔗 ${{ github.event.head_commit.url }}"
+            MESSAGE="🚚🚢 Push event in ${{ github.repository }} by: .\n${{ github.actor }}.\n\nCommit: ${{ github.event.head_commit.message }}\n\nLink: ${{ github.event.head_commit.url }}"
           
           elif [ "$EVENT_NAME" = "pull_request" ]; then
-            MESSAGE="📌 Pull Request event in ${{ github.repository }} by ${{ github.actor }}.\n\nTitle: ${{ github.event.pull_request.title }}\n🔗 ${{ github.event.pull_request.html_url }}"
-          
+            MESSAGE="⬇️ Pull Request event in ${{ github.repository }} by: .\n${{ github.actor }}.\n\nTitle: ${{ github.event.pull_request.title }}\n\nLink: ${{ github.event.pull_request.html_url }}"
+
+          elif [ "${{ github.event.review.state }} = "approved" ]; then
+            MESSAGE="Pull Request event in ${{ github.repository }} was approved by: .\n${{ github.actor }}"
+
+
           else
-            MESSAGE="📦 Create event in ${{ github.repository }} by ${{ github.actor }}.\nRef: ${{ github.ref }}"
+            MESSAGE="📦 Create event in ${{ github.repository }} by .\n${{ github.actor }}.\nRef: ${{ github.ref }}"
           fi
 
           curl -H "Content-Type: application/json" \
