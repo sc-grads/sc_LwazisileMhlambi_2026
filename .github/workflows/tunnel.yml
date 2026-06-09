@@ -18,16 +18,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y mssql-tools unixodbc-dev
 
-      #3. Tests Connectivity
-      - name: Test connectivity first
-        run: |
-          /opt/mssql-tools/bin/sqlcmd \
-            -S ${{ secrets.SQL_HOST }},${{ secrets.SQL_PORT }} \
-            -U ${{ secrets.SQL_USER }} \
-            -P ${{ secrets.SQL_PASSWORD }} \
-            -Q "SELECT @@VERSION"
 
-      # 4. Run SQL script against remote SQL Server via Pinggy
+      # 3. Run SQL script against remote SQL Server via Pinggy
       - name: Execute SQL script
         env:
           SQL_HOST: ${{ secrets.SQL_HOST }}
@@ -39,4 +31,4 @@ jobs:
             -S ${SQL_HOST},${SQL_PORT} \
             -U ${SQL_USER} \
             -P ${SQL_PASSWORD} \
-            -i /DB-Cloud-Tunnel-LM/SQL-Deployment-Script.sql
+            -i DB-Cloud-Tunnel-LM/SQL-Deployment-Script.sql
