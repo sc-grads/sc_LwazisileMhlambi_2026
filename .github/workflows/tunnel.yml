@@ -33,5 +33,6 @@ jobs:
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
             -P "$SQL_PASSWORD" \
+            -C \
             -i DB-Cloud-Tunnel-LM/Deploy.sql
 
