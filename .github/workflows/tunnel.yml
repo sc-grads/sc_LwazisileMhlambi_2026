@@ -36,3 +36,8 @@ jobs:
             -C \
             -i DB-Cloud-Tunnel-LM/Deploy.sql
 
+      - name: Debug connection (safe test)
+        run: |
+          echo "Server = $SQL_SERVER"
+          echo "User = $SQL_USER"
+
