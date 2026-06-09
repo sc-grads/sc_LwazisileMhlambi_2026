@@ -1,6 +1,6 @@
-name: Deploy SQL Database
+name: Deploy DB-Tunneling-Deploy
 
-on:
+on: 
   push:
 
 jobs:
@@ -8,10 +8,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install SQL tools
+      - name: Install SQL Server Tools
         run: |
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
@@ -19,15 +19,19 @@ jobs:
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
 
-          echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> $GITHUB_ENV
+      - name: Verify sqlcmd Installation
+        run: |
+          find /opt -name sqlcmd
 
-      - name: Run SQL script
+      - name: Execute SQL Script
         env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
         run: |
-          sqlcmd -S "$SQL_SERVER" \
-                 -U "$SQL_USER" \
-                 -P "$SQL_PASSWORD" \
-                 -i DB-Cloud-Tunnel-LM/Deploy.sql
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -i DB-Cloud-Tunnel-LM/Deploy.sql
+```
