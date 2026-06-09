@@ -1,0 +1,11 @@
+CREATE DATABASE Deploy;
+GO
+
+USE Deploy
+GO
+
+CREATE TABLE TestTable (
+    ID INT PRIMARY KEY,
+    Name NVARCHAR(100)
+);
+GO

@@ -8,27 +8,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repo
+      
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Install SQL tools
+
       - name: Install SQL Server tools
         run: |
           sudo apt-get update
           sudo apt-get install -y mssql-tools unixodbc-dev
 
+      
+      - name: Install SQL tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mssql-tools unixodbc-dev
+          echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> $GITHUB_ENV
 
-      # 3. Run SQL script against remote SQL Server via Pinggy
-      - name: Execute SQL script
+      - name: Run SQL deployment script
         env:
-          SQL_HOST: ${{ secrets.SQL_HOST }}
-          SQL_PORT: ${{ secrets.SQL_PORT }}
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
         run: |
-          /opt/mssql-tools/bin/sqlcmd \
-            -S ${SQL_HOST},${SQL_PORT} \
-            -U ${SQL_USER} \
-            -P ${SQL_PASSWORD} \
-            -i DB-Cloud-Tunnel-LM/SQL-Deployment-Script.sql
+          sqlcmd -S "$SQL_SERVER" \
+                 -U "$SQL_USER" \
+                 -P "$SQL_PASSWORD" \
+                 -i DB-Cloud-Tunnel-LM/Deploy.sql

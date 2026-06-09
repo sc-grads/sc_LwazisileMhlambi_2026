@@ -25,8 +25,8 @@ Values (1, 'Lwazisile', 'Mhlambi', 'First')
 use master
 go
 
-if not exists (SELECT * FROM sys.server_principals WHERE name = 'SQLDeploy')
-create login SQLDeploy with Password = 'Guest123';
+if not exists (SELECT * FROM sys.server_principals WHERE name = 'automation_user')
+create login automation_user with Password = 'Guest123';
 go
 
 --Creating a Database User
@@ -34,7 +34,7 @@ use [DB-Cloud-Tunnels-LM]
 go
 
 IF NOT EXISTS (SELECT * FROM sys.database_principals WHERE name = 'automation_user')
-Create user automation_user for login SQLDeploy;
+Create user automation_user for login automation_user;
 go
 
 --Setting Permissions
@@ -44,3 +44,10 @@ create role Role_automated;
 grant select, insert on schema::dbo to Role_automated
 
 alter role Role_automated add member automation_user
+
+SELECT name, is_disabled
+FROM sys.server_principals
+WHERE name = 'SQLDeploy';
+
+SELECT @@SERVERNAME;
+
