@@ -1,75 +1,23 @@
 name: Deploy DB-Tunneling-Deploy
 
-on: 
+on:
   push:
 
 jobs:
-  notify-teams:
+
+  notify-local-approval:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Teams approval request
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d '{
-            "text": "Hey RUSHIL, yes you RUSHIL. I need you to approve bro🫂."
-          }' \
-          ${{ secrets.TEAMS_WEBHOOK }}
-
-  
-      - name: Local Deployment Approval Request
+      - name: Send Local Deployment Request
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-          \"text\": \"🟡 LOCAL DEPLOYMENT APPROVAL REQUIRED\\n\\nHey RUSHIL, yes you RUSHIL 🫂\\n\\nDatabase deployment is waiting for approval.\\n\\n👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
-
-      - name: Local Deployment Result
-        if: success()
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-          \"text\": \"🟢 LOCAL DEPLOYMENT SUCCESS\\n\\nDatabase deployed successfully on local SQL Server via tunnel.\\n\\nRun ID: ${{ github.run_id }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
-
-      - name: Local Deployment Failure
-        if: failure()
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-          \"text\": \"🔴 LOCAL DEPLOYMENT FAILED\\n\\nCheck GitHub Actions logs for details.\\n\\nRun ID: ${{ github.run_id }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
-
-      - name: Remote Deployment Approval Request
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-          \"text\": \"🟡 REMOTE DEPLOYMENT APPROVAL REQUIRED\\n\\nDatabase will be deployed to partner SQL Server.\\n\\n👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
-
-      - name: Remote Deployment Success
-        if: success()
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-          \"text\": \"🟢 REMOTE DEPLOYMENT SUCCESS\\n\\nDatabase successfully deployed to partner SQL Server.\\n\\nRun ID: ${{ github.run_id }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
-
-      - name: Remote Deployment Failure
-        if: failure()
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-          \"text\": \"🔴 REMOTE DEPLOYMENT FAILED\\n\\nPartner deployment encountered an error.\\n\\nRun ID: ${{ github.run_id }}\"
+            \"text\": \"🟡 LOCAL DEPLOYMENT REQUEST\\n\\nHey RUSHIL 🫂\\n\\nA deployment has been triggered. Please review GitHub Actions before approval.\\n\\n👉 Approval link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
 
   deploy-my-db:
-    needs: notify-teams
+    needs: notify-local-approval
     runs-on: ubuntu-latest
     environment: my-sql-server
 
@@ -84,35 +32,12 @@ jobs:
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
 
-      - name: Verify sqlcmd Installation
-        run: |
-          find /opt -name sqlcmd
-
-      - name: Deploy to MY SQL Server
+      - name: Deploy to Local SQL Server
         env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
         run: |
-          echo "Server is set? $([ -n "$SQL_SERVER" ] && echo YES || echo NO)"
-          echo "User is set? $([ -n "$SQL_USER" ] && echo YES || echo NO)"
-        
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -i DB-Cloud-Tunnel-LM/Deploy.sql
-   
-      - name: Execute SQL Script
-        env:
-          SQL_SERVER: ${{ secrets.SQL_SERVER }}
-          SQL_USER: ${{ secrets.SQL_USER }}
-          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
-        run: |
-          echo "Server is set? $([ -n "$SQL_SERVER" ] && echo YES || echo NO)"
-          echo "User is set? $([ -n "$SQL_USER" ] && echo YES || echo NO)"
-        
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
@@ -120,9 +45,39 @@ jobs:
             -C \
             -i DB-Cloud-Tunnel-LM/Deploy.sql
 
+      - name: Local Deployment Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🟢 LOCAL DEPLOYMENT SUCCESS\\n\\nDatabase deployed successfully to local SQL Server via tunnel.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+      - name: Local Deployment Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🔴 LOCAL DEPLOYMENT FAILED\\n\\nCheck GitHub Actions logs.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+
+  notify-remote-approval:
+    needs: deploy-my-db
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Remote Deployment Request
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🟡 REMOTE DEPLOYMENT REQUEST\\n\\nDatabase is ready for deployment to partner SQL Server.\\n\\n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
 
   deploy-partner-db:
-    needs: deploy-my-db
+    needs: notify-remote-approval
     runs-on: ubuntu-latest
     environment: rushil-sql-server
 
@@ -137,19 +92,12 @@ jobs:
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
 
-      - name: Verify sqlcmd Installation
-        run: |
-          find /opt -name sqlcmd
-
       - name: Deploy to Partner SQL Server
         env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
           SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
           SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
         run: |
-          echo "Server is set? $([ -n "$SQL_SERVER" ] && echo YES || echo NO)"
-          echo "User is set? $([ -n "$SQL_USER" ] && echo YES || echo NO)"
-        
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
@@ -157,3 +105,20 @@ jobs:
             -C \
             -i DB-Cloud-Tunnel-LM/Deploy.sql
 
+      - name: Remote Deployment Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🟢 REMOTE DEPLOYMENT SUCCESS\\n\\nDatabase deployed to partner SQL Server successfully.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+      - name: Remote Deployment Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🔴 REMOTE DEPLOYMENT FAILED\\n\\nPartner deployment failed.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
