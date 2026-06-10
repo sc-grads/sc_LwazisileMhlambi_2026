@@ -21,7 +21,7 @@ jobs:
             MESSAGE="🛫Push event in ${{ github.repository }} \n\n\nBy: ${{ github.actor }}\n\nCommit: ${{ github.event.head_commit.message }}
             \n\nLink: ${{ github.event.head_commit.url }}"
 
-          eliif [ "$EVENT_NAME" = "create" ] && [ "${{ github.event.ref_type }}" = "branch" ]; then
+          elif [ "$EVENT_NAME" = "create" ] && [ "${{ github.event.ref_type }}" = "branch" ]; then
             MESSAGE="🛫 Branch created in ${{ github.repository }} \n\n\nBranch: ${{ github.event.ref }} \n\n\nBy: ${{ github.actor }} 
             \n\n\nLink: https://github.com/${{ github.repository }}/tree/${{ github.event.ref }}"
           
