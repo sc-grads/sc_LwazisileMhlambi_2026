@@ -1,3 +1,9 @@
+--Resetting the connections
+ALTER DATABASE [DB-Cloud-Tunnels-LM]
+SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+GO
+
+
 DROP DATABASE IF EXISTS [DB-Cloud-Tunnels-LM];
 CREATE DATABASE [DB-Cloud-Tunnels-LM]
 GO
@@ -18,5 +24,8 @@ go
 
 -- Inserting Data
 Insert into tblTest (ID, FirstName, LastName, Position)
-Values (1, 'Lwazisile', 'Mhlambi', 'First');
+Values (1, 'Lwazisile', 'Mhlambi', 'First'),
+		(1, 'Lwazisile', 'Mhlambi', 'Second');
 GO
+
+select * from tblTest
