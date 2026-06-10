@@ -12,7 +12,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🟡 LOCAL DEPLOYMENT REQUEST\\n\\nHey RUSHIL 🫂\\n\\nA deployment has been triggered. Please review GitHub Actions before approval.\\n\\n👉 Approval link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            \"text\": \"🟡 LOCAL DEPLOYMENT REQUEST 🟡\\n\\nHey RUSHIL 🫂\\n\\nA deployment has been triggered. Please review GitHub Actions before approval.\\n\\n👉 Approval link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
 
@@ -50,7 +50,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🟢 LOCAL DEPLOYMENT SUCCESS\\n\\nDatabase deployed successfully to local SQL Server via tunnel.\\n\\nRun ID: ${{ github.run_id }}\"
+            \"text\": \"🟢 LOCAL DEPLOYMENT SUCCESS 🟢\\n\\nDatabase deployed successfully to local SQL Server via tunnel.\\n\\nRun ID: ${{ github.run_id }}\"
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
 
@@ -59,7 +59,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🔴 LOCAL DEPLOYMENT FAILED\\n\\nCheck GitHub Actions logs.\\n\\nRun ID: ${{ github.run_id }}\"
+            \"text\": \"🔴 LOCAL DEPLOYMENT FAILED\\n\\nCheck GitHub Actions logs. 🔴\\n\\nRun ID: ${{ github.run_id }}\"
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
 
@@ -72,7 +72,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🟡 REMOTE DEPLOYMENT REQUEST\\n\\nDatabase is ready for deployment to partner SQL Server.\\n\\n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            \"text\": \"🟡 REMOTE DEPLOYMENT REQUEST\\n\\nDatabase is ready for deployment to partner SQL Server. 🟡\\n\\n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
 
@@ -92,16 +92,16 @@ jobs:
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
 
-      - name: Deploy to Partner SQL Server
+      - name: Deploy to Rushil SQL Server
         env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
           SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
           SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
         run: |
           /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
+            -S "$RUSHIL_SQL_SERVER" \
+            -U "$RUSHIL_SQL_USER" \
+            -P "$RUSHIL_SQL_PASSWORD" \
             -C \
             -i DB-Cloud-Tunnel-LM/Deploy.sql
 
@@ -110,7 +110,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🟢 REMOTE DEPLOYMENT SUCCESS\\n\\nDatabase deployed to partner SQL Server successfully.\\n\\nRun ID: ${{ github.run_id }}\"
+            \"text\": \"🟢 REMOTE DEPLOYMENT SUCCESS 🟢\\n\\nDatabase deployed to partner SQL Server successfully.\\n\\nRun ID: ${{ github.run_id }}\"
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
 
@@ -119,6 +119,6 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🔴 REMOTE DEPLOYMENT FAILED\\n\\nPartner deployment failed.\\n\\nRun ID: ${{ github.run_id }}\"
+            \"text\": \"🔴 REMOTE DEPLOYMENT FAILED 🔴\\n\\nPartner deployment failed.\\n\\nRun ID: ${{ github.run_id }}\"
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
