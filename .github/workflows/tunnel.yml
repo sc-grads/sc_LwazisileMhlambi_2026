@@ -81,45 +81,57 @@ jobs:
     runs-on: windows-latest
     environment: rushil-sql-server
 
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install sqlcmd
+      - name: Verify sqlcmd Installation
+        shell: pwsh
         run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+          sqlcmd -?
 
       - name: Deploy to Rushil SQL Server
         shell: pwsh
         env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
-          SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
+          SQL_DATABASE: ${{ secrets.RUSHIL_SQL_DATABASE }}
           SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
           SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
         run: |
-          sqlcmd -S "$env:SQL_SERVER" `
-                 -d "$env:SQL_DATABASE" `
-                 -U "$env:SQL_USER" `
-                 -P "$env:SQL_PASSWORD" `
-                 -i "DB-Cloud-Tunnel-LM/Deploy.sql"
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -d "$env:SQL_DATABASE" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -i "DB-Cloud-Tunnel-LM/Deploy.sql"
 
       - name: Remote Deployment Success
         if: success()
+        shell: pwsh
         run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\": \"🟢 REMOTE DEPLOYMENT SUCCESS 🟢\\n\\nDatabase deployed to partner SQL Server successfully.\\n\\nRun ID: ${{ github.run_id }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
+          $body = @{
+           text = "🟢 REMOTE DEPLOYMENT SUCCESS 🟢`n`nDatabase deployed to partner SQL Server successfully.`n`nRun ID: ${{ github.run_id }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
 
       - name: Remote Deployment Failure
         if: failure()
+        shell: pwsh
         run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\": \"🔴 REMOTE DEPLOYMENT FAILED 🔴\\n\\nPartner deployment failed.\\n\\nRun ID: ${{ github.run_id }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
+          $body = @{
+            text = "🔴 REMOTE DEPLOYMENT FAILED 🔴`n`nPartner deployment failed.`n`nRun ID: ${{ github.run_id }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
+
