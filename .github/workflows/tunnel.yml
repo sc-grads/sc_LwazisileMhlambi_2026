@@ -92,7 +92,7 @@ jobs:
         shell: pwsh
         env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
-          SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
+          SQL_DATABASE: ${{ secrets.RUSHIL_SQL_DATABASE }}
           SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
           SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
         run: |
