@@ -78,32 +78,29 @@ jobs:
 
   deploy-partner-db:
     needs: notify-remote-approval
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     environment: rushil-sql-server
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install sqlcmd
-        run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+      - name: Install SQLCMD
+        run: choco install sqlcmd -y
 
       - name: Deploy to Rushil SQL Server
+        shell: pwsh
         env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
+          SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
           SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
           SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
         run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$RUSHIL_SQL_SERVER" \
-            -U "$RUSHIL_SQL_USER" \
-            -P "$RUSHIL_SQL_PASSWORD" \
-            -C \
-            -i DB-Cloud-Tunnel-LM/Deploy.sql
+          sqlcmd -S "$env:SQL_SERVER" `
+                 -d "$env:SQL_DATABASE" `
+                 -U "$env:SQL_USER" `
+                 -P "$env:SQL_PASSWORD" `
+                 -i "DB-Cloud-Tunnel-LM/Deploy.sql"
 
       - name: Remote Deployment Success
         if: success()
