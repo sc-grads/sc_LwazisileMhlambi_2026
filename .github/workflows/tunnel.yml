@@ -15,6 +15,60 @@ jobs:
           }' \
           ${{ secrets.TEAMS_WEBHOOK }}
 
+          n
+  
+      - name: Local Deployment Approval Request
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+          \"text\": \"🟡 LOCAL DEPLOYMENT APPROVAL REQUIRED\\n\\nHey RUSHIL, yes you RUSHIL 🫂\\n\\nDatabase deployment is waiting for approval.\\n\\n👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+      - name: Local Deployment Result
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+          \"text\": \"🟢 LOCAL DEPLOYMENT SUCCESS\\n\\nDatabase deployed successfully on local SQL Server via tunnel.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+      - name: Local Deployment Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+          \"text\": \"🔴 LOCAL DEPLOYMENT FAILED\\n\\nCheck GitHub Actions logs for details.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+      - name: Remote Deployment Approval Request
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+          \"text\": \"🟡 REMOTE DEPLOYMENT APPROVAL REQUIRED\\n\\nDatabase will be deployed to partner SQL Server.\\n\\n👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+      - name: Remote Deployment Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+          \"text\": \"🟢 REMOTE DEPLOYMENT SUCCESS\\n\\nDatabase successfully deployed to partner SQL Server.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+      - name: Remote Deployment Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+          \"text\": \"🔴 REMOTE DEPLOYMENT FAILED\\n\\nPartner deployment encountered an error.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
   deploy-my-db:
     needs: notify-teams
     runs-on: ubuntu-latest
