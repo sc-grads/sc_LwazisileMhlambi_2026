@@ -29,15 +29,13 @@ jobs:
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
         run: |
+          echo "Server is set? $([ -n "$SQL_SERVER" ] && echo YES || echo NO)"
+          echo "User is set? $([ -n "$SQL_USER" ] && echo YES || echo NO)"
+        
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
             -P "$SQL_PASSWORD" \
             -C \
             -i DB-Cloud-Tunnel-LM/Deploy.sql
-
-      - name: Debug connection (safe test)
-        run: |
-          echo "Server = $SQL_SERVER"
-          echo "User = $SQL_USER"
 
