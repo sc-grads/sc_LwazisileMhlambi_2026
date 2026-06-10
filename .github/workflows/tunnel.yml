@@ -4,18 +4,30 @@ on:
   push:
 
 jobs:
-  deploy:
+  notify-teams:
     runs-on: ubuntu-latest
+    steps:
+      - name: Send Teams approval request
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{
+            "text": "Hey RUSHIL, yes you RUSHIL. I need you to approve bro🫂."
+          }' \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+  deploy-my-db:
+    needs: notify-teams
+    runs-on: ubuntu-latest
+    environment: my-sql-server
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install SQL Server Tools
+      - name: Install sqlcmd
         run: |
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
 
@@ -23,11 +35,64 @@ jobs:
         run: |
           find /opt -name sqlcmd
 
+      - name: Deploy to MY SQL Server
+        env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+        run: |
+          echo "Server is set? $([ -n "$SQL_SERVER" ] && echo YES || echo NO)"
+          echo "User is set? $([ -n "$SQL_USER" ] && echo YES || echo NO)"
+        
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -i DB-Cloud-Tunnel-LM/Deploy.sql
+   
       - name: Execute SQL Script
         env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+        run: |
+          echo "Server is set? $([ -n "$SQL_SERVER" ] && echo YES || echo NO)"
+          echo "User is set? $([ -n "$SQL_USER" ] && echo YES || echo NO)"
+        
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -i DB-Cloud-Tunnel-LM/Deploy.sql
+
+
+  deploy-partner-db:
+    needs: deploy-my-db
+    runs-on: ubuntu-latest
+    environment: rushil-sql-server
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install sqlcmd
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+      - name: Verify sqlcmd Installation
+        run: |
+          find /opt -name sqlcmd
+
+      - name: Deploy to Partner SQL Server
+        env:
+          SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
+          SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
         run: |
           echo "Server is set? $([ -n "$SQL_SERVER" ] && echo YES || echo NO)"
           echo "User is set? $([ -n "$SQL_USER" ] && echo YES || echo NO)"
