@@ -15,7 +15,6 @@ jobs:
           }' \
           ${{ secrets.TEAMS_WEBHOOK }}
 
-          n
   
       - name: Local Deployment Approval Request
         run: |
