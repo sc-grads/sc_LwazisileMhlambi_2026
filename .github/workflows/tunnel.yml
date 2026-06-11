@@ -3,25 +3,23 @@ name: Deploy DB-Tunneling-Deploy
 on:
   push:
 
+env:
+  SQL_SCRIPT_PATH: ${{ vars.SQL_SCRIPT_PATH }}    
 jobs:
 
-  notify-local-approval:
+  Dev-Test:
     runs-on: ubuntu-latest
+    environment: ${{ vars.LOCAL_ENVIRONMENT }}
+
     steps:
       - name: Send Local Deployment Request
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-            \"text\": \"🟡 LOCAL DEPLOYMENT REQUEST 🟡\\n\\nHey RUSHIL 🫂\\n\\nA deployment has been triggered. Please review GitHub Actions before approval.\\n\\n👉 Approval link: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            \"text\": \"🟡 LOCAL DEPLOYMENT IN ACTION🟡\\n\\nHey RUSHIL 🫂\\n\\nA local deployment has been triggered."
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
 
-  deploy-my-db:
-    needs: notify-local-approval
-    runs-on: ubuntu-latest
-    environment: my-sql-server
-
-    steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -31,6 +29,7 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+      
 
       - name: Deploy to Local SQL Server
         env:
@@ -43,7 +42,7 @@ jobs:
             -U "$SQL_USER" \
             -P "$SQL_PASSWORD" \
             -C \
-            -i DB-Cloud-Tunnel-LM/Deploy.sql
+            -i "$SQL_SCRIPT_PATH"
 
       - name: Local Deployment Success
         if: success()
@@ -62,27 +61,28 @@ jobs:
             \"text\": \"🔴 LOCAL DEPLOYMENT FAILED\\n\\nCheck GitHub Actions logs. 🔴\\n\\nRun ID: ${{ github.run_id }}\"
           }" \
           ${{ secrets.TEAMS_WEBHOOK }}
+    
 
+  Production:
+    needs: Dev-Test
+    runs-on: windows-latest
+    environment: ${{ vars.REMOTE_ENVIRONMENT }}
 
-  notify-remote-approval:
-    needs: deploy-my-db
-    runs-on: ubuntu-latest
     steps:
       - name: Send Remote Deployment Request
+        shell: pwsh
         run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\": \"🟡 REMOTE DEPLOYMENT REQUEST\\n\\nDatabase is ready for deployment to partner SQL Server. 🟡\\n\\n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
+          @body = @ {
+            text = "🟡 REMOTE DEPLOYMENT REQUEST 🟡`n`nDatabase is ready for deployment to partner SQL Server. `n`n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          } | ConvertTo-Json
 
-  deploy-partner-db:
-    needs: notify-remote-approval
-    runs-on: windows-latest
-    environment: rushil-sql-server
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
 
-
-    steps:
+          
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -105,7 +105,7 @@ jobs:
             -U "$env:SQL_USER" `
             -P "$env:SQL_PASSWORD" `
             -C `
-            -i "DB-Cloud-Tunnel-LM/Deploy.sql"
+            -i "${{ env.SQL_SCRIPT_PATH }}"
 
       - name: Remote Deployment Success
         if: success()
