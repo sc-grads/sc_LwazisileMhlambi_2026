@@ -12,13 +12,6 @@ jobs:
     environment: ${{ vars.LOCAL_ENVIRONMENT }}
 
     steps:
-      - name: Send Local Deployment Request
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\": \"🟡 LOCAL DEPLOYMENT IN ACTION🟡\\n\\nHey RUSHIL 🫂\\n\\nA local deployment has been triggered."
-          }" \
-          ${{ secrets.TEAMS_WEBHOOK }}
 
       - name: Checkout Repository
         uses: actions/checkout@v4
