@@ -49,7 +49,6 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - run: curl TEAMS webhook (approval request)
       - name: Send Teams Approval Request
         if: ${{ inputs.approval_required == true }}
         run: |
@@ -71,6 +70,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      
 
       # =========================
       # LINUX SETUP
