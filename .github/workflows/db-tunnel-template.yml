@@ -21,11 +21,6 @@ on:
         required: true
         type: string
 
-      approval_required:
-        required: false
-        type: boolean
-        default: false
-
     secrets:
 
       SQL_USER:
@@ -46,20 +41,8 @@ on:
 
 jobs:
 
-  notify:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Teams Approval Request
-        if: ${{ inputs.approval_required == true }}
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\":\"🟡 APPROVAL REQUIRED 🟡\\n\\nDeployment: ${{ inputs.deployment_name }}\\n\\👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-          }" \
-          "${{ secrets.TEAMS_WEBHOOK }}"
 
   deploy:
-    needs: notify
 
     runs-on: ${{ inputs.runner }}
 
@@ -70,7 +53,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      
+      - name: Send Teams Approval Request
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\":\"🟡 APPROVAL REQUIRED 🟡\\n\\nDeployment: ${{ inputs.deployment_name }}\\n\\👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          }" \
+          "${{ secrets.TEAMS_WEBHOOK }}"
+
 
       # =========================
       # LINUX SETUP
