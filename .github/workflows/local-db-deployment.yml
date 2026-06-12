@@ -5,7 +5,7 @@ on:
 
 jobs:
 
-  deploy:
+  Dev:
     uses: ./.github/workflows/db-tunnel-template.yml
 
     with:

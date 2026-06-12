@@ -62,7 +62,7 @@ jobs:
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
-            \"text\":\"🟡 APPROVAL REQUIRED 🟡\\n\\nDeployment: ${{ inputs.deployment_name }}\\n\\n👉 Approve in GitHub Environments: ${{ inputs.environment }}\\n\\nRun ID: ${{ github.run_id }}\"
+            \"text\":\"🟡 APPROVAL REQUIRED 🟡\\n\\nDeployment: ${{ inputs.deployment_name }}\\n\\👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
           }" \
           "${{ secrets.TEAMS_WEBHOOK }}"
 
