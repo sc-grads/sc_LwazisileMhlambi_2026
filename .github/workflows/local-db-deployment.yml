@@ -10,7 +10,7 @@ jobs:
 
     with:
       deployment_name: LOCAL DEPLOYMENT
-      runner: ubuntu-latest
+      runner: windows-latest
       sql_file: ${{ vars.SQL_SCRIPT_PATH }}
       environment: ${{ vars.LOCAL_ENVIRONMENT }}
       

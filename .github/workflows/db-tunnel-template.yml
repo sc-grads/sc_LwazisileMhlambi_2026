@@ -54,34 +54,9 @@ jobs:
         uses: actions/checkout@v4
 
 
-      - name: Send Remote Teams Deployment Request
-        shell: pwsh
-        run: |
-          @body = @ {
-            text = "🟡 REMOTE DEPLOYMENT REQUEST 🟡`n`nDatabase is ready for deployment to partner SQL Server. `n`n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-          } | ConvertTo-Json
-
-          Invoke-RestMethod `
-           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
-           -Method Post `
-           -ContentType "application/json" `
-           -Body $body
-
-
-      # =========================
-      # LINUX SETUP
-      # =========================
-      - name: Install sqlcmd (Ubuntu)
-        if: ${{ inputs.runner == 'ubuntu-latest' }}
-        run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
-
-      # =========================
+      # --------------------------------
       # WINDOWS CHECK
-      # =========================
+      # --------------------------------
       - name: Verify sqlcmd Installation (Windows)
         if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
@@ -91,26 +66,19 @@ jobs:
       # =========================
       # START NOTIFICATION
       # =========================
-      - name: Deployment Started
+      - name: Send Remote Deployment Request
+        shell: pwsh
         run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\":\"🟡 ${{ inputs.deployment_name }} STARTED 🟡\"
-          }" \
-          "${{ secrets.TEAMS_WEBHOOK }}"
+          @body = @ {
+            text = "🟡 LOCAL/REMOTE DEPLOYMENT REQUEST 🟡`n`nDatabase is ready for deployment to partner SQL Server. `n`n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          } | ConvertTo-Json
 
-      # =========================
-      # DEPLOY (LINUX)
-      # =========================
-      - name: Deploy Database (Linux)
-        if: ${{ inputs.runner == 'ubuntu-latest' }}
-        run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "${{ secrets.SQL_SERVER }}" \
-            -U "${{ secrets.SQL_USER }}" \
-            -P "${{ secrets.SQL_PASSWORD }}" \
-            -C \
-            -i "${{ inputs.sql_file }}"
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
+
 
       # =========================
       # DEPLOY (WINDOWS)
@@ -130,23 +98,35 @@ jobs:
       # =========================
       # SUCCESS
       # =========================
-      - name: Deployment Success
+
+      - name: Remote Deployment Success
         if: success()
+        shell: pwsh
         run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\":\"🟢 ${{ inputs.deployment_name }} SUCCESS 🟢\n\nRun ID: ${{ github.run_id }}\"
-          }" \
-          "${{ secrets.TEAMS_WEBHOOK }}"
+          $body = @{
+           text = "🟢 REMOTE DEPLOYMENT SUCCESS 🟢`n`nDatabase deployed to partner SQL Server successfully.`n`nRun ID: ${{ github.run_id }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
+
 
       # =========================
       # FAILURE
       # =========================
-      - name: Deployment Failure
+      - name: Remote Deployment Failure
         if: failure()
+        shell: pwsh
         run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\":\"🔴 ${{ inputs.deployment_name }} FAILED 🔴\n\nRun ID: ${{ github.run_id }}\"
-          }" \
-          "${{ secrets.TEAMS_WEBHOOK }}"
+          $body = @{
+            text = "🔴 REMOTE DEPLOYMENT FAILED 🔴`n`nPartner deployment failed.`n`nRun ID: ${{ github.run_id }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
