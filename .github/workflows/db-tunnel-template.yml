@@ -17,6 +17,15 @@ on:
         required: true
         type: string
 
+      environment:
+        required: true
+        type: string
+
+      approval_required:
+        required: false
+        type: boolean
+        default: false
+
     secrets:
 
       SQL_USER:
@@ -41,10 +50,21 @@ jobs:
 
     runs-on: ${{ inputs.runner }}
 
+    environment: ${{ inputs.environment }}
+
     steps:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Send Teams Approval Request
+        if: ${{ inputs.approval_required == true }}
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\":\"🟡 APPROVAL REQUIRED 🟡\\n\\nDeployment: ${{ inputs.deployment_name }}\\n\\n👉 Approve in GitHub Environments: ${{ inputs.environment }}\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          "${{ secrets.TEAMS_WEBHOOK }}"
 
       # =========================
       # LINUX SETUP

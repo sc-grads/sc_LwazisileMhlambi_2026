@@ -12,6 +12,7 @@ jobs:
       deployment_name: LOCAL DEPLOYMENT
       runner: ubuntu-latest
       sql_file: ${{ vars.SQL_SCRIPT_PATH }}
+      environment: ${{ vars.LOCAL_ENVIRONMENT }}
       
 
     secrets:
