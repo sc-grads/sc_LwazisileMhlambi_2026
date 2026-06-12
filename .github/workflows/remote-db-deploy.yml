@@ -12,7 +12,7 @@ jobs:
 
     with:
       deployment_name: REMOTE DEPLOYMENT
-      runner: windows-latest
+      runner: ubuntu-latest
       sql_file: ${{ vars.SQL_SCRIPT_PATH }}
       environment: ${{ vars.REMOTE_ENVIRONMENT }}
 
