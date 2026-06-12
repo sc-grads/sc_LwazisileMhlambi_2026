@@ -17,8 +17,6 @@ on:
         required: true
         type: string
 
-      
-
     secrets:
 
       SQL_USER:
@@ -36,6 +34,7 @@ on:
       SQL_DATABASE:
         required: false
 
+
 jobs:
 
   deploy:
@@ -47,22 +46,30 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # =========================
+      # LINUX SETUP
+      # =========================
       - name: Install sqlcmd (Ubuntu)
-        if: runner.os == 'Linux'
+        if: ${{ inputs.runner == 'ubuntu-latest' }}
         run: |
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
 
+      # =========================
+      # WINDOWS CHECK
+      # =========================
       - name: Verify sqlcmd Installation (Windows)
-        if: runner.os == 'Windows'
+        if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
         run: |
           sqlcmd -?
 
+      # =========================
+      # START NOTIFICATION
+      # =========================
       - name: Deployment Started
-        if: runner.os == 'Linux'
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
@@ -70,44 +77,39 @@ jobs:
           }" \
           "${{ secrets.TEAMS_WEBHOOK }}"
 
-      - name: Deployment Started (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $body = @{
-            text = "🟡 ${{ inputs.deployment_name }} STARTED 🟡"
-          } | ConvertTo-Json
-
-          Invoke-RestMethod `
-            -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
-            -Method Post `
-            -ContentType "application/json" `
-            -Body $body
-
+      # =========================
+      # DEPLOY (LINUX)
+      # =========================
       - name: Deploy Database (Linux)
-        if: runner.os == 'Linux'
+        if: ${{ inputs.runner == 'ubuntu-latest' }}
         run: |
           /opt/mssql-tools18/bin/sqlcmd \
-            -S "${{ inputs.server }}" \
+            -S "${{ secrets.SQL_SERVER }}" \
             -U "${{ secrets.SQL_USER }}" \
             -P "${{ secrets.SQL_PASSWORD }}" \
             -C \
             -i "${{ inputs.sql_file }}"
 
+      # =========================
+      # DEPLOY (WINDOWS)
+      # =========================
       - name: Deploy Database (Windows)
-        if: runner.os == 'Windows'
+        if: ${{ inputs.runner == 'windows-latest' }}
         shell: pwsh
         run: |
           sqlcmd `
-            -S "${{ inputs.server }}" `
-            -d "${{ inputs.database }}" `
+            -S "${{ secrets.SQL_SERVER }}" `
+            -d "${{ secrets.SQL_DATABASE }}" `
             -U "${{ secrets.SQL_USER }}" `
             -P "${{ secrets.SQL_PASSWORD }}" `
             -C `
             -i "${{ inputs.sql_file }}"
 
+      # =========================
+      # SUCCESS
+      # =========================
       - name: Deployment Success
-        if: success() && runner.os == 'Linux'
+        if: success()
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
@@ -115,39 +117,14 @@ jobs:
           }" \
           "${{ secrets.TEAMS_WEBHOOK }}"
 
-      - name: Deployment Success (Windows)
-        if: success() && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $body = @{
-            text = "🟢 ${{ inputs.deployment_name }} SUCCESS 🟢`n`nRun ID: ${{ github.run_id }}"
-          } | ConvertTo-Json
-
-          Invoke-RestMethod `
-            -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
-            -Method Post `
-            -ContentType "application/json" `
-            -Body $body
-
+      # =========================
+      # FAILURE
+      # =========================
       - name: Deployment Failure
-        if: failure() && runner.os == 'Linux'
+        if: failure()
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
             \"text\":\"🔴 ${{ inputs.deployment_name }} FAILED 🔴\n\nRun ID: ${{ github.run_id }}\"
           }" \
           "${{ secrets.TEAMS_WEBHOOK }}"
-
-      - name: Deployment Failure (Windows)
-        if: failure() && runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $body = @{
-            text = "🔴 ${{ inputs.deployment_name }} FAILED 🔴`n`nRun ID: ${{ github.run_id }}"
-          } | ConvertTo-Json
-
-          Invoke-RestMethod `
-            -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
-            -Method Post `
-            -ContentType "application/json" `
-            -Body $body
