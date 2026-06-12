@@ -50,6 +50,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: curl TEAMS webhook (approval request)
+      - name: Send Teams Approval Request
+        if: ${{ inputs.approval_required == true }}
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\":\"🟡 APPROVAL REQUIRED 🟡\\n\\nDeployment: ${{ inputs.deployment_name }}\\n\\👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          }" \
+          "${{ secrets.TEAMS_WEBHOOK }}"
 
   deploy:
     needs: notify
@@ -63,14 +71,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Send Teams Approval Request
-        if: ${{ inputs.approval_required == true }}
-        run: |
-          curl -H "Content-Type: application/json" \
-          -d "{
-            \"text\":\"🟡 APPROVAL REQUIRED 🟡\\n\\nDeployment: ${{ inputs.deployment_name }}\\n\\👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-          }" \
-          "${{ secrets.TEAMS_WEBHOOK }}"
 
       # =========================
       # LINUX SETUP
