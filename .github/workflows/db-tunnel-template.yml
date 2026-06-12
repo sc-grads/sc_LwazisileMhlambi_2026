@@ -53,13 +53,28 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Send Teams Approval Request
+      - name: Send Remote Teams Approval Request
+        if: ${{ inputs.runner == 'ubuntu-latest' }}
         run: |
           curl -H "Content-Type: application/json" \
           -d "{
             \"text\":\"🟡 APPROVAL REQUIRED 🟡\\n\\nDeployment: ${{ inputs.deployment_name }}\\n\\👉 Approve here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
           }" \
           "${{ secrets.TEAMS_WEBHOOK }}"
+
+      - name: Send Remote Teams Deployment Request
+        if: ${{ inputs.runner == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          @body = @ {
+            text = "🟡 REMOTE DEPLOYMENT REQUEST 🟡`n`nDatabase is ready for deployment to partner SQL Server. `n`n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
 
 
       # =========================
