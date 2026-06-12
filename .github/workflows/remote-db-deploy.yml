@@ -15,6 +15,7 @@ jobs:
       runner: windows-latest
       sql_file: ${{ vars.SQL_SCRIPT_PATH }}
       environment: ${{ vars.REMOTE_ENVIRONMENT }}
+      approval_required: true
 
     secrets:
       SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
@@ -22,3 +23,5 @@ jobs:
       TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
       SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
       SQL_DATABASE: ${{ secrets.RUSHIL_SQL_DATABASE }}
+
+  
