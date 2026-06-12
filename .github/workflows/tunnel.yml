@@ -1,7 +1,7 @@
 name: Deploy DB-Tunneling-Deploy
 
 on:
-  push:
+  pull_request:
 
 env:
   SQL_SCRIPT_PATH: ${{ vars.SQL_SCRIPT_PATH }}    

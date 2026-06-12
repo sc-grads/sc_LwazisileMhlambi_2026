@@ -1,0 +1,19 @@
+name: Local Deployment
+
+on:
+  push:
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/db-tunnel-template.yml
+
+    with:
+      database_name: DB-Cloud-Tunnels-LM
+      sql_file: ${{ vars.SQL_SCRIPT_PATH }}
+      server: ${{ secrets.RUSHIL_SQL_DATABASE }}
+
+    secrets:
+      SQL_USERNAME: ${{ secrets.RUSHIL_SQL_USER }}
+      SQL_PARTNER_DATABASE: ${{ secrets.RUSHIL_SQL_DATABASE }}
+      SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
+      TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}

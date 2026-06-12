@@ -1,0 +1,65 @@
+name: Reusable SQL Deployment
+
+on:
+  workflow_call:
+  
+    inputs:
+      database_name:
+        required: true
+        type: string
+    
+      sql_file:
+        required: true
+        type: string
+      
+      server:
+        required: true
+        type: string
+    
+    secrets:
+      SQL_USER:
+        required: true
+      
+      SQL_PASSWORD:
+        required: true
+    
+      SQL_SERVER:
+        required: true
+    
+      TEAMS_WEBHOOK:
+        required: true
+
+      PARTNER_SQL_DATABASE:
+        required: true
+
+jobs:
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Install SQLCMD
+        run: |
+          sudo ACCEPT_EULA=Y apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+      - name: Notify Teams
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\":\"Deployment started for ${{ inputs.database_name }}\"
+          }" \
+          "${{ secrets.TEAMS_WEBHOOK }}"
+
+      - name: Deploy Database
+        run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "${{ inputs.server }}" \
+            -U "${{ secrets.SQL_USERNAME }}" \
+            -P "${{ secrets.SQL_PASSWORD }}" \
+            -C \
+            -i "${{ inputs.sql_file }}"
+
