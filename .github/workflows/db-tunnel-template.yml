@@ -17,13 +17,7 @@ on:
         required: true
         type: string
 
-      server:
-        required: true
-        type: string
-
-      database:
-        required: false
-        type: string
+      
 
     secrets:
 
@@ -35,6 +29,12 @@ on:
 
       TEAMS_WEBHOOK:
         required: true
+
+      SQL_SERVER:
+        required: true
+
+      SQL_DATABASE:
+        required: false
 
 jobs:
 

@@ -13,11 +13,9 @@ jobs:
       runner: windows-latest
       sql_file: ${{ vars.SQL_SCRIPT_PATH }}
 
-      server: ${{ secrets.RUSHIL_SQL_SERVER }}
-
-      database: ${{ secrets.RUSHIL_SQL_DATABASE }}
-
     secrets:
       SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
       SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
       TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
+      SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
+      SQL_DATABASE: ${{ secrets.RUSHIL_SQL_DATABASE }}
