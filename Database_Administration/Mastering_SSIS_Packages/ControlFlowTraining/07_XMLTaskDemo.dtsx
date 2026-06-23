@@ -11,24 +11,158 @@
   DTS:LocaleID="7177"
   DTS:ObjectName="Package1"
   DTS:PackageType="5"
-  DTS:VersionBuild="1"
-  DTS:VersionGUID="{2129FBB8-4F09-4FFF-BC9F-8781D2823BA1}">
+  DTS:VersionBuild="6"
+  DTS:VersionGUID="{8FF15BE9-28C4-4DA9-BD9A-AAA94BDDDF43}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
+  <DTS:ConnectionManagers>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[Inventory.xml]"
+      DTS:CreationName="FILE"
+      DTS:DTSID="{2ED04EDC-B89D-4048-8E2C-9FF761471F16}"
+      DTS:ObjectName="Inventory.xml">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectionString="C:\sc_LwazisileMhlambi_2026\Database_Administration\Mastering_SSIS_Packages\SSISDemoFiles\ssisdemofiles\Inventory.xml" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[m1.xml]"
+      DTS:CreationName="FILE"
+      DTS:DTSID="{33DDCD6F-ABAC-4D74-B42B-39E54DA3E680}"
+      DTS:ObjectName="m1.xml">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectionString="C:\sc_LwazisileMhlambi_2026\Database_Administration\Mastering_SSIS_Packages\SSISDemoFiles\ssisdemofiles\m1.xml" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[m2.xml]"
+      DTS:CreationName="FILE"
+      DTS:DTSID="{BDE77F05-C53A-43DF-A5E9-0DC5812B9E31}"
+      DTS:ObjectName="m2.xml">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:ConnectionString="C:\sc_LwazisileMhlambi_2026\Database_Administration\Mastering_SSIS_Packages\SSISDemoFiles\ssisdemofiles\m2.xml" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[m3.xml]"
+      DTS:CreationName="FILE"
+      DTS:DTSID="{2B0388D3-E3D6-4D04-A967-1EF9960F244B}"
+      DTS:ObjectName="m3.xml">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:FileUsageType="1"
+          DTS:ConnectionString="C:\sc_LwazisileMhlambi_2026\Database_Administration\Mastering_SSIS_Packages\SSISDemoFiles\m3.xml" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[NodeOutput.txt]"
+      DTS:CreationName="FILE"
+      DTS:DTSID="{E7C3FFFA-3A56-45CA-8299-38B6C60751D2}"
+      DTS:ObjectName="NodeOutput.txt">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:FileUsageType="1"
+          DTS:ConnectionString="C:\sc_LwazisileMhlambi_2026\Database_Administration\Mastering_SSIS_Packages\SSISDemoFiles\NodeOutput.txt" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+    <DTS:ConnectionManager
+      DTS:refId="Package.ConnectionManagers[ValuesDemo.txt]"
+      DTS:CreationName="FILE"
+      DTS:DTSID="{70F67812-C8EB-4EBA-8385-961F4F7FC170}"
+      DTS:ObjectName="ValuesDemo.txt">
+      <DTS:ObjectData>
+        <DTS:ConnectionManager
+          DTS:FileUsageType="1"
+          DTS:ConnectionString="C:\sc_LwazisileMhlambi_2026\Database_Administration\Mastering_SSIS_Packages\SSISDemoFiles\ValuesDemo.txt" />
+      </DTS:ObjectData>
+    </DTS:ConnectionManager>
+  </DTS:ConnectionManagers>
   <DTS:Variables />
   <DTS:Executables>
     <DTS:Executable
-      DTS:refId="Package\XML Task 1"
+      DTS:refId="Package\Nodes Demo"
+      DTS:CreationName="Microsoft.XMLTask"
+      DTS:Description="XML Task"
+      DTS:DTSID="{A3CA1DC3-E1CC-4B1C-865C-46F58CDBE0F5}"
+      DTS:ExecutableType="Microsoft.XMLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Nodes Demo"
+      DTS:TaskContact="XML Task; Microsoft Corporation; SQL Server 2025; � 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="2">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <XMLTaskData
+          OperationType="XPATH"
+          Source="Inventory.xml"
+          SecondOperand="/bookstore/book/author/first-name"
+          SaveOperationResult="True"
+          Destination="NodeOutput.txt"
+          XPathOperation="NodeList"
+          PutResultInOneNode="True" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\Values"
+      DTS:CreationName="Microsoft.XMLTask"
+      DTS:Description="XML Task"
+      DTS:DTSID="{02F71B9B-4843-4040-85B2-D6C1B4930DE2}"
+      DTS:ExecutableType="Microsoft.XMLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="Values"
+      DTS:TaskContact="XML Task; Microsoft Corporation; SQL Server 2025; � 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="0">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <XMLTaskData
+          OperationType="XPATH"
+          Source="Inventory.xml"
+          SecondOperand="//author[first-name=&quot;Toni&quot; and last-name=&quot;Bob&quot;]"
+          SaveOperationResult="True"
+          Destination="ValuesDemo.txt"
+          OverwriteDestination="True"
+          XPathOperation="Values"
+          PutResultInOneNode="True" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\XML Task"
+      DTS:CreationName="Microsoft.XMLTask"
+      DTS:Description="XML Task"
+      DTS:DTSID="{9D6BFC7E-47B1-49C0-BFF9-6D84C84DB06C}"
+      DTS:ExecutableType="Microsoft.XMLTask"
+      DTS:LocaleID="-1"
+      DTS:ObjectName="XML Task"
+      DTS:TaskContact="XML Task; Microsoft Corporation; SQL Server 2025; � 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
+      DTS:ThreadHint="3">
+      <DTS:Variables />
+      <DTS:ObjectData>
+        <XMLTaskData
+          OperationType="Merge"
+          Source="m1.xml"
+          SecondOperandType="FileConnection"
+          SecondOperand="m2.xml"
+          SaveOperationResult="True"
+          Destination="m3.xml" />
+      </DTS:ObjectData>
+    </DTS:Executable>
+    <DTS:Executable
+      DTS:refId="Package\XPATH Evaluation"
       DTS:CreationName="Microsoft.XMLTask"
       DTS:Description="XML Task"
       DTS:DTSID="{1D7E6471-5F13-4CAD-B07A-121D410991E3}"
       DTS:ExecutableType="Microsoft.XMLTask"
       DTS:LocaleID="-1"
-      DTS:ObjectName="XML Task 1"
+      DTS:ObjectName="XPATH Evaluation"
       DTS:TaskContact="XML Task; Microsoft Corporation; SQL Server 2025; � 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="1">
       <DTS:Variables />
-      <DTS:ObjectData />
+      <DTS:ObjectData>
+        <XMLTaskData
+          OperationType="XPATH" />
+      </DTS:ObjectData>
     </DTS:Executable>
   </DTS:Executables>
   <DTS:DesignTimeProperties><![CDATA[<?xml version="1.0"?>
@@ -44,9 +178,21 @@
       <GraphLayout
         Capacity="4" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph">
         <NodeLayout
-          Size="133.6,41.6"
-          Id="Package\XML Task 1"
-          TopLeft="186.66665646765,122.199999150237" />
+          Size="164.8,41.6"
+          Id="Package\XPATH Evaluation"
+          TopLeft="91.6666616582208,60.6666662447988" />
+        <NodeLayout
+          Size="139.2,41.6"
+          Id="Package\Nodes Demo"
+          TopLeft="102.499994399647,136.066665720476" />
+        <NodeLayout
+          Size="110.4,41.6"
+          Id="Package\Values"
+          TopLeft="97.4999946728351,191.533332001434" />
+        <NodeLayout
+          Size="124.8,41.6"
+          Id="Package\XML Task"
+          TopLeft="228.333320857751,246.999998282393" />
       </GraphLayout>
     </LayoutInfo>
   </Package>
