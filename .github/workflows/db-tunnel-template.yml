@@ -1,0 +1,151 @@
+name: Reusable SQL Deployment
+
+on:
+  workflow_call:
+
+    inputs:
+
+      deployment_name:
+        required: true
+        type: string
+
+      sql_file:
+        required: true
+        type: string
+
+      runner:
+        required: true
+        type: string
+
+      environment:
+        required: true
+        type: string
+
+    secrets:
+
+      SQL_USER:
+        required: true
+
+      SQL_PASSWORD:
+        required: true
+
+      TEAMS_WEBHOOK:
+        required: true
+
+      SQL_SERVER:
+        required: true
+
+      SQL_DATABASE:
+        required: false
+
+
+jobs:
+
+  deploy:
+
+    runs-on: ${{ inputs.runner }}
+
+    environment: ${{ inputs.environment }}
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # =========================
+      # INSTALL SQLCMD (LINUX ONLY)
+      # =========================
+      - name: Install sqlcmd (Ubuntu)
+        if: ${{ inputs.runner == 'ubuntu-latest' }}
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+      # =========================
+      # VERIFY SQLCMD (WINDOWS ONLY)
+      # =========================
+      - name: Verify sqlcmd Installation (Windows)
+        if: ${{ inputs.runner == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          sqlcmd -?
+
+      # =========================
+      # START NOTIFICATION (UNIVERSAL)
+      # =========================
+      - name: Deployment Started
+        shell: pwsh
+        run: |
+          $body = @{
+            text = "🟡 ${{ inputs.deployment_name }} STARTED 🟡"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+            -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+            -Method Post `
+            -ContentType "application/json" `
+            -Body $body
+
+      # =========================
+      # DEPLOY (LINUX)
+      # =========================
+      - name: Deploy Database (Linux)
+        if: ${{ inputs.runner == 'ubuntu-latest' }}
+        run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "${{ secrets.SQL_SERVER }}" \
+            -U "${{ secrets.SQL_USER }}" \
+            -P "${{ secrets.SQL_PASSWORD }}" \
+            -C \
+            -i "${{ inputs.sql_file }}"
+
+      # =========================
+      # DEPLOY (WINDOWS)
+      # =========================
+      - name: Deploy Database (Windows)
+        if: ${{ inputs.runner == 'windows-latest' }}
+        shell: pwsh
+        run: |
+          sqlcmd `
+            -S "${{ secrets.SQL_SERVER }}" `
+            -d "${{ secrets.SQL_DATABASE }}" `
+            -U "${{ secrets.SQL_USER }}" `
+            -P "${{ secrets.SQL_PASSWORD }}" `
+            -C `
+            -i "${{ inputs.sql_file }}"
+
+      # =========================
+      # SUCCESS NOTIFICATION
+      # =========================
+      - name: Deployment Success
+        if: success()
+        shell: pwsh
+        run: |
+          $body = @{
+            text = "🟢 ${{ inputs.deployment_name }} SUCCESS 🟢`nRun ID: ${{ github.run_id }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+            -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+            -Method Post `
+            -ContentType "application/json" `
+            -Body $body
+
+      # =========================
+      # FAILURE NOTIFICATION
+      # =========================
+      - name: Deployment Failure
+        if: failure()
+        shell: pwsh
+        run: |
+          $body = @{
+            text = "🔴 ${{ inputs.deployment_name }} FAILED 🔴`nRun ID: ${{ github.run_id }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+            -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+            -Method Post `
+            -ContentType "application/json" `
+            -Body $body

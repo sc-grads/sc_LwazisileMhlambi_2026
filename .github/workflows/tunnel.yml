@@ -1,41 +1,130 @@
 name: Deploy DB-Tunneling-Deploy
 
-on: 
-  push:
+on:
+  pull_request:
 
+env:
+  SQL_SCRIPT_PATH: ${{ vars.SQL_SCRIPT_PATH }}    
 jobs:
-  deploy:
+
+  Dev-Test:
     runs-on: ubuntu-latest
+    environment: ${{ vars.LOCAL_ENVIRONMENT }}
 
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install SQL Server Tools
+      - name: Install sqlcmd
         run: |
           curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+      
 
-      - name: Verify sqlcmd Installation
-        run: |
-          find /opt -name sqlcmd
-
-      - name: Execute SQL Script
+      - name: Deploy to Local SQL Server
         env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
         run: |
-          echo "Server is set? $([ -n "$SQL_SERVER" ] && echo YES || echo NO)"
-          echo "User is set? $([ -n "$SQL_USER" ] && echo YES || echo NO)"
-        
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
             -P "$SQL_PASSWORD" \
             -C \
-            -i DB-Cloud-Tunnel-LM/Deploy.sql
+            -i "$SQL_SCRIPT_PATH"
+
+      - name: Local Deployment Success
+        if: success()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🟢 LOCAL DEPLOYMENT SUCCESS 🟢\\n\\nDatabase deployed successfully to local SQL Server via tunnel.\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+
+      - name: Local Deployment Failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d "{
+            \"text\": \"🔴 LOCAL DEPLOYMENT FAILED\\n\\nCheck GitHub Actions logs. 🔴\\n\\nRun ID: ${{ github.run_id }}\"
+          }" \
+          ${{ secrets.TEAMS_WEBHOOK }}
+    
+
+  Production:
+    needs: Dev-Test
+    runs-on: windows-latest
+    environment: ${{ vars.REMOTE_ENVIRONMENT }}
+
+    steps:
+      - name: Send Remote Deployment Request
+        shell: pwsh
+        run: |
+          @body = @ {
+            text = "🟡 REMOTE DEPLOYMENT REQUEST 🟡`n`nDatabase is ready for deployment to partner SQL Server. `n`n👉 Review here: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
+
+          
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Verify sqlcmd Installation
+        shell: pwsh
+        run: |
+          sqlcmd -?
+
+      - name: Deploy to Rushil SQL Server
+        shell: pwsh
+        env:
+          SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
+          SQL_DATABASE: ${{ secrets.RUSHIL_SQL_DATABASE }}
+          SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
+        run: |
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -d "$env:SQL_DATABASE" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -i "${{ env.SQL_SCRIPT_PATH }}"
+
+      - name: Remote Deployment Success
+        if: success()
+        shell: pwsh
+        run: |
+          $body = @{
+           text = "🟢 REMOTE DEPLOYMENT SUCCESS 🟢`n`nDatabase deployed to partner SQL Server successfully.`n`nRun ID: ${{ github.run_id }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
+
+      - name: Remote Deployment Failure
+        if: failure()
+        shell: pwsh
+        run: |
+          $body = @{
+            text = "🔴 REMOTE DEPLOYMENT FAILED 🔴`n`nPartner deployment failed.`n`nRun ID: ${{ github.run_id }}"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod `
+           -Uri "${{ secrets.TEAMS_WEBHOOK }}" `
+           -Method Post `
+           -ContentType "application/json" `
+           -Body $body
 
