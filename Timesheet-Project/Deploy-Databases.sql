@@ -79,18 +79,27 @@ FailedData varchar(max)
 drop table if exists tblAuditLog
 
 create table tblAuditLog (
-LogID int Identity(1,1) Primary Key,
-EventDate datetime default getdate(),
-EventType varchar(50),
-TableName varchar(100),
-Details varchar(max),
-UserName varchar(100)
+AuditID INT IDENTITY(1,1) PRIMARY KEY,
+PackageName NVARCHAR(255),
+TaskName NVARCHAR(255),
+FilePath NVARCHAR(500),
+SheetName NVARCHAR(255),
+SheetType NVARCHAR(50),
+RowsInserted INT,
+RowsUpdated INT,
+RowsDeleted INT,
+StatusCode NVARCHAR(50),  -- SUCCESS, FAILURE, SKIPPED
+ErrorMessage NVARCHAR(MAX),
+ExecutionStart DATETIME,
+ExecutionEnd DATETIME,
+LoadedAt DATETIME DEFAULT GETDATE()
 );
 
 --Creating Staging Table
 drop table if exists tblStagingTimesheet
 
 CREATE TABLE tblStagingTimesheet (
+StagingID INT IDENTITY(1,1) PRIMARY KEY,
 DateValue NVARCHAR(255),
 DOfWeek NVARCHAR(255),
 Client NVARCHAR(255),
@@ -102,10 +111,59 @@ TotalHours NVARCHAR(255),
 StartTime NVARCHAR(255),
 EndTime NVARCHAR(255),
 SheetName VARCHAR(255),
-FilePath VARCHAR(max)
+FilePath TEXT,
+LoadedAt DATETIME DEFAULT GETDATE()
+);
+
+drop table if exists tblStagingExpenseClaim
+
+CREATE TABLE tblStagingExpenseClaim (
+StagingID INT IDENTITY(1,1) PRIMARY KEY,
+Mnth NVARCHAR(255),
+ExpenseDescription NVARCHAR(255),
+TypeDescription NVARCHAR(255),
+ZarCost NVARCHAR(255),
+SheetName VARCHAR(255),
+FilePath TEXT,
+LoadedAt DATETIME DEFAULT GETDATE()
+);
+
+drop table if exists tblStagingLeave
+
+CREATE TABLE tblStagingLeave (
+StagingID INT IDENTITY(1,1) PRIMARY KEY,
+LeaveType NVARCHAR(255),
+StartDate NVARCHAR(255),
+EndDate NVARCHAR(255),
+NumDays NVARCHAR(255),
+SickNote NVARCHAR(255),
+ApprovalObtained NVARCHAR(255),
+SheetName VARCHAR(255),
+FilePath TEXT,
+LoadedAt DATETIME DEFAULT GETDATE()
+);
+
+drop table if exists tblStagingKey
+
+CREATE TABLE tblStagingKey (
+StagingID INT IDENTITY(1,1) PRIMARY KEY,
+Client NVARCHAR(255),   
+WorkType NVARCHAR(255),   
+Description NVARCHAR(255),   
+Resource NVARCHAR(255),   
+Billable NVARCHAR(255),   
+SheetName VARCHAR(255),
+FilePath TEXT,
+LoadedAt DATETIME DEFAULT GETDATE()
 );
 
 truncate table tblStagingTimesheet
+truncate table tblStagingLeave
+truncate table tblStagingExpenseClaim
+
 select * from tblStagingTimesheet
+select * from tblStagingLeave
+select * from tblStagingExpenseClaim
+
 
 
