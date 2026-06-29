@@ -43,15 +43,14 @@ jobs:
     - name: Build SSIS Project
       shell: powershell
       run: |
-        $project = "${{ github.workspace }}\Timesheet Project\Timesheet Project.dtproj"
+        $project = "${{ github.workspace }}\Timesheet-Project\Timesheet Project\Timesheet Project.dtproj"
         msbuild $project /p:Configuration=Release
 
     - name: Upload ISPAC
       uses: actions/upload-artifact@v4
       with:
         name: SSISPackage
-        path: |
-          ./Timesheet Project/bin/Release/*.ispac
+        path: ./Timesheet-Project/Timesheet Project/bin/Release/*.ispac
 
   deploy:
 
