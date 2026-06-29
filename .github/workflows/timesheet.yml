@@ -15,41 +15,42 @@ jobs:
 
   deploy:
 
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
 
     - name: Checkout Repository
       uses: actions/checkout@v4
 
+    - name: Install sqlcmd
+      run: |
+        curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+        curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+        sudo apt-get update
+        sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+        echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
+        source ~/.bashrc
+
     - name: Verify sqlcmd Installation
-      shell: pwsh
-      run: sqlcmd -?
+      run: /opt/mssql-tools18/bin/sqlcmd -?
 
     - name: Deploy Database
-      shell: pwsh
       run: |
-        $params = @(
-          "-S", "${{ secrets.SQL_SERVER }}",
-          "-U", "${{ secrets.SQL_USER }}",
-          "-P", "${{ secrets.SQL_PASSWORD }}",
-          "-i", "${{ env.SQL_SCRIPT }}",
-          "-C"
-        )
-        sqlcmd @params
+        /opt/mssql-tools18/bin/sqlcmd \
+          -S "${{ secrets.SQL_SERVER }}" \
+          -U "${{ secrets.SQL_USER }}" \
+          -P "${{ secrets.SQL_PASSWORD }}" \
+          -i "${{ env.SQL_SCRIPT }}" \
+          -C
 
     - name: Run SSIS Job
-      shell: pwsh
       run: |
-        $params = @(
-          "-S", "${{ secrets.SQL_SERVER }}",
-          "-U", "${{ secrets.SQL_USER }}",
-          "-P", "${{ secrets.SQL_PASSWORD }}",
-          "-i", "${{ env.SSIS_JOB_SCRIPT }}",
-          "-C"
-        )
-        sqlcmd @params
+        /opt/mssql-tools18/bin/sqlcmd \
+          -S "${{ secrets.SQL_SERVER }}" \
+          -U "${{ secrets.SQL_USER }}" \
+          -P "${{ secrets.SQL_PASSWORD }}" \
+          -i "${{ env.SSIS_JOB_SCRIPT }}" \
+          -C
 
     - name: Verify Deployment
-      shell: pwsh
       run: echo "Deployment Complete"
