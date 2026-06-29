@@ -34,7 +34,6 @@ jobs:
           -S "${{ secrets.SQL_SERVER }}" `
           -U "${{ secrets.SQL_USER }}" `
           -P "${{ secrets.SQL_PASSWORD }}" `
-          -C `
           -i "${{ env.SQL_SCRIPT }}" 
         
         
@@ -46,7 +45,6 @@ jobs:
           -S "${{ secrets.SQL_SERVER }}" `
           -U "${{ secrets.SQL_USER }}" `
           -P "${{ secrets.SQL_PASSWORD }}" `
-          -C `
           -i "${{ env.SSIS_JOB_SCRIPT }}" 
         
 
