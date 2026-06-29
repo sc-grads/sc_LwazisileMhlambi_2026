@@ -24,11 +24,17 @@ jobs:
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
+      
+    - name: Debug - Show workspace
+      shell: powershell
+      run: |
+        echo "Workspace: ${{ github.workspace }}"
+        Get-ChildItem "${{ github.workspace }}" -Recurse -Filter "*.dtproj"
 
     - name: Build SSIS Project
       shell: powershell
       run: |
-        $project = "./Timesheet Project/Timesheet Project.dtproj"
+        $project = "${{ github.workspace }}\Timesheet Project\Timesheet Project.dtproj"
         msbuild $project /p:Configuration=Release
 
     - name: Upload ISPAC
