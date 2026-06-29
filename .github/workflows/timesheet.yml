@@ -6,11 +6,7 @@ on:
     #  - main
 
   #workflow_dispatch:
-
-env:
-  SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
-  SSIS_JOB_SCRIPT: "./Timesheet-Project/Run-SSIS-Job.sql"
-
+    
 jobs:
 
   deploy:
@@ -24,33 +20,42 @@ jobs:
 
     - name: Install sqlcmd
       run: |
-        curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-        curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
-        sudo apt-get update
-        sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
-        echo 'export PATH="$PATH:/opt/mssql-tools18/bin"' >> ~/.bashrc
-        source ~/.bashrc
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
 
     - name: Verify sqlcmd Installation
       run: /opt/mssql-tools18/bin/sqlcmd -?
 
     - name: Deploy Database
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
       run: |
-        /opt/mssql-tools18/bin/sqlcmd \
-          -S "${{ secrets.SQL_SERVER }}" \
-          -U "${{ secrets.SQL_USER }}" \
-          -P "${{ secrets.SQL_PASSWORD }}" \
-          -i "${{ env.SQL_SCRIPT }}" \
-          -C
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -i "$SQL_SCRIPT"
 
     - name: Run SSIS Job
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SSIS_JOB_SCRIPT: "./Timesheet-Project/Run-SSIS-Job.sql"
+
       run: |
-        /opt/mssql-tools18/bin/sqlcmd \
-          -S "${{ secrets.SQL_SERVER }}" \
-          -U "${{ secrets.SQL_USER }}" \
-          -P "${{ secrets.SQL_PASSWORD }}" \
-          -i "${{ env.SSIS_JOB_SCRIPT }}" \
-          -C
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -i "$SQL_SCRIPT"
 
     - name: Verify Deployment
       run: echo "Deployment Complete"
