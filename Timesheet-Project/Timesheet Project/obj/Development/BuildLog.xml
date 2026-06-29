@@ -2,18 +2,13 @@
 <BuildLog xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ProjectInfo>
     <Name>Timesheet Project</Name>
-    <LastWriteTime>2026-06-24T13:31:58.2696131Z</LastWriteTime>
+    <LastWriteTime>2026-06-26T07:28:31.2908054Z</LastWriteTime>
     <LastKnownProtectionLevel>EncryptSensitiveWithUserKey</LastKnownProtectionLevel>
   </ProjectInfo>
   <LastBuildInfos>
     <ProjectBuildItemInfo>
-      <Name>Package.dtsx</Name>
-      <LastWriteTime>2026-06-24T13:31:58.2370085Z</LastWriteTime>
-      <LastKnownProtectionLevel>EncryptSensitiveWithUserKey</LastKnownProtectionLevel>
-    </ProjectBuildItemInfo>
-    <ProjectBuildItemInfo>
-      <Name>Expense Claims Test.dtsx</Name>
-      <LastWriteTime>2026-06-23T13:44:58.1100218Z</LastWriteTime>
+      <Name>Timesheets.dtsx</Name>
+      <LastWriteTime>2026-06-26T07:28:31.2470324Z</LastWriteTime>
       <LastKnownProtectionLevel>EncryptSensitiveWithUserKey</LastKnownProtectionLevel>
     </ProjectBuildItemInfo>
   </LastBuildInfos>

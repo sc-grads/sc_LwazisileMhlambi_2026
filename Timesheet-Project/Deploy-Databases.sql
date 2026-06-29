@@ -1,8 +1,3 @@
-ALTER DATABASE [Timesheet-DB]
-SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-GO
-
-
 DROP DATABASE IF EXISTS [Timesheet-DB];
 CREATE DATABASE [Timesheet-DB]
 GO
@@ -10,17 +5,40 @@ GO
 USE [Timesheet-DB]
 GO
 
---Creating Consultants Table
-drop table if exists tblConsultants;
 
-create table tblConsultants (
+--Creating Staging Table
+drop table if exists tblStagingTimesheet
+
+CREATE TABLE tblStagingTimesheet (
+StagingID INT IDENTITY(1,1) PRIMARY KEY,
+ConsultantName NVARCHAR(255),
+DateValue NVARCHAR(255),
+DOfWeek NVARCHAR(255),
+Client NVARCHAR(255),
+ClientProjectName NVARCHAR(255),
+WorkDescription NVARCHAR(max),
+BillableFlag NVARCHAR(255),
+Comments NVARCHAR(max),
+TotalHours NVARCHAR(255),
+StartTime NVARCHAR(255),
+EndTime NVARCHAR(255),
+SheetName VARCHAR(255),
+FilePath TEXT,
+LoadedAt DATETIME DEFAULT GETDATE()
+);
+
+--Creating Consultant Table
+drop table if exists tblConsultant;
+
+create table tblConsultant (
 ConsultantID Int Identity(1,1) Primary Key,
-FirstName varchar(50) not null,
-LastName varchar(50) not null,
-FullName AS (FirstName + ' ' + LastName),
-CONSTRAINT UQ_ConsultantName UNIQUE(FirstName, LastName)
+FullName NVARCHAR(255) NOT NULL,
+FirstName NVARCHAR(255),
+LastName NVARCHAR(255)
 
 )
+Alter table tblConsultant
+Drop Constraint UQ_ConsultantName
 
 --Creating Timesheet Table (Final)
 drop table if exists tblTimesheetEntries
@@ -38,132 +56,147 @@ StartTime Time,
 EndTime Time,
 TotalMinutes Int Check(TotalMinutes >= 0),
 
-SourceFileName VARCHAR(255), --Captures the name of the file
-
 ImportDate DATETIME DEFAULT GETDATE(),
 
     CONSTRAINT FK_TimesheetEntries_Consultant
         FOREIGN KEY (ConsultantID)
-        REFERENCES tblConsultants(ConsultantID)
+        REFERENCES tblConsultant(ConsultantID)
 );
 
-
---Creating ImportedFiles Table
-drop table if exists tblImportedFiles
-
-create table tblImportedFiles (
-FileID int Identity(1,1) Primary Key,
-FileName varchar(255) Unique,
-ConsultantID Int,
-ImportedDate Datetime Default GetDate(),
-RecordCount INT,
-Status varchar(50),
-
-CONSTRAINT FK_ImportedFiles_Consultant
-    FOREIGN KEY(ConsultantID)
-    REFERENCES tblConsultants(ConsultantID)
-);
-
---Creatign ErrorLog Table
-drop table if exists tblErrorLog
-
-create table tblErrorLog (
-ErrorID int Identity(1,1) Primary Key,
-SourceFileName varchar(255),
-ErrorDate DateTime Default GetDate(),
-ErrorMessage varchar(max),
-FailedData varchar(max)
-);
+--Alter table tblTimesheetEntries
+--Drop Constraint FK_TimesheetEntries_Consultant
 
 --Creating Audit Log Table
 drop table if exists tblAuditLog
 
-create table tblAuditLog (
+CREATE TABLE tblAuditLog (
 AuditID INT IDENTITY(1,1) PRIMARY KEY,
-PackageName NVARCHAR(255),
-TaskName NVARCHAR(255),
-FilePath NVARCHAR(500),
-SheetName NVARCHAR(255),
-SheetType NVARCHAR(50),
-RowsInserted INT,
-RowsUpdated INT,
-RowsDeleted INT,
-StatusCode NVARCHAR(50),  -- SUCCESS, FAILURE, SKIPPED
-ErrorMessage NVARCHAR(MAX),
-ExecutionStart DATETIME,
-ExecutionEnd DATETIME,
-LoadedAt DATETIME DEFAULT GETDATE()
+TableName NVARCHAR(255),
+Action NVARCHAR(50),
+StatusCode NVARCHAR(50),
+StatusMessage NVARCHAR(255),
+--RecordID INT,
+--ConsultantName NVARCHAR(255),
+RowsAffected INT,
+PerformedAt DATETIME DEFAULT GETDATE()
 );
 
---Creating Staging Table
-drop table if exists tblStagingTimesheet
+-- Creating Leave Table
+drop table if exists tblLeave
 
-CREATE TABLE tblStagingTimesheet (
-StagingID INT IDENTITY(1,1) PRIMARY KEY,
-DateValue NVARCHAR(255),
-DOfWeek NVARCHAR(255),
-Client NVARCHAR(255),
-ClientProjectName NVARCHAR(255),
-WorkDescription NVARCHAR(max),
-BillableFlag NVARCHAR(255),
-Comments NVARCHAR(max),
-TotalHours NVARCHAR(255),
-StartTime NVARCHAR(255),
-EndTime NVARCHAR(255),
-SheetName VARCHAR(255),
-FilePath TEXT,
-LoadedAt DATETIME DEFAULT GETDATE()
-);
-
-drop table if exists tblStagingExpenseClaim
-
-CREATE TABLE tblStagingExpenseClaim (
-StagingID INT IDENTITY(1,1) PRIMARY KEY,
-Mnth NVARCHAR(255),
-ExpenseDescription NVARCHAR(255),
-TypeDescription NVARCHAR(255),
-ZarCost NVARCHAR(255),
-SheetName VARCHAR(255),
-FilePath TEXT,
-LoadedAt DATETIME DEFAULT GETDATE()
-);
-
-drop table if exists tblStagingLeave
-
-CREATE TABLE tblStagingLeave (
-StagingID INT IDENTITY(1,1) PRIMARY KEY,
+create table tblLeave (
+LeaveID int identity(1,1) primary key,
+ConsultantID int not null,
+ConsultantName nvarchar(255),
+Date date,
+DayOfWeek nvarchar(255),
 LeaveType NVARCHAR(255),
-StartDate NVARCHAR(255),
-EndDate NVARCHAR(255),
-NumDays NVARCHAR(255),
-SickNote NVARCHAR(255),
-ApprovalObtained NVARCHAR(255),
+Comments NVARCHAR(255)
+FOREIGN KEY (ConsultantID) REFERENCES tblConsultant(ConsultantID)
+)
+
+--Alter table tblLeave
+--Alter column Date date;
+--Drop Constraint FK_TimesheetEntries_Consultant
+
+-- Creating Client Table
+drop table if exists tblClient;
+
+create table tblClient (
+ClientID Int Identity(1,1) Primary Key,
+ClientName NVARCHAR(255) NOT NULL,
+
+)
+
+drop table if exists tblExpenseStaging;
+
+create table tblExpenseStaging (
+ExpenseStagingID Int Identity(1,1) Primary Key,
+ConsultantName NVARCHAR(255),
+Date NVARCHAR(255),
+Month NVARCHAR(255),
+ExpenseDescription NVARCHAR(255),
+Type NVARCHAR(255),
+Cost NVARCHAR(255),
 SheetName VARCHAR(255),
-FilePath TEXT,
+FilePath VARCHAR(255),
 LoadedAt DATETIME DEFAULT GETDATE()
-);
 
-drop table if exists tblStagingKey
+)
 
-CREATE TABLE tblStagingKey (
-StagingID INT IDENTITY(1,1) PRIMARY KEY,
-Client NVARCHAR(255),   
-WorkType NVARCHAR(255),   
-Description NVARCHAR(255),   
-Resource NVARCHAR(255),   
-Billable NVARCHAR(255),   
-SheetName VARCHAR(255),
-FilePath TEXT,
-LoadedAt DATETIME DEFAULT GETDATE()
-);
+drop table if exists tblExpenseClaim
 
-truncate table tblStagingTimesheet
-truncate table tblStagingLeave
-truncate table tblStagingExpenseClaim
+create table tblExpenseClaim (
+ClaimID int identity(1,1) primary key,
+ConsultantID int not null,
+ConsultantName nvarchar(255),
+Date date,
+Month nvarchar(255),
+ExpenseDescription NVARCHAR(255),
+Type NVARCHAR(255),
+Cost Float
+FOREIGN KEY (ConsultantID) REFERENCES tblConsultant(ConsultantID)
+)
+
+
+select * from tblConsultant
+
+select * from tblLeave
+
+select * from tblClient
 
 select * from tblStagingTimesheet
-select * from tblStagingLeave
-select * from tblStagingExpenseClaim
+
+select * from tblAuditLog
+order by PerformedAt Desc
+
+select sum(TotalMinutes)/60 as TotalHourse, C.FullName, TE.ConsultantID from tblTimesheetEntries TE
+join tblConsultant C on TE.ConsultantID = C.ConsultantID
+group by TE.ConsultantID, C.FullName
 
 
+
+SELECT *
+FROM tblExpenseStaging
+WHERE [ExpenseDescription] IS NOT NULL
+  AND [ExpenseDescription] <> 'Expense Description'
+  AND [Date] IS NOT NULL
+  AND [Type] IS NOT NULL
+  AND [Cost] IS NOT NULL
+
+select * from tblStagingTimesheet TST
+join tblClient TC on 
+TC.ClientName = TST.Client
+Where Client = 'RMB'
+
+select * from tblStagingTimesheet TST
+where DateValue is not null
+
+
+select distinct SheetName, ConsultantName from tblStagingTimesheet
+order by ConsultantName
+
+with CTE as (
+select distinct SheetName, StagingID, ConsultantName, DateValue, DOfWeek, Client, ClientProjectName, 
+WorkDescription, BillableFlag, Comments, TotalHours, StartTime, EndTime
+from tblStagingTimesheet
+where DateValue is not null
+and WorkDescription is not null
+and Comments <> 'Detailed Description of task(s) done'
+and WorkDescription <> 'Public Holiday'
+--and StartTime is null and EndTime is null
+--order by StagingID asc
+)
+
+select * from CTE
+select * from tblStagingTimesheet
+--where ClientProjectName = 'Example'
+where Comments <> 'Detailed Description of task(s) done'
+and DateValue is not null
+and WorkDescription is not null
+
+
+
+
+truncate table tblAuditLog
 

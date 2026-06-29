@@ -1,0 +1,104 @@
+name: Build and Deploy SSIS Timesheet Projcet
+
+on:
+  push:
+    #branches:
+    #  - main
+
+  #workflow_dispatch:
+
+env:
+  PROJECT_NAME: "Timesheet Project"
+  SQL_SCRIPT: "./Database/Deploy-Databases.sql"
+
+jobs:
+
+  build:
+
+    runs-on: self-hosted
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build SSIS Project
+      shell: powershell
+      run: |
+        msbuild `
+          "./Timesheet Project/Timesheet Project.dtproj" `
+          /p:Configuration=Release
+
+    - name: Upload ISPAC
+      uses: actions/upload-artifact@v4
+      with:
+        name: SSISPackage
+        path: |
+          ./Timesheet Project/bin/Release/*.ispac
+
+  deploy:
+
+    needs: build
+
+    runs-on: self-hosted
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Download ISPAC
+      uses: actions/download-artifact@v4
+      with:
+        name: SSISPackage
+        path: ./deploy
+
+    - name: Deploy Database
+      shell: powershell
+      run: |
+        sqlcmd `
+          -S "${{ secrets.SQL_SERVER }}" `
+          -U "${{ secrets.SQL_USER }}" `
+          -P "${{ secrets.SQL_PASSWORD }}" `
+          -i "${{ env.SQL_SCRIPT }}" `
+          -C `
+
+    - name: Deploy SSIS Project
+      shell: powershell
+      run: |
+
+        [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Management.IntegrationServices")
+
+        $connection = New-Object System.Data.SqlClient.SqlConnection
+        $connection.ConnectionString = "Server=${{ secrets.SQL_SERVER }};Database=SSISDB;User ID=${{ secrets.SQL_USER }};Password=${{ secrets.SQL_PASSWORD }}"
+
+        $integrationServices = New-Object Microsoft.SqlServer.Management.IntegrationServices.IntegrationServices($connection)
+
+        $catalog = $integrationServices.Catalogs["SSISDB"]
+
+        if(-not $catalog.Folders["Timesheet Project"])
+        {
+            $folder = New-Object Microsoft.SqlServer.Management.IntegrationServices.CatalogFolder(
+                $catalog,
+                "Timesheet",
+                "Timesheet ETL Project"
+            )
+
+            $folder.Create()
+        }
+
+        $ispac = Get-ChildItem "./deploy/*.ispac"
+
+        $bytes = [System.IO.File]::ReadAllBytes($ispac.FullName)
+
+        $catalog.Folders["Timesheet"].DeployProject(
+            "Timesheet Project",
+            $bytes
+        )
+
+    - name: Verify Deployment
+      run: |
+        echo "Deployment Complete"
