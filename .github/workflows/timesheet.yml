@@ -24,31 +24,32 @@ jobs:
 
     - name: Verify sqlcmd Installation
       shell: pwsh
-      run: |
-        sqlcmd -?
+      run: sqlcmd -?
 
     - name: Deploy Database
       shell: pwsh
       run: |
-        sqlcmd `
-          -S "${{ secrets.SQL_SERVER }}" `
-          -U "${{ secrets.SQL_USER }}" `
-          -P "${{ secrets.SQL_PASSWORD }}" `
-          -i "${{ env.SQL_SCRIPT }}" 
-        
-        
+        $params = @(
+          "-S", "${{ secrets.SQL_SERVER }}",
+          "-U", "${{ secrets.SQL_USER }}",
+          "-P", "${{ secrets.SQL_PASSWORD }}",
+          "-i", "${{ env.SQL_SCRIPT }}",
+          "-C"
+        )
+        sqlcmd @params
 
     - name: Run SSIS Job
       shell: pwsh
       run: |
-        sqlcmd `
-          -S "${{ secrets.SQL_SERVER }}" `
-          -U "${{ secrets.SQL_USER }}" `
-          -P "${{ secrets.SQL_PASSWORD }}" `
-          -i "${{ env.SSIS_JOB_SCRIPT }}" 
-        
+        $params = @(
+          "-S", "${{ secrets.SQL_SERVER }}",
+          "-U", "${{ secrets.SQL_USER }}",
+          "-P", "${{ secrets.SQL_PASSWORD }}",
+          "-i", "${{ env.SSIS_JOB_SCRIPT }}",
+          "-C"
+        )
+        sqlcmd @params
 
     - name: Verify Deployment
-      shell: powershell
-      run: |
-        echo "Deployment Complete"
+      shell: pwsh
+      run: echo "Deployment Complete"
