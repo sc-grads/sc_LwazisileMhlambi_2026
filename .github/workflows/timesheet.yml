@@ -36,7 +36,7 @@ jobs:
           -P "${{ secrets.SQL_PASSWORD }}" `
           -C `
           -i "${{ env.SQL_SCRIPT }}" 
-        )
+        
         
 
     - name: Run SSIS Job
@@ -48,7 +48,7 @@ jobs:
           -P "${{ secrets.SQL_PASSWORD }}" `
           -C `
           -i "${{ env.SSIS_JOB_SCRIPT }}" 
-        )
+        
 
     - name: Verify Deployment
       shell: powershell
