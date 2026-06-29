@@ -1,4 +1,4 @@
-name: Build and Deploy SSIS Timesheet Projcet
+name: Build and Deploy SSIS Timesheet Project
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
 
   build:
 
-    runs-on: self-hosted
+    runs-on: windows-latest
 
     steps:
 
@@ -25,25 +25,19 @@ jobs:
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
 
-    - name: Show repository contents
+    - name: Install SSIS Build Tools
       shell: powershell
       run: |
-        Write-Host "Current directory:"
-        Get-Location
-
-        Write-Host "`nRepository tree:"
-        Get-ChildItem -Recurse -Depth 3
-      
-    - name: Debug - Show workspace
-      shell: powershell
-      run: |
-        echo "Workspace: ${{ github.workspace }}"
-        Get-ChildItem "${{ github.workspace }}" -Recurse -Filter "*.dtproj"
+        $vsInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
+        & $vsInstaller modify `
+          --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" `
+          --add Microsoft.VisualStudio.Component.SQL.SSDT `
+          --quiet --norestart --force
 
     - name: Build SSIS Project
       shell: powershell
       run: |
-        $devenv = "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\devenv.com"
+        $devenv = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\devenv.com"
         $project = "${{ github.workspace }}\Timesheet-Project\Timesheet Project\Timesheet Project.dtproj"
         & $devenv $project /Build Release
 
@@ -51,13 +45,13 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: SSISPackage
-        path: ./Timesheet-Project/Timesheet Project/bin/Release/*.ispac
+        path: "./Timesheet-Project/Timesheet Project/bin/Release/*.ispac"
 
   deploy:
 
     needs: build
 
-    runs-on: self-hosted
+    runs-on: windows-latest
 
     steps:
 
@@ -78,12 +72,11 @@ jobs:
           -U "${{ secrets.SQL_USER }}" `
           -P "${{ secrets.SQL_PASSWORD }}" `
           -i "${{ env.SQL_SCRIPT }}" `
-          -C `
+          -C
 
     - name: Deploy SSIS Project
       shell: powershell
       run: |
-
         [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Management.IntegrationServices")
 
         $connection = New-Object System.Data.SqlClient.SqlConnection
@@ -93,14 +86,13 @@ jobs:
 
         $catalog = $integrationServices.Catalogs["SSISDB"]
 
-        if(-not $catalog.Folders["Timesheet Project"])
+        if (-not $catalog.Folders["Timesheet"])
         {
             $folder = New-Object Microsoft.SqlServer.Management.IntegrationServices.CatalogFolder(
                 $catalog,
                 "Timesheet",
                 "Timesheet ETL Project"
             )
-
             $folder.Create()
         }
 
@@ -114,5 +106,6 @@ jobs:
         )
 
     - name: Verify Deployment
+      shell: powershell
       run: |
         echo "Deployment Complete"
