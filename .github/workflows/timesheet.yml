@@ -24,6 +24,15 @@ jobs:
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v2
+
+    - name: Show repository contents
+      shell: powershell
+      run: |
+        Write-Host "Current directory:"
+        Get-Location
+
+        Write-Host "`nRepository tree:"
+        Get-ChildItem -Recurse -Depth 3
       
     - name: Debug - Show workspace
       shell: powershell
