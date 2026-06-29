@@ -1,4 +1,4 @@
-name: Build and Deploy SSIS Timesheet Project
+name: Deploy SSIS Timesheet Project
 
 on:
   push:
@@ -8,68 +8,19 @@ on:
   #workflow_dispatch:
 
 env:
-  PROJECT_NAME: "Timesheet Project"
   SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
   SSIS_JOB_SCRIPT: "./Timesheet-Project/Run-SSIS-Job.sql"
 
 jobs:
 
-  build:
-
-    runs-on: windows-latest
-
-    steps:
-
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Install SSIS Build Tools
-      shell: powershell
-      run: |
-        $vsInstaller = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe"
-        & $vsInstaller modify `
-          --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" `
-          --add Microsoft.VisualStudio.Component.SQL.SSDT `
-          --quiet --norestart --force
-
-    - name: Build SSIS Project
-      shell: powershell
-      run: |
-        # Find devenv.com dynamically
-        $devenv = Get-ChildItem "C:\Program Files\Microsoft Visual Studio" -Recurse -Filter "devenv.com" | 
-              Select-Object -First 1 -ExpandProperty FullName
-
-        Write-Host "Found devenv at: $devenv"
-
-        $solution = "${{ github.workspace }}\Timesheet-Project\Timesheet Project\Timesheet Project.slnx"
-    
-        & $devenv $solution /Build Release
-
-    - name: Upload ISPAC
-      uses: actions/upload-artifact@v4
-      with:
-        name: SSISPackage
-        path: "./Timesheet-Project/Timesheet Project/bin/Release/*.ispac"
-
   deploy:
 
-    needs: build
-
     runs-on: windows-latest
 
     steps:
 
     - name: Checkout Repository
       uses: actions/checkout@v4
-
-    - name: Download ISPAC
-      uses: actions/download-artifact@v4
-      with:
-        name: SSISPackage
-        path: ./deploy
 
     - name: Deploy Database
       shell: powershell
