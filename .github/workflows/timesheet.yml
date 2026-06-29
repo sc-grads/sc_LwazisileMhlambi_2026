@@ -22,29 +22,33 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Deploy Database
-      shell: powershell
+    - name: Verify sqlcmd Installation
+      shell: pwsh
       run: |
-        $params = @(
-          "-S", "${{ secrets.SQL_SERVER }}",
-          "-U", "${{ secrets.SQL_USER }}",
-          "-P", "${{ secrets.SQL_PASSWORD }}",
-          "-i", "${{ env.SQL_SCRIPT }}",
-          "-C"
+        sqlcmd -?
+
+    - name: Deploy Database
+      shell: pwsh
+      run: |
+        sqlcmd `
+          -S "${{ secrets.SQL_SERVER }}" `
+          -U "${{ secrets.SQL_USER }}" `
+          -P "${{ secrets.SQL_PASSWORD }}" `
+          -C `
+          -i "${{ env.SQL_SCRIPT }}" 
         )
-        sqlcmd @params
+        
 
     - name: Run SSIS Job
-      shell: powershell
+      shell: pwsh
       run: |
-        $params = @(
-          "-S", "${{ secrets.SQL_SERVER }}",
-          "-U", "${{ secrets.SQL_USER }}",
-          "-P", "${{ secrets.SQL_PASSWORD }}",
-          "-i", "${{ env.SSIS_JOB_SCRIPT }}",
-          "-C"
+        sqlcmd `
+          -S "${{ secrets.SQL_SERVER }}" `
+          -U "${{ secrets.SQL_USER }}" `
+          -P "${{ secrets.SQL_PASSWORD }}" `
+          -C `
+          -i "${{ env.SSIS_JOB_SCRIPT }}" 
         )
-        sqlcmd @params
 
     - name: Verify Deployment
       shell: powershell
