@@ -36,9 +36,16 @@ FullName NVARCHAR(255) NOT NULL,
 FirstName NVARCHAR(255),
 LastName NVARCHAR(255)
 
-)
-Alter table tblConsultant
-Drop Constraint UQ_ConsultantName
+);
+
+-- Creating Client Table
+drop table if exists tblClient;
+
+create table tblClient (
+ClientID Int Identity(1,1) Primary Key,
+ClientName NVARCHAR(255) NOT NULL,
+
+);
 
 --Creating Timesheet Table (Final)
 drop table if exists tblTimesheetEntries
@@ -63,8 +70,6 @@ ImportDate DATETIME DEFAULT GETDATE(),
         REFERENCES tblConsultant(ConsultantID)
 );
 
---Alter table tblTimesheetEntries
---Drop Constraint FK_TimesheetEntries_Consultant
 
 --Creating Audit Log Table
 drop table if exists tblAuditLog
@@ -92,22 +97,13 @@ Date date,
 DayOfWeek nvarchar(255),
 LeaveType NVARCHAR(255),
 Comments NVARCHAR(255)
-FOREIGN KEY (ConsultantID) REFERENCES tblConsultant(ConsultantID)
-)
+CONSTRAINT FK_Leave_Consultant
+        FOREIGN KEY (ConsultantID)
+        REFERENCES tblConsultant(ConsultantID)
+);
 
---Alter table tblLeave
---Alter column Date date;
---Drop Constraint FK_TimesheetEntries_Consultant
 
--- Creating Client Table
-drop table if exists tblClient;
-
-create table tblClient (
-ClientID Int Identity(1,1) Primary Key,
-ClientName NVARCHAR(255) NOT NULL,
-
-)
-
+--Creating Expense Claim Staging Table
 drop table if exists tblExpenseStaging;
 
 create table tblExpenseStaging (
@@ -121,9 +117,9 @@ Cost NVARCHAR(255),
 SheetName VARCHAR(255),
 FilePath VARCHAR(255),
 LoadedAt DATETIME DEFAULT GETDATE()
+);
 
-)
-
+--Creating Expense Claim Table
 drop table if exists tblExpenseClaim
 
 create table tblExpenseClaim (
@@ -135,68 +131,7 @@ Month nvarchar(255),
 ExpenseDescription NVARCHAR(255),
 Type NVARCHAR(255),
 Cost Float
-FOREIGN KEY (ConsultantID) REFERENCES tblConsultant(ConsultantID)
-)
-
-
-select * from tblConsultant
-
-select * from tblLeave
-
-select * from tblClient
-
-select * from tblStagingTimesheet
-
-select * from tblAuditLog
-order by PerformedAt Desc
-
-select sum(TotalMinutes)/60 as TotalHourse, C.FullName, TE.ConsultantID from tblTimesheetEntries TE
-join tblConsultant C on TE.ConsultantID = C.ConsultantID
-group by TE.ConsultantID, C.FullName
-
-
-
-SELECT *
-FROM tblExpenseStaging
-WHERE [ExpenseDescription] IS NOT NULL
-  AND [ExpenseDescription] <> 'Expense Description'
-  AND [Date] IS NOT NULL
-  AND [Type] IS NOT NULL
-  AND [Cost] IS NOT NULL
-
-select * from tblStagingTimesheet TST
-join tblClient TC on 
-TC.ClientName = TST.Client
-Where Client = 'RMB'
-
-select * from tblStagingTimesheet TST
-where DateValue is not null
-
-
-select distinct SheetName, ConsultantName from tblStagingTimesheet
-order by ConsultantName
-
-with CTE as (
-select distinct SheetName, StagingID, ConsultantName, DateValue, DOfWeek, Client, ClientProjectName, 
-WorkDescription, BillableFlag, Comments, TotalHours, StartTime, EndTime
-from tblStagingTimesheet
-where DateValue is not null
-and WorkDescription is not null
-and Comments <> 'Detailed Description of task(s) done'
-and WorkDescription <> 'Public Holiday'
---and StartTime is null and EndTime is null
---order by StagingID asc
-)
-
-select * from CTE
-select * from tblStagingTimesheet
---where ClientProjectName = 'Example'
-where Comments <> 'Detailed Description of task(s) done'
-and DateValue is not null
-and WorkDescription is not null
-
-
-
-
-truncate table tblAuditLog
-
+CONSTRAINT FK_ExpenseClaim_Consultant
+        FOREIGN KEY (ConsultantID)
+        REFERENCES tblConsultant(ConsultantID)
+);

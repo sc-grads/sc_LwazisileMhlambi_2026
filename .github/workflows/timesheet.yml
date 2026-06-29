@@ -10,6 +10,7 @@ on:
 env:
   PROJECT_NAME: "Timesheet Project"
   SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
+  SSIS_JOB_SCRIPT: "./Timesheet-Project/Run-SSIS-Job.sql"
 
 jobs:
 
@@ -74,36 +75,15 @@ jobs:
           -i "${{ env.SQL_SCRIPT }}" `
           -C
 
-    - name: Deploy SSIS Project
+    - name: Run SSIS Job
       shell: powershell
       run: |
-        [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Management.IntegrationServices")
-
-        $connection = New-Object System.Data.SqlClient.SqlConnection
-        $connection.ConnectionString = "Server=${{ secrets.SQL_SERVER }};Database=SSISDB;User ID=${{ secrets.SQL_USER }};Password=${{ secrets.SQL_PASSWORD }}"
-
-        $integrationServices = New-Object Microsoft.SqlServer.Management.IntegrationServices.IntegrationServices($connection)
-
-        $catalog = $integrationServices.Catalogs["SSISDB"]
-
-        if (-not $catalog.Folders["Timesheet"])
-        {
-            $folder = New-Object Microsoft.SqlServer.Management.IntegrationServices.CatalogFolder(
-                $catalog,
-                "Timesheet",
-                "Timesheet ETL Project"
-            )
-            $folder.Create()
-        }
-
-        $ispac = Get-ChildItem "./deploy/*.ispac"
-
-        $bytes = [System.IO.File]::ReadAllBytes($ispac.FullName)
-
-        $catalog.Folders["Timesheet"].DeployProject(
-            "Timesheet Project",
-            $bytes
-        )
+        sqlcmd `
+          -S "${{ secrets.SQL_SERVER }}" `
+          -U "${{ secrets.SQL_USER }}" `
+          -P "${{ secrets.SQL_PASSWORD }}" `
+          -i "${{ env.SSIS_JOB_SCRIPT }}" `
+          -C
 
     - name: Verify Deployment
       shell: powershell
