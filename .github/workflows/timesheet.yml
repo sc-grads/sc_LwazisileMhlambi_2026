@@ -9,7 +9,7 @@ on:
 
 env:
   PROJECT_NAME: "Timesheet Project"
-  SQL_SCRIPT: "./Database/Deploy-Databases.sql"
+  SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
 
 jobs:
 
