@@ -25,22 +25,26 @@ jobs:
     - name: Deploy Database
       shell: powershell
       run: |
-        sqlcmd `
-          -S "${{ secrets.SQL_SERVER }}" `
-          -U "${{ secrets.SQL_USER }}" `
-          -P "${{ secrets.SQL_PASSWORD }}" `
-          -i "${{ env.SQL_SCRIPT }}" `
-          -C
+        $params = @(
+          "-S", "${{ secrets.SQL_SERVER }}",
+          "-U", "${{ secrets.SQL_USER }}",
+          "-P", "${{ secrets.SQL_PASSWORD }}",
+          "-i", "${{ env.SQL_SCRIPT }}",
+          "-C"
+        )
+        sqlcmd @params
 
     - name: Run SSIS Job
       shell: powershell
       run: |
-        sqlcmd `
-          -S "${{ secrets.SQL_SERVER }}" `
-          -U "${{ secrets.SQL_USER }}" `
-          -P "${{ secrets.SQL_PASSWORD }}" `
-          -i "${{ env.SSIS_JOB_SCRIPT }}" `
-          -C
+        $params = @(
+          "-S", "${{ secrets.SQL_SERVER }}",
+          "-U", "${{ secrets.SQL_USER }}",
+          "-P", "${{ secrets.SQL_PASSWORD }}",
+          "-i", "${{ env.SSIS_JOB_SCRIPT }}",
+          "-C"
+        )
+        sqlcmd @params
 
     - name: Verify Deployment
       shell: powershell
