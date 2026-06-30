@@ -11,8 +11,8 @@
   DTS:LocaleID="7177"
   DTS:ObjectName="Timesheets"
   DTS:PackageType="5"
-  DTS:VersionBuild="404"
-  DTS:VersionGUID="{6801615F-E819-4AFC-8718-65760B08CF61}">
+  DTS:VersionBuild="422"
+  DTS:VersionGUID="{A4A3822B-3704-4959-AC46-BD2320A8FF65}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -56,6 +56,17 @@
     </DTS:ConnectionManager>
   </DTS:ConnectionManagers>
   <DTS:Variables>
+    <DTS:Variable
+      DTS:CreationName=""
+      DTS:DTSID="{D9F510AE-60FB-496A-A732-8E90C6E64CB3}"
+      DTS:EvaluateAsExpression="True"
+      DTS:Expression="&quot;SSIS: &quot; + @[System::UserName]"
+      DTS:IncludeInDebugDump="2345"
+      DTS:Namespace="User"
+      DTS:ObjectName="ExecutedBy">
+      <DTS:VariableValue
+        DTS:DataType="8">SSIS: SAMBE2025008\Lwazisile Mhlambi</DTS:VariableValue>
+    </DTS:Variable>
     <DTS:Variable
       DTS:CreationName=""
       DTS:DTSID="{0EC5EC86-6082-419D-81FD-7A728D5A9591}"
@@ -119,7 +130,14 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;VALUES (&#xA;    'tblClient',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblClients failed during SSIS package execution',&#xA;    0&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES (&#xA;    'tblClient',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblClients failed during SSIS package execution',&#xA;    0,&#xA;    ?&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -131,12 +149,19 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Fail Expense Load"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="1">
+      DTS:ThreadHint="0">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;VALUES (&#xA;    'tblClient',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblExpenseClaim failed during SSIS package execution',&#xA;    0&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES (&#xA;    'tblExpenseClaim',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblExpenseClaim failed during SSIS package execution',&#xA;    0,&#xA;    ?&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -153,7 +178,14 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;VALUES (&#xA;    'tblConsultants',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblConsultants failed during SSIS package execution',&#xA;    0&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES (&#xA;    'tblConsultants',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblConsultants failed during SSIS package execution',&#xA;    0,&#xA;    ?&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -170,7 +202,14 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;VALUES (&#xA;    'tblLeave',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblLeave failed during SSIS package execution',&#xA;    0&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES (&#xA;    'tblLeave',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblLeave failed during SSIS package execution',&#xA;    0,&#xA;    ?&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -182,12 +221,19 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Fail Timesheet Load"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="1">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;VALUES (&#xA;    'tblClient',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblTimesheetEntries failed during SSIS package execution',&#xA;    0&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES (&#xA;    'tblTimesheetEntries',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Insert into tblTimesheetEntries failed during SSIS package execution',&#xA;    0,&#xA;    ?&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -204,7 +250,14 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="DECLARE @RowsInserted INT&#xA;&#xA;INSERT INTO tblClient (ClientName)&#xA;SELECT DISTINCT Client&#xA;FROM tblStagingTimesheet&#xA;WHERE Client IS NOT NULL&#xA;AND Client &lt;&gt; 'Client'&#xA;AND Client NOT IN (SELECT ClientName FROM tblClient)&#xA;&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblClient',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New clients inserted from staging table',&#xA;        @RowsInserted&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblClient',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new clients to insert, all already exist',&#xA;        0&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="DECLARE @RowsInserted INT&#xA;DECLARE @PerformedBy NVARCHAR(128) = ?&#xA;&#xA;INSERT INTO tblClient (ClientName)&#xA;SELECT DISTINCT Client&#xA;FROM tblStagingTimesheet&#xA;WHERE Client IS NOT NULL&#xA;AND Client &lt;&gt; 'Client'&#xA;AND Client NOT IN (SELECT ClientName FROM tblClient)&#xA;&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;    VALUES (&#xA;        'tblClient',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New clients inserted from staging table',&#xA;        @RowsInserted,&#xA;        @PerformedBy&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;    VALUES (&#xA;        'tblClient',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new clients to insert, all already exist',&#xA;        0,&#xA;        @PerformedBy&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -221,7 +274,14 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="&#xA;DECLARE @RowsInserted INT&#xA;&#xA;INSERT INTO tblConsultant (FullName, FirstName, LastName)&#xA;SELECT DISTINCT &#xA;    ConsultantName,&#xA;    LEFT(ConsultantName, CHARINDEX(' ', ConsultantName) - 1),&#xA;    RIGHT(ConsultantName, LEN(ConsultantName) - CHARINDEX(' ', ConsultantName))&#xA;FROM tblStagingTimesheet&#xA;WHERE ConsultantName IS NOT NULL&#xA;AND ConsultantName NOT IN (SELECT FullName FROM tblConsultant) -- Not In allows for incremental load&#xA;&#xA;-- Capture how many rows were inserted&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;-- Logging based on whether rows were actually inserted&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblConsultant',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New consultants inserted from staging table',&#xA;        @RowsInserted&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblConsultant',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new consultants to insert, all already exist',&#xA;        0&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="CREATE OR ALTER PROCEDURE usp_InsertNewConsultants&#xA;    @PerformedBy NVARCHAR(128) = NULL&#xA;AS&#xA;BEGIN&#xA;    SET NOCOUNT ON;&#xA;&#xA;    IF @PerformedBy IS NULL&#xA;        SET @PerformedBy = SUSER_SNAME();&#xA;&#xA;    DECLARE @RowsInserted INT&#xA;&#xA;    INSERT INTO tblConsultant (FullName, FirstName, LastName)&#xA;    SELECT DISTINCT &#xA;        ConsultantName,&#xA;        LEFT(ConsultantName, CHARINDEX(' ', ConsultantName) - 1),&#xA;        RIGHT(ConsultantName, LEN(ConsultantName) - CHARINDEX(' ', ConsultantName))&#xA;    FROM tblStagingTimesheet&#xA;    WHERE ConsultantName IS NOT NULL&#xA;    AND ConsultantName NOT IN (SELECT FullName FROM tblConsultant)&#xA;&#xA;    SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;    IF @RowsInserted &gt; 0&#xA;        INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;        VALUES ('tblConsultant', 'INSERT', 'SUCCESS', 'New consultants inserted from staging table', @RowsInserted, @PerformedBy)&#xA;    ELSE&#xA;        INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;        VALUES ('tblConsultant', 'INSERT', 'NO ACTION', 'No new consultants to insert, all already exist', 0, @PerformedBy)&#xA;END" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -238,7 +298,14 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="DECLARE @RowsInserted INT&#xA;&#xA;INSERT INTO tblExpenseClaim (&#xA;    ConsultantID,&#xA;    ConsultantName,&#xA;    Date,&#xA;    Month,&#xA;    ExpenseDescription,&#xA;    Type,&#xA;    Cost&#xA;)&#xA;SELECT&#xA;    c.ConsultantID,&#xA;    es.ConsultantName,&#xA;    CAST(es.[Date] AS DATE)                    AS [Date],&#xA;    es.Month,&#xA;    es.ExpenseDescription,&#xA;    es.Type,&#xA;    CAST(REPLACE(es.Cost, ',', '.') AS FLOAT)  AS Cost&#xA;FROM tblExpenseStaging es&#xA;INNER JOIN tblConsultant c&#xA;    ON c.FullName = es.ConsultantName&#xA;WHERE es.ExpenseDescription IS NOT NULL&#xA;  AND es.ExpenseDescription &lt;&gt; 'Expense Description'&#xA;  AND es.[Date] IS NOT NULL&#xA;  AND es.Type IS NOT NULL&#xA;  AND es.Cost IS NOT NULL&#xA;  AND NOT EXISTS (&#xA;        SELECT 1&#xA;        FROM tblExpenseClaim ec&#xA;        WHERE ec.ConsultantName = es.ConsultantName&#xA;          AND ec.Date = CAST(es.[Date] AS DATE)&#xA;          AND ec.ExpenseDescription = es.ExpenseDescription&#xA;          AND ec.Cost = CAST(REPLACE(es.Cost, ',', '.') AS FLOAT)&#xA;  )&#xA;&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblExpenseClaim',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New expense claims inserted from staging table',&#xA;        @RowsInserted&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblExpenseClaim',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new expense claims to insert, all already exist',&#xA;        0&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="DECLARE @RowsInserted INT&#xA;DECLARE @PerformedBy NVARCHAR(128) = ?&#xA;&#xA;INSERT INTO tblExpenseClaim (&#xA;    ConsultantID,&#xA;    ConsultantName,&#xA;    Date,&#xA;    Month,&#xA;    ExpenseDescription,&#xA;    Type,&#xA;    Cost&#xA;)&#xA;SELECT&#xA;    c.ConsultantID,&#xA;    es.ConsultantName,&#xA;    CAST(es.[Date] AS DATE)                    AS [Date],&#xA;    es.Month,&#xA;    es.ExpenseDescription,&#xA;    es.Type,&#xA;    CAST(REPLACE(es.Cost, ',', '.') AS FLOAT)  AS Cost&#xA;FROM tblExpenseStaging es&#xA;INNER JOIN tblConsultant c&#xA;    ON c.FullName = es.ConsultantName&#xA;WHERE es.ExpenseDescription IS NOT NULL&#xA;  AND es.ExpenseDescription &lt;&gt; 'Expense Description'&#xA;  AND es.[Date] IS NOT NULL&#xA;  AND es.Type IS NOT NULL&#xA;  AND es.Cost IS NOT NULL&#xA;  AND NOT EXISTS (&#xA;        SELECT 1&#xA;        FROM tblExpenseClaim ec&#xA;        WHERE ec.ConsultantName = es.ConsultantName&#xA;          AND ec.Date = CAST(es.[Date] AS DATE)&#xA;          AND ec.ExpenseDescription = es.ExpenseDescription&#xA;          AND ec.Cost = CAST(REPLACE(es.Cost, ',', '.') AS FLOAT)&#xA;  )&#xA;&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;    VALUES (&#xA;        'tblExpenseClaim',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New expense claims inserted from staging table',&#xA;        @RowsInserted,&#xA;        @PerformedBy&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;    VALUES (&#xA;        'tblExpenseClaim',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new expense claims to insert, all already exist',&#xA;        0,&#xA;        @PerformedBy&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -255,7 +322,14 @@
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="&#xA;DECLARE @RowsInserted INT&#xA;&#xA;&#xA;INSERT INTO tblLeave (ConsultantID, ConsultantName, Date, DayOfWeek, LeaveType, Comments)&#xA;SELECT &#xA;    c.ConsultantID,&#xA;    s.ConsultantName,&#xA;    CAST(s.DateValue AS DATETIME),&#xA;    s.DOfWeek,&#xA;    s.WorkDescription,&#xA;    s.Comments&#xA;FROM tblStagingTimesheet s&#xA;JOIN tblConsultant c ON s.ConsultantName = c.FullName&#xA;WHERE s.WorkDescription LIKE '%leave%'&#xA;AND s.DateValue IS NOT NULL&#xA;AND NOT EXISTS (&#xA;    SELECT 1 FROM tblLeave l&#xA;    WHERE l.ConsultantID = c.ConsultantID&#xA;    AND l.Date = CAST(s.DateValue AS DATETIME)&#xA;    AND l.LeaveType = s.WorkDescription&#xA;)&#xA;&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblLeave',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New leave records inserted from staging table',&#xA;        @RowsInserted&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblLeave',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new leave records to insert, all already exist',&#xA;        0&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="DECLARE @RowsInserted INT&#xA;DECLARE @PerformedBy NVARCHAR(128) = ?&#xA;&#xA;INSERT INTO tblLeave (ConsultantID, ConsultantName, Date, DayOfWeek, LeaveType, Comments)&#xA;SELECT &#xA;    c.ConsultantID,&#xA;    s.ConsultantName,&#xA;    CAST(s.DateValue AS DATETIME),&#xA;    s.DOfWeek,&#xA;    s.WorkDescription,&#xA;    s.Comments&#xA;FROM tblStagingTimesheet s&#xA;JOIN tblConsultant c ON s.ConsultantName = c.FullName&#xA;WHERE s.WorkDescription LIKE '%leave%'&#xA;AND s.DateValue IS NOT NULL&#xA;AND NOT EXISTS (&#xA;    SELECT 1 FROM tblLeave l&#xA;    WHERE l.ConsultantID = c.ConsultantID&#xA;    AND l.Date = CAST(s.DateValue AS DATETIME)&#xA;    AND l.LeaveType = s.WorkDescription&#xA;)&#xA;&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;    VALUES (&#xA;        'tblLeave',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New leave records inserted from staging table',&#xA;        @RowsInserted,&#xA;        @PerformedBy&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;    VALUES (&#xA;        'tblLeave',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new leave records to insert, all already exist',&#xA;        0,&#xA;        @PerformedBy&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -267,12 +341,19 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Timesheet Entries"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="1">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="DECLARE @RowsInserted INT&#xA;&#xA;INSERT INTO tblTimesheetEntries (&#xA;    ConsultantID,&#xA;    WorkDate,&#xA;    Client,&#xA;    ClientProjectName,&#xA;    WorkDescription,&#xA;    BillableFlag,&#xA;    Comments,&#xA;    StartTime,&#xA;    EndTime,&#xA;    TotalMinutes&#xA;)&#xA;SELECT&#xA;    c.ConsultantID,&#xA;    CAST(st.DateValue AS DATE)                                              AS WorkDate,&#xA;    st.Client,&#xA;    st.ClientProjectName,&#xA;    st.WorkDescription,&#xA;    st.BillableFlag,&#xA;    st.Comments,&#xA;    CAST(st.StartTime AS TIME)                                              AS StartTime,&#xA;    CAST(st.EndTime AS TIME)                                                AS EndTime,&#xA;    DATEDIFF(MINUTE, CAST('00:00:00' AS TIME), CAST(st.TotalHours AS TIME)) AS TotalMinutes&#xA;FROM tblStagingTimesheet st&#xA;INNER JOIN tblConsultant c&#xA;    ON c.FullName = st.ConsultantName&#xA;WHERE st.DateValue IS NOT NULL&#xA;  AND st.WorkDescription IS NOT NULL&#xA;  AND st.Comments &lt;&gt; 'Detailed Description of task(s) done'&#xA;  AND st.WorkDescription &lt;&gt; 'Public Holiday'&#xA;  AND NOT EXISTS (&#xA;        SELECT 1&#xA;        FROM tblTimesheetEntries te&#xA;        WHERE te.ConsultantID = c.ConsultantID&#xA;          AND te.WorkDate = CAST(st.DateValue AS DATE)&#xA;          AND te.StartTime = CAST(st.StartTime AS TIME)&#xA;          AND te.EndTime = CAST(st.EndTime AS TIME)&#xA;  )&#xA;&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblTimesheetEntries',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New timesheet entries inserted from staging table',&#xA;        @RowsInserted&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblTimesheetEntries',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new timesheet entries to insert, all already exist',&#xA;        0&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+          SQLTask:SqlStatementSource="DECLARE @RowsInserted INT&#xA;&#xA;INSERT INTO tblTimesheetEntries (&#xA;    ConsultantID,&#xA;    WorkDate,&#xA;    Client,&#xA;    ClientProjectName,&#xA;    WorkDescription,&#xA;    BillableFlag,&#xA;    Comments,&#xA;    StartTime,&#xA;    EndTime,&#xA;    TotalMinutes,&#xA;    SourceStagingID&#xA;)&#xA;SELECT&#xA;    c.ConsultantID,&#xA;    CAST(st.DateValue AS DATE)                                              AS WorkDate,&#xA;    st.Client,&#xA;    st.ClientProjectName,&#xA;    st.WorkDescription,&#xA;    st.BillableFlag,&#xA;    st.Comments,&#xA;    CAST(st.StartTime AS TIME)                                              AS StartTime,&#xA;    CAST(st.EndTime AS TIME)                                                AS EndTime,&#xA;    DATEDIFF(MINUTE, CAST('00:00:00' AS TIME), CAST(st.TotalHours AS TIME)) AS TotalMinutes,&#xA;    st.StagingID                                                            AS SourceStagingID&#xA;FROM tblStagingTimesheet st&#xA;INNER JOIN tblConsultant c&#xA;    ON c.FullName = st.ConsultantName&#xA;WHERE st.DateValue IS NOT NULL&#xA;  AND st.WorkDescription IS NOT NULL&#xA;  AND st.Comments &lt;&gt; 'Detailed Description of task(s) done'&#xA;  AND st.WorkDescription &lt;&gt; 'Public Holiday'&#xA;  AND NOT EXISTS (&#xA;        SELECT 1&#xA;        FROM tblTimesheetEntries te&#xA;        WHERE te.ConsultantID = c.ConsultantID&#xA;          AND te.WorkDate = CAST(st.DateValue AS DATE)&#xA;          AND te.StartTime = CAST(st.StartTime AS TIME)&#xA;          AND te.EndTime = CAST(st.EndTime AS TIME)&#xA;  )&#xA;&#xA;SET @RowsInserted = @@ROWCOUNT&#xA;&#xA;IF @RowsInserted &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblTimesheetEntries',&#xA;        'INSERT',&#xA;        'SUCCESS',&#xA;        'New timesheet entries inserted from staging table',&#xA;        @RowsInserted&#xA;    )&#xA;ELSE&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;    VALUES (&#xA;        'tblTimesheetEntries',&#xA;        'INSERT',&#xA;        'NO ACTION',&#xA;        'No new timesheet entries to insert, all already exist',&#xA;        0&#xA;    )" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          <SQLTask:ParameterBinding
+            SQLTask:ParameterName="0"
+            SQLTask:DtsVariableName="User::ExecutedBy"
+            SQLTask:ParameterDirection="Input"
+            SQLTask:DataType="129"
+            SQLTask:ParameterSize="128" />
+        </SQLTask:SqlTaskData>
       </DTS:ObjectData>
     </DTS:Executable>
     <DTS:Executable
@@ -346,12 +427,19 @@
               DTS:LocaleID="-1"
               DTS:ObjectName="Fail Expense Claim"
               DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-              DTS:ThreadHint="1">
+              DTS:ThreadHint="0">
               <DTS:Variables />
               <DTS:ObjectData>
                 <SQLTask:SqlTaskData
                   SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-                  SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;VALUES (&#xA;    'tblExpenseStaging',&#xA;    'INSERT',&#xA;    'FAILURE',&#xA;    'Failed to load expense data. Check SSIS execution log for details.',&#xA;    0&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+                  SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES (&#xA;    'tblExpenseStaging',&#xA;    'INSERT',&#xA;    'FAILURE',&#xA;    'Failed to load expense data. Check SSIS execution log for details.',&#xA;    0,&#xA;    ?&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+                  <SQLTask:ParameterBinding
+                    SQLTask:ParameterName="0"
+                    SQLTask:DtsVariableName="User::ExecutedBy"
+                    SQLTask:ParameterDirection="Input"
+                    SQLTask:DataType="129"
+                    SQLTask:ParameterSize="128" />
+                </SQLTask:SqlTaskData>
               </DTS:ObjectData>
             </DTS:Executable>
             <DTS:Executable
@@ -363,12 +451,19 @@
               DTS:LocaleID="-1"
               DTS:ObjectName="Fail Staging Load"
               DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-              DTS:ThreadHint="0">
+              DTS:ThreadHint="1">
               <DTS:Variables />
               <DTS:ObjectData>
                 <SQLTask:SqlTaskData
                   SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-                  SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;VALUES (&#xA;    'tblStagingTimesheet',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Failed to load data from Excel file into staging table',&#xA;    0&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+                  SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES (&#xA;    'tblStagingTimesheet',&#xA;    'INSERT',&#xA;    'FAILED',&#xA;    'Failed to load data from Excel file into staging table',&#xA;    0,&#xA;    ?&#xA;)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+                  <SQLTask:ParameterBinding
+                    SQLTask:ParameterName="0"
+                    SQLTask:DtsVariableName="User::ExecutedBy"
+                    SQLTask:ParameterDirection="Input"
+                    SQLTask:DataType="129"
+                    SQLTask:ParameterSize="128" />
+                </SQLTask:SqlTaskData>
               </DTS:ObjectData>
             </DTS:Executable>
             <DTS:Executable
@@ -2869,7 +2964,14 @@
               <DTS:ObjectData>
                 <SQLTask:SqlTaskData
                   SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-                  SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;SELECT&#xA;    'tblExpenseStaging',&#xA;    'INSERT',&#xA;    'SUCCESS',&#xA;    'Data loaded from file: ' + FilePath + ' - Sheet: ' + SheetName,&#xA;    COUNT(*)&#xA;FROM tblExpenseStaging&#xA;WHERE LoadedAt &gt;= CAST(GETDATE() AS DATE)&#xA;GROUP BY FilePath, SheetName" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+                  SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;SELECT&#xA;    'tblExpenseStaging',&#xA;    'INSERT',&#xA;    'SUCCESS',&#xA;    'Data loaded from file: ' + FilePath + ' - Sheet: ' + SheetName,&#xA;    COUNT(*),&#xA;    ?&#xA;FROM tblExpenseStaging&#xA;WHERE LoadedAt &gt;= CAST(GETDATE() AS DATE)&#xA;GROUP BY FilePath, SheetName" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+                  <SQLTask:ParameterBinding
+                    SQLTask:ParameterName="0"
+                    SQLTask:DtsVariableName="User::ExecutedBy"
+                    SQLTask:ParameterDirection="Input"
+                    SQLTask:DataType="129"
+                    SQLTask:ParameterSize="128" />
+                </SQLTask:SqlTaskData>
               </DTS:ObjectData>
             </DTS:Executable>
             <DTS:Executable
@@ -2886,7 +2988,14 @@
               <DTS:ObjectData>
                 <SQLTask:SqlTaskData
                   SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-                  SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected)&#xA;SELECT&#xA;    'tblStagingTimesheet',&#xA;    'INSERT',&#xA;    'SUCCESS',&#xA;    'Data loaded from file: ' + ConsultantName + ' - Sheet: ' + SheetName,&#xA;    COUNT(*)&#xA;FROM tblStagingTimesheet&#xA;WHERE LoadedAt &gt;= CAST(GETDATE() AS DATE)&#xA;GROUP BY ConsultantName, SheetName" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+                  SQLTask:SqlStatementSource="INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;SELECT&#xA;    'tblStagingTimesheet',&#xA;    'INSERT',&#xA;    'SUCCESS',&#xA;    'Data loaded from file: ' + ConsultantName + ' - Sheet: ' + SheetName,&#xA;    COUNT(*),&#xA;    ?&#xA;FROM tblStagingTimesheet&#xA;WHERE LoadedAt &gt;= CAST(GETDATE() AS DATE)&#xA;GROUP BY ConsultantName, SheetName" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+                  <SQLTask:ParameterBinding
+                    SQLTask:ParameterName="0"
+                    SQLTask:DtsVariableName="User::ExecutedBy"
+                    SQLTask:ParameterDirection="Input"
+                    SQLTask:DataType="129"
+                    SQLTask:ParameterSize="128" />
+                </SQLTask:SqlTaskData>
               </DTS:ObjectData>
             </DTS:Executable>
           </DTS:Executables>
@@ -2989,7 +3098,14 @@
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
               SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-              SQLTask:SqlStatementSource="drop table if exists tblStagingTimesheet&#xA;&#xA;&#xA;&#xA;CREATE TABLE tblStagingTimesheet (&#xA;StagingID INT IDENTITY(1,1) PRIMARY KEY,&#xA;ConsultantName NVARCHAR(255),&#xA;DateValue NVARCHAR(255),&#xA;DOfWeek NVARCHAR(255),&#xA;Client NVARCHAR(255),&#xA;ClientProjectName NVARCHAR(255),&#xA;WorkDescription NVARCHAR(max),&#xA;BillableFlag NVARCHAR(255),&#xA;Comments NVARCHAR(max),&#xA;TotalHours NVARCHAR(255),&#xA;StartTime NVARCHAR(255),&#xA;EndTime NVARCHAR(255),&#xA;SheetName VARCHAR(255),&#xA;FilePath TEXT,&#xA;LoadedAt DATETIME DEFAULT GETDATE()&#xA;);" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+              SQLTask:SqlStatementSource="drop table if exists tblStagingTimesheet&#xA;&#xA;&#xA;&#xA;CREATE TABLE tblStagingTimesheet (&#xA;StagingID INT IDENTITY(1,1) PRIMARY KEY,&#xA;ConsultantName NVARCHAR(255),&#xA;DateValue NVARCHAR(255),&#xA;DOfWeek NVARCHAR(255),&#xA;Client NVARCHAR(255),&#xA;ClientProjectName NVARCHAR(255),&#xA;WorkDescription NVARCHAR(max),&#xA;BillableFlag NVARCHAR(255),&#xA;Comments NVARCHAR(max),&#xA;TotalHours NVARCHAR(255),&#xA;StartTime NVARCHAR(255),&#xA;EndTime NVARCHAR(255),&#xA;SheetName VARCHAR(255),&#xA;FilePath TEXT,&#xA;LoadedAt DATETIME DEFAULT GETDATE()&#xA;);&#xA;&#xA;INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES ('tblStagingTimesheet', 'CREATE', 'SUCCESS', 'Timesheet Staging Table Created Successfully', 0, ?)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+              <SQLTask:ParameterBinding
+                SQLTask:ParameterName="0"
+                SQLTask:DtsVariableName="User::ExecutedBy"
+                SQLTask:ParameterDirection="Input"
+                SQLTask:DataType="129"
+                SQLTask:ParameterSize="128" />
+            </SQLTask:SqlTaskData>
           </DTS:ObjectData>
         </DTS:Executable>
         <DTS:Executable
@@ -3006,7 +3122,14 @@
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
               SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-              SQLTask:SqlStatementSource="Truncate Table tblExpenseStaging" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+              SQLTask:SqlStatementSource="Truncate Table tblExpenseStaging;&#xA;&#xA;TRUNCATE TABLE tblExpenseStaging;&#xA;&#xA;INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES ('tblExpenseStaging', 'TRUNCATE', 'SUCCESS', 'Expense staging table truncated before reload', 0, ?)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+              <SQLTask:ParameterBinding
+                SQLTask:ParameterName="0"
+                SQLTask:DtsVariableName="User::ExecutedBy"
+                SQLTask:ParameterDirection="Input"
+                SQLTask:DataType="129"
+                SQLTask:ParameterSize="128" />
+            </SQLTask:SqlTaskData>
           </DTS:ObjectData>
         </DTS:Executable>
         <DTS:Executable
@@ -3023,7 +3146,14 @@
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
               SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-              SQLTask:SqlStatementSource="Truncate Table tblStagingTimesheet;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask" />
+              SQLTask:SqlStatementSource="Truncate Table tblStagingTimesheet;&#xA;&#xA;TRUNCATE TABLE tblStagingTimesheet;&#xA;&#xA;INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, PerformedBy)&#xA;VALUES ('tblStagingTimesheet', 'TRUNCATE', 'SUCCESS', 'Staging table truncated before reload', 0, ?)" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+              <SQLTask:ParameterBinding
+                SQLTask:ParameterName="0"
+                SQLTask:DtsVariableName="User::ExecutedBy"
+                SQLTask:ParameterDirection="Input"
+                SQLTask:DataType="129"
+                SQLTask:ParameterSize="128" />
+            </SQLTask:SqlTaskData>
           </DTS:ObjectData>
         </DTS:Executable>
       </DTS:Executables>
@@ -3504,26 +3634,26 @@
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="100.267719411193,60.0507928759337"
+              EndConnector="62.4010527445266,60.0507928759337"
               Start="0,0"
-              End="100.267719411193,52.5507928759337">
+              End="62.4010527445266,52.5507928759337">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,26.0253964379669" />
+                    End="0,31.7870265652524" />
                   <mssgle:CubicBezierSegment
-                    Point1="0,26.0253964379669"
-                    Point2="0,30.0253964379669"
-                    Point3="4,30.0253964379669" />
+                    Point1="0,31.7870265652524"
+                    Point2="0,35.7870265652524"
+                    Point3="4,35.7870265652524" />
                   <mssgle:LineSegment
-                    End="96.2677194111933,30.0253964379669" />
+                    End="58.4010527445266,35.7870265652524" />
                   <mssgle:CubicBezierSegment
-                    Point1="96.2677194111933,30.0253964379669"
-                    Point2="100.267719411193,30.0253964379669"
-                    Point3="100.267719411193,34.0253964379669" />
+                    Point1="58.4010527445266,35.7870265652524"
+                    Point2="62.4010527445266,35.7870265652524"
+                    Point3="62.4010527445266,39.7870265652524" />
                   <mssgle:LineSegment
-                    End="100.267719411193,52.5507928759337" />
+                    End="62.4010527445266,52.5507928759337" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
@@ -3545,26 +3675,26 @@
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="43.2471252064025,95.0119068763411"
+              EndConnector="43.2471252064031,95.0119068763411"
               Start="0,0"
-              End="35.7471252064025,95.0119068763411">
+              End="35.7471252064031,95.0119068763411">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="17.6235626032013,0" />
+                    End="17.6235626032015,0" />
                   <mssgle:CubicBezierSegment
-                    Point1="17.6235626032013,0"
-                    Point2="21.6235626032013,0"
-                    Point3="21.6235626032013,4" />
+                    Point1="17.6235626032015,0"
+                    Point2="21.6235626032015,0"
+                    Point3="21.6235626032015,4" />
                   <mssgle:LineSegment
-                    End="21.6235626032013,91.0119068763411" />
+                    End="21.6235626032015,91.0119068763411" />
                   <mssgle:CubicBezierSegment
-                    Point1="21.6235626032013,91.0119068763411"
-                    Point2="21.6235626032013,95.0119068763411"
-                    Point3="25.6235626032013,95.0119068763411" />
+                    Point1="21.6235626032015,91.0119068763411"
+                    Point2="21.6235626032015,95.0119068763411"
+                    Point3="25.6235626032015,95.0119068763411" />
                   <mssgle:LineSegment
-                    End="35.7471252064025,95.0119068763411" />
+                    End="35.7471252064031,95.0119068763411" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
@@ -3613,33 +3743,33 @@
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="65.3238049056322,27.7333328511979"
+              EndConnector="65.3238049056301,27.733332851198"
               Start="0,0"
-              End="65.3238049056322,20.2333328511979">
+              End="65.3238049056301,20.233332851198">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="0,9.86666642559896" />
+                    End="0,9.86666642559902" />
                   <mssgle:CubicBezierSegment
-                    Point1="0,9.86666642559896"
+                    Point1="0,9.86666642559902"
                     Point2="0,13.866666425599"
                     Point3="4,13.866666425599" />
                   <mssgle:LineSegment
-                    End="61.3238049056322,13.866666425599" />
+                    End="61.3238049056301,13.866666425599" />
                   <mssgle:CubicBezierSegment
-                    Point1="61.3238049056322,13.866666425599"
-                    Point2="65.3238049056322,13.866666425599"
-                    Point3="65.3238049056322,17.866666425599" />
+                    Point1="61.3238049056301,13.866666425599"
+                    Point2="65.3238049056301,13.866666425599"
+                    Point3="65.3238049056301,17.866666425599" />
                   <mssgle:LineSegment
-                    End="65.3238049056322,20.2333328511979" />
+                    End="65.3238049056301,20.233332851198" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
-              BoundingBox="17.4205547965661,18.866666425599,30.4826953125,9.7490234375"
+              BoundingBox="17.4205547965651,18.866666425599,30.4826953125,9.7490234375"
               RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
@@ -3805,21 +3935,21 @@
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="62.8095129470485,0"
+              EndConnector="62.8095129470501,0"
               Start="0,0"
-              End="55.3095129470485,0">
+              End="55.3095129470501,0">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="55.3095129470485,0" />
+                    End="55.3095129470501,0" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
-              BoundingBox="2.35030334852423,5,50.60890625,11.609375"
+              BoundingBox="2.35030334852502,5,50.60890625,11.609375"
               RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
@@ -3865,21 +3995,21 @@
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-              EndConnector="45.6095102151685,0"
+              EndConnector="45.6095102151698,0"
               Start="0,0"
-              End="38.1095102151685,0">
+              End="38.1095102151698,0">
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-                    End="38.1095102151685,0" />
+                    End="38.1095102151698,0" />
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
-              BoundingBox="-6.24969801741576,5,50.60890625,11.609375"
+              BoundingBox="-6.24969801741508,5,50.60890625,11.609375"
               RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
@@ -4123,7 +4253,7 @@
     design-time-name="Package\Loop Files\Loop Sheets\Load Timesheets">
     <LayoutInfo>
       <GraphLayout
-        Capacity="16" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:mssgm="clr-namespace:Microsoft.SqlServer.Graph.Model;assembly=Microsoft.SqlServer.Graph">
+        Capacity="16" xmlns="clr-namespace:Microsoft.SqlServer.IntegrationServices.Designer.Model.Serialization;assembly=Microsoft.SqlServer.IntegrationServices.Graph" xmlns:mssgle="clr-namespace:Microsoft.SqlServer.Graph.LayoutEngine;assembly=Microsoft.SqlServer.Graph" xmlns:assembly="http://schemas.microsoft.com/winfx/2006/xaml">
         <NodeLayout
           Size="161.6,41.6"
           Id="Package\Loop Files\Loop Sheets\Load Timesheets\Derived Column 1"
@@ -4179,9 +4309,7 @@
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="0,0,0,0"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
@@ -4215,9 +4343,7 @@
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="0,0,0,0"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
@@ -4251,9 +4377,7 @@
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="0,0,0,0"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
@@ -4287,9 +4411,7 @@
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="0,0,0,0"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
@@ -4323,9 +4445,7 @@
             </mssgle:Curve>
           </EdgeLayout.Curve>
           <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="0,0,0,0"
-              RelativePosition="Any" />
+            <EdgeLabelCollection />
           </EdgeLayout.Labels>
         </EdgeLayout>
       </GraphLayout>

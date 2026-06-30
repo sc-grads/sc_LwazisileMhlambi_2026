@@ -35,8 +35,9 @@ ConsultantID Int Identity(1,1) Primary Key,
 FullName NVARCHAR(255) NOT NULL,
 FirstName NVARCHAR(255),
 LastName NVARCHAR(255)
-
 );
+
+
 
 -- Creating Client Table
 drop table if exists tblClient;
@@ -80,12 +81,16 @@ TableName NVARCHAR(255),
 Action NVARCHAR(50),
 StatusCode NVARCHAR(50),
 StatusMessage NVARCHAR(255),
---RecordID INT,
---ConsultantName NVARCHAR(255),
 RowsAffected INT,
-PerformedAt DATETIME DEFAULT GETDATE()
+PerformedAt DATETIME DEFAULT GETDATE(),
+PerformedBy NVARCHAR(128) DEFAULT SUSER_SNAME()
 );
 
+
+
+
+
+select SUSER_SNAME()
 -- Creating Leave Table
 drop table if exists tblLeave
 
