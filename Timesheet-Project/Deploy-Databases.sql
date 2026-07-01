@@ -55,20 +55,28 @@ create table tblTimesheetEntries (
 TimesheetID int identity(1,1) Primary Key,
 ConsultantID int not null,
 WorkDate date not null,
-Client varchar(200),
+ClientID int not null,
 ClientProjectName varchar(255),
 WorkDescription varchar(max),
-BillableFlag varchar(20),
+BillableFlag varchar(50),
 Comments varchar(max),
 StartTime Time,
 EndTime Time,
-TotalMinutes Int Check(TotalMinutes >= 0),
+HoursWorked Int Check(HoursWorked >= 0),
 
 ImportDate DATETIME DEFAULT GETDATE(),
+UpdatedAt DATETIME NULL,
+IsDeleted BIT      NOT NULL CONSTRAINT DF_tblTimesheetEntries_IsDeleted DEFAULT 0,
+DeletedAt DATETIME NULL,
+RowSeq INT NULL,
 
     CONSTRAINT FK_TimesheetEntries_Consultant
         FOREIGN KEY (ConsultantID)
-        REFERENCES tblConsultant(ConsultantID)
+        REFERENCES tblConsultant(ConsultantID),
+
+    CONSTRAINT FK_TimesheetEntries_Client
+        FOREIGN KEY (ClientID)
+        REFERENCES tblClient(ClientID)
 );
 
 
@@ -83,21 +91,19 @@ StatusCode NVARCHAR(50),
 StatusMessage NVARCHAR(255),
 RowsAffected INT,
 PerformedAt DATETIME DEFAULT GETDATE(),
-PerformedBy NVARCHAR(128) DEFAULT SUSER_SNAME()
+PerformedBy NVARCHAR(128) DEFAULT SUSER_SNAME(),
+RowsInserted INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsInserted DEFAULT 0,
+RowsUpdated  INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsUpdated  DEFAULT 0,
+RowsDeleted  INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsDeleted  DEFAULT 0
 );
 
 
-
-
-
-select SUSER_SNAME()
 -- Creating Leave Table
 drop table if exists tblLeave
 
 create table tblLeave (
 LeaveID int identity(1,1) primary key,
 ConsultantID int not null,
-ConsultantName nvarchar(255),
 Date date,
 DayOfWeek nvarchar(255),
 LeaveType NVARCHAR(255),
@@ -130,7 +136,6 @@ drop table if exists tblExpenseClaim
 create table tblExpenseClaim (
 ClaimID int identity(1,1) primary key,
 ConsultantID int not null,
-ConsultantName nvarchar(255),
 Date date,
 Month nvarchar(255),
 ExpenseDescription NVARCHAR(255),
