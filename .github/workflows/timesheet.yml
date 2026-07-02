@@ -125,11 +125,9 @@ jobs:
             -v ProjectName="$SSISDB_PROJECT" \
             -v ProjectStream="$HEX_STREAM" \
             -i "./Timesheet-Project/deploy_ssis.sql"
-  
-  
 
   deploy-job:
-    needs: deploy-ssis
+    needs: [deploy-ssis, deploy-operator]
     runs-on: ubuntu-latest
 
     steps:
@@ -174,7 +172,7 @@ jobs:
             -i "./Timesheet-Project/deploy_job.sql"
 
   deploy-alert:
-    needs: deploy-job
+    needs: [deploy-job, deploy-operator]
     runs-on: ubuntu-latest
 
     steps:
