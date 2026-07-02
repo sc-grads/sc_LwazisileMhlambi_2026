@@ -2,16 +2,14 @@ name: Deploy SSIS Timesheet Project
 
 on:
   push:
-    #branches:
-    #  - main
-
-  #workflow_dispatch:
+    
 
 jobs:
 
-  deploy:
+  deploy-database:
 
     runs-on: ubuntu-latest
+    
 
     steps:
 
@@ -42,20 +40,101 @@ jobs:
             -C \
             -i "$SQL_SCRIPT"
 
-    - name: Run SSIS Job
+  deploy-ssis:
+    needs: deploy-database
+
+    runs-on: ubuntu-latest
+
+    steps: 
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install sqlcmd
+      run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+    - name: Verify sqlcmd Installation
+      run: /opt/mssql-tools18/bin/sqlcmd -?
+    
+    - name: Deploy SSIS Package
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
-          SSIS_JOB_SCRIPT: "./Timesheet-Project/Run-SSIS-Job.sql"
+          ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
+          SSISDB_FOLDER: "TimesheetFolder"
+          SSISDB_PROJECT: "TimesheetProject"
+      run: |
+          set -e
 
+          if [ ! -f "$ISPAC_PATH" ]; then
+            echo "ERROR: .ispac not found at: $ISPAC_PATH"
+            find . -iname "*.ispac"
+            exit 1
+          fi
+
+          HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
+
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -d SSISDB \
+            -v FolderName="$SSISDB_FOLDER" \
+            -v ProjectName="$SSISDB_PROJECT" \
+            -v ProjectStream="$HEX_STREAM" \
+            -i "./Timesheet-Project/deploy_ssis.sql"
+
+  deploy-job:
+    needs: deploy-ssis
+    
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install sqlcmd
+      run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+    - name: Verify sqlcmd Installation
+      run: /opt/mssql-tools18/bin/sqlcmd -?
+
+    - name: Deploy SSIS Job
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SSISDB_FOLDER: "TimesheetFolder"
+          SSISDB_PROJECT: "TimesheetProject"
+          SSIS_PACKAGE: "Timesheets.dtsx"
+          JOB_NAME: "Timesheet ETL - Load Consultant and Client Data"
+          JOB_ENABLED: "1"
+          OPERATOR_NAME: "Timesheet ETL DBA"
       run: |
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
             -P "$SQL_PASSWORD" \
             -C \
-            -i "$SSIS_JOB_SCRIPT"
-
-    - name: Verify Deployment
-      run: echo "Deployment Complete"
+            -d msdb \
+            -v ServerName="$SQL_SERVER" \
+            -v SsisFolder="$SSISDB_FOLDER" \
+            -v SsisProject="$SSISDB_PROJECT" \
+            -v SsisPackage="$SSIS_PACKAGE" \
+            -v JobName="$JOB_NAME" \
+            -v JobOwner="NULL" \
+            -v JobEnabled="$JOB_ENABLED" \
+            -v OperatorName="$OPERATOR_NAME" \
+            -i "./Timesheet-Project/deploy_job.sql"
+    

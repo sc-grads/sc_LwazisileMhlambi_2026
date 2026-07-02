@@ -48,7 +48,7 @@ ClientName NVARCHAR(255) NOT NULL,
 
 );
 
---Creating Timesheet Table (Final)
+--Creating Timesheet Entries Table (Final)
 drop table if exists tblTimesheetEntries
 
 create table tblTimesheetEntries (
@@ -62,7 +62,7 @@ BillableFlag varchar(50),
 Comments varchar(max),
 StartTime Time,
 EndTime Time,
-HoursWorked Int Check(HoursWorked >= 0),
+MinutesWorked Int Check(MinutesWorked >= 0),
 
 ImportDate DATETIME DEFAULT GETDATE(),
 UpdatedAt DATETIME NULL,
@@ -79,6 +79,42 @@ RowSeq INT NULL,
         REFERENCES tblClient(ClientID)
 );
 
+--Creating Timesheet Table 
+drop table if exists tblTimesheet
+
+create table tblTimesheet (
+TimesheetID int identity(1,1) Primary Key,
+SourceTimesheetID int null,
+ConsultantID int not null,
+WorkDate date not null,
+ClientID int not null,
+ClientProjectName varchar(255),
+WorkDescription varchar(max),
+BillableFlag varchar(50),
+Comments varchar(max),
+StartTime Time,
+EndTime Time,
+MinutesWorked Int Check(MinutesWorked >= 0),
+
+ImportDate DATETIME DEFAULT GETDATE(),
+UpdatedAt DATETIME NULL,
+
+CONSTRAINT FK_Timesheet_Consultant
+        FOREIGN KEY (ConsultantID)
+        REFERENCES tblConsultant(ConsultantID),
+
+ CONSTRAINT FK_Timesheet_Client
+        FOREIGN KEY (ClientID)
+        REFERENCES tblClient(ClientID),
+
+CONSTRAINT FK_Timesheet_TimesheetEntry
+        FOREIGN KEY (SourceTimesheetID)
+        REFERENCES tblTimesheetEntries(TimesheetID)
+);
+
+CREATE NONCLUSTERED INDEX IX_Timesheet_SourceTimesheetID
+ON tblTimesheet (SourceTimesheetID);
+
 
 --Creating Audit Log Table
 drop table if exists tblAuditLog
@@ -94,7 +130,7 @@ PerformedAt DATETIME DEFAULT GETDATE(),
 PerformedBy NVARCHAR(128) DEFAULT SUSER_SNAME(),
 RowsInserted INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsInserted DEFAULT 0,
 RowsUpdated  INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsUpdated  DEFAULT 0,
-RowsDeleted  INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsDeleted  DEFAULT 0
+RowsDeleted  INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsDeleted  DEFAULT 0,
 );
 
 
