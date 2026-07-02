@@ -1,3 +1,6 @@
+Use [Timesheet-DB]
+Go
+
 ------ tblConsultant ----
 CREATE OR ALTER TRIGGER trg_tblConsultant_Update
 ON tblConsultant
