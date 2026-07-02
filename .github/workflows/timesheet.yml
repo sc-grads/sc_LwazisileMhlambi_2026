@@ -66,8 +66,8 @@ jobs:
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
           ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
-          SSISDB_FOLDER: "TimesheetFolder"
-          SSISDB_PROJECT: "TimesheetProject"
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
       run: |
           set -e
 
@@ -112,8 +112,8 @@ jobs:
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
           SSIS_TARGET_SERVER: "SAMBE2025008"              # local server name — baked into the job step's /SERVER arg
-          SSISDB_FOLDER: "TimesheetFolder"
-          SSISDB_PROJECT: "TimesheetProject"
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
           SSIS_PACKAGE: "Timesheets.dtsx"
           JOB_NAME: "Timesheet ETL - Load Consultant and Client Data"
           JOB_ENABLED: "1"
