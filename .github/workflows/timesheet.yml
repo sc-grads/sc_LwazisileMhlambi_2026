@@ -92,7 +92,6 @@ jobs:
 
   deploy-job:
     needs: deploy-ssis
-    
     runs-on: ubuntu-latest
 
     steps:
@@ -107,14 +106,12 @@ jobs:
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
 
-    - name: Verify sqlcmd Installation
-      run: /opt/mssql-tools18/bin/sqlcmd -?
-
     - name: Deploy SSIS Job
       env:
-          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}          # tunnel — for sqlcmd -S only
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SSIS_TARGET_SERVER: "SAMBE2025008"              # local server name — baked into the job step's /SERVER arg
           SSISDB_FOLDER: "TimesheetFolder"
           SSISDB_PROJECT: "TimesheetProject"
           SSIS_PACKAGE: "Timesheets.dtsx"
@@ -128,7 +125,7 @@ jobs:
             -P "$SQL_PASSWORD" \
             -C \
             -d msdb \
-            -v ServerName="$SQL_SERVER" \
+            -v ServerName="$SSIS_TARGET_SERVER" \
             -v SsisFolder="$SSISDB_FOLDER" \
             -v SsisProject="$SSISDB_PROJECT" \
             -v SsisPackage="$SSIS_PACKAGE" \
@@ -137,4 +134,3 @@ jobs:
             -v JobEnabled="$JOB_ENABLED" \
             -v OperatorName="$OPERATOR_NAME" \
             -i "./Timesheet-Project/deploy_job.sql"
-    
