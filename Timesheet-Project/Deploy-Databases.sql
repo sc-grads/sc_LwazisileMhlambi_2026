@@ -1,3 +1,7 @@
+ALTER DATABASE [Timesheet-DB]
+SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+GO
+
 DROP DATABASE IF EXISTS [Timesheet-DB];
 CREATE DATABASE [Timesheet-DB]
 GO
@@ -26,6 +30,7 @@ SheetName VARCHAR(255),
 FilePath TEXT,
 LoadedAt DATETIME DEFAULT GETDATE()
 );
+GO
 
 --Creating Consultant Table
 drop table if exists tblConsultant;
@@ -36,7 +41,7 @@ FullName NVARCHAR(255) NOT NULL,
 FirstName NVARCHAR(255),
 LastName NVARCHAR(255)
 );
-
+GO
 
 
 -- Creating Client Table
@@ -44,9 +49,10 @@ drop table if exists tblClient;
 
 create table tblClient (
 ClientID Int Identity(1,1) Primary Key,
-ClientName NVARCHAR(255) NOT NULL,
+ClientName NVARCHAR(255) NOT NULL
 
 );
+GO
 
 --Creating Timesheet Entries Table (Final)
 drop table if exists tblTimesheetEntries
@@ -78,6 +84,7 @@ RowSeq INT NULL,
         FOREIGN KEY (ClientID)
         REFERENCES tblClient(ClientID)
 );
+GO
 
 --Creating Timesheet Table 
 drop table if exists tblTimesheet
@@ -115,6 +122,8 @@ CONSTRAINT FK_Timesheet_TimesheetEntry
 CREATE NONCLUSTERED INDEX IX_Timesheet_SourceTimesheetID
 ON tblTimesheet (SourceTimesheetID);
 
+GO
+
 
 --Creating Audit Log Table
 drop table if exists tblAuditLog
@@ -132,6 +141,7 @@ RowsInserted INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsInserted DEFAULT 0,
 RowsUpdated  INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsUpdated  DEFAULT 0,
 RowsDeleted  INT NOT NULL CONSTRAINT DF_tblAuditLog_RowsDeleted  DEFAULT 0,
 );
+GO
 
 
 -- Creating Leave Table
@@ -143,12 +153,12 @@ ConsultantID int not null,
 Date date,
 DayOfWeek nvarchar(255),
 LeaveType NVARCHAR(255),
-Comments NVARCHAR(255)
+Comments NVARCHAR(255),
 CONSTRAINT FK_Leave_Consultant
         FOREIGN KEY (ConsultantID)
         REFERENCES tblConsultant(ConsultantID)
 );
-
+GO
 
 --Creating Expense Claim Staging Table
 drop table if exists tblExpenseStaging;
@@ -165,6 +175,7 @@ SheetName VARCHAR(255),
 FilePath VARCHAR(255),
 LoadedAt DATETIME DEFAULT GETDATE()
 );
+GO
 
 --Creating Expense Claim Table
 drop table if exists tblExpenseClaim
@@ -176,8 +187,9 @@ Date date,
 Month nvarchar(255),
 ExpenseDescription NVARCHAR(255),
 Type NVARCHAR(255),
-Cost Float
+Cost Float,
 CONSTRAINT FK_ExpenseClaim_Consultant
         FOREIGN KEY (ConsultantID)
         REFERENCES tblConsultant(ConsultantID)
 );
+GO
