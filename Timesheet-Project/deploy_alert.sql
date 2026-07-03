@@ -8,6 +8,8 @@ DECLARE @job_name               sysname        = N'$(JobName)';
 DECLARE @operator_name          sysname        = N'$(OperatorName)';
 DECLARE @notification_message   nvarchar(512)  = N'$(NotificationMessage)';
 DECLARE @delay_between_responses int           = CAST('$(DelayBetweenResponses)' AS int);
+DECLARE @message_id             int            = CAST('$(MessageId)' AS int);
+DECLARE @severity               int            = CAST('$(Severity)' AS int);
 
 DECLARE @ReturnCode INT = 0;
 
@@ -40,8 +42,8 @@ BEGIN TRY
 
     EXEC @ReturnCode = msdb.dbo.sp_add_alert
         @name                       = @alert_name,
-        @message_id                 = 0,
-        @severity                   = 0,
+        @message_id                 = @message_id,
+        @severity                   = @severity,
         @enabled                    = 1,
         @delay_between_responses    = @delay_between_responses,
         @notification_message       = @notification_message,

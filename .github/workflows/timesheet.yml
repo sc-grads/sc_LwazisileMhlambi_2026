@@ -170,3 +170,4 @@ jobs:
             -v JobEnabled="$JOB_ENABLED" \
             -v OperatorName="$OPERATOR_NAME" \
             -i "./Timesheet-Project/deploy_job.sql"
+  
