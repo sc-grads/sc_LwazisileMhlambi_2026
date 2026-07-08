@@ -1,0 +1,228 @@
+name: Sequential SSIS Deployment (Local then Partner)
+
+on:
+  push:
+
+jobs:
+  # =========================================================================
+  # JOB 1: LOCAL LAPTOP DEPLOYMENT
+  # =========================================================================
+  deploy-local:
+    name: 1. Deploy to Local Laptop
+    runs-on: windows-latest
+    environment: production
+
+    steps:
+    - name: Checkout Repository Code
+      uses: actions/checkout@v4
+
+    - name: Deploy SSIS and Create Execution Job (Local)
+      shell: powershell
+      run: |
+        # #########################################################################
+        # STEP 1: LOCATE THE SSIS DEPLOYMENT FILE (.ISPAC)
+        # #########################################################################
+        $ispacPath = "${{ github.workspace }}\Timesheet-Project\Timesheet Project\bin\Development\Timesheet Project.ispac"
+        if (-not (Test-Path -Path $ispacPath)) {
+            Write-Host "Primary path not found. Testing workspace folder structural correction path..."
+            $ispacPath = "${{ github.workspace }}\..\Timesheet-Project\Timesheet Project\bin\Development\Timesheet Project.ispac"
+            $ispacPath = [System.IO.Path]::GetFullPath($ispacPath)
+        }
+        if (-not (Test-Path -Path $ispacPath)) {
+            Write-Error "CRITICAL ERROR: Could not locate 'Timesheet Project.ispac' file."
+            exit 1
+        }
+
+        # #########################################################################
+        # STEP 2: DEFINE TARGET CONFIGURATIONS AND ENVIRONMENT VARIABLES (LOCAL)
+        # #########################################################################
+        $tunnelAddress     = "${{ secrets.SQL_SERVER }}"
+        $dbUser            = "${{ secrets.SQL_USER }}"
+        $initialDb         = "${{ secrets.SQL_DATABASE }}"
+        $dbPassword        = "${{ secrets.SQL_PASSWORD }}"
+        $targetFolder      = "Timesheet ETL"
+        $projectName       = "Timesheet Project"
+        $packageName       = "Timesheets.dtsx"
+        $targetServerName  = "SAMBE2025008"  # local server name — baked into the job step's /SERVER arg, NOT the tunnel address
+        $executionJobName  = "Timesheet ETL - Load Consultant and Client Data"
+
+        # #########################################################################
+        # STEP 3: CONVERT ISPAC FILE INTO BINARY DATA STREAM
+        # #########################################################################
+        $fileBytes = [System.IO.File]::ReadAllBytes($ispacPath)
+        $hexString = "0x" + [System.BitConverter]::ToString($fileBytes).Replace("-", "")
+
+        # #########################################################################
+        # STEP 4: INITIALIZE SQL SERVER DATABASE CONNECTION OVER NETWORK TUNNEL
+        # #########################################################################
+        Write-Host "Establishing tunnel connection via automation_user to Local..."
+        $connStr = "Data Source=$tunnelAddress;Initial Catalog=$initialDb;User ID=$dbUser;Password=$dbPassword;TrustServerCertificate=True;Encrypt=False;"
+        $connection = New-Object System.Data.SqlClient.SqlConnection($connStr)
+        try {
+            $connection.Open()
+            $sqlLines = @(
+                "SET NOCOUNT ON;",
+                "USE [msdb];",
+                "IF EXISTS (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = N'GitHub_SSIS_Deploy_Job')",
+                "BEGIN",
+                "    EXEC dbo.sp_delete_job @job_name = N'GitHub_SSIS_Deploy_Job', @delete_unused_schedule=1;",
+                "END",
+                "EXEC dbo.sp_add_job @job_name = N'GitHub_SSIS_Deploy_Job', @enabled = 1, @start_step_id = 1;",
+                "DECLARE @deploy_script NVARCHAR(MAX);",
+                "SET @deploy_script = N'USE [SSISDB]; IF NOT EXISTS (SELECT 1 FROM [catalog].[folders] WHERE name = ''$targetFolder'') BEGIN EXEC [catalog].[create_folder] @folder_name = N''$targetFolder''; END DECLARE @project_stream VARBINARY(MAX) = $hexString; EXEC [catalog].[deploy_project] @folder_name = N''$targetFolder'', @project_name = N''$projectName'', @project_stream = @project_stream;';",
+                "EXEC dbo.sp_add_jobstep @job_name = N'GitHub_SSIS_Deploy_Job', @step_name = N'Run Deploy', @subsystem = N'TSQL', @command = @deploy_script, @retry_attempts = 0;",
+                "EXEC dbo.sp_add_jobserver @job_name = N'GitHub_SSIS_Deploy_Job', @server_name = N'(local)';",
+                "EXEC dbo.sp_start_job @job_name = N'GitHub_SSIS_Deploy_Job';",
+                "WAITFOR DELAY '00:00:07';",
+                "EXEC dbo.sp_delete_job @job_name = N'GitHub_SSIS_Deploy_Job';",
+                "IF EXISTS (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = N'$executionJobName')",
+                "BEGIN",
+                "    EXEC dbo.sp_delete_job @job_name = N'$executionJobName', @delete_unused_schedule=1;",
+                "END",
+                "EXEC dbo.sp_add_job @job_name = N'$executionJobName', @enabled = 1, @description = N'Automated execution tracking for $projectName.', @start_step_id = 1;",
+                "DECLARE @run_command NVARCHAR(MAX);",
+                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\$projectName\$packageName' + CHAR(34) + N' /SERVER ' + CHAR(34) + N'$targetServerName' + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
+                "EXEC dbo.sp_add_jobstep @job_name = N'$executionJobName', @step_name = N'Execute SSIS Package', @subsystem = N'SSIS', @command = @run_command, @retry_attempts = 0;",
+                "EXEC dbo.sp_add_jobserver @job_name = N'$executionJobName', @server_name = N'(local)';",
+                "EXEC dbo.sp_add_jobschedule ",
+                "    @job_name = N'$executionJobName', ",
+                "    @name = N'Every_1_Minute_8AM_to_5PM', ",
+                "    @enabled = 1, ",
+                "    @freq_type = 4, ",
+                "    @freq_interval = 1, ",
+                "    @freq_subday_type = 4, ",
+                "    @freq_subday_interval = 1, ",
+                "    @active_start_time = 080000, ",
+                "    @active_end_time = 170000;"
+            )
+            $sqlQuery = $sqlLines -join "`n"
+            $command = $connection.CreateCommand()
+            $command.CommandText = $sqlQuery
+            $command.ExecuteNonQuery() | Out-Null
+            Write-Host "SUCCESS: Local deployment completed."
+        } catch {
+            Write-Error "Local Execution Failed: $_"
+            exit 1
+        } finally {
+            $connection.Close()
+        }
+
+  # =========================================================================
+  # JOB 2: PARTNER SERVER DEPLOYMENT
+  # =========================================================================
+  deploy-partner:
+    name: 2. Deploy to Partner Server
+    runs-on: windows-latest
+    needs: deploy-local # This ensures it runs strictly AFTER job 1 finishes successfully
+
+    environment: partner-production
+
+    steps:
+    - name: Checkout Repository Code
+      uses: actions/checkout@v4
+
+    - name: Deploy SSIS and Create Execution Job (Partner)
+      shell: powershell
+      run: |
+        # #########################################################################
+        # STEP 1: LOCATE THE SSIS DEPLOYMENT FILE (.ISPAC)
+        # #########################################################################
+        $ispacPath = "${{ github.workspace }}\Timesheet-Project\Timesheet Project\bin\Development\Timesheet Project.ispac"
+        if (-not (Test-Path -Path $ispacPath)) {
+            Write-Host "Primary path not found. Testing workspace folder structural correction path..."
+            $ispacPath = "${{ github.workspace }}\..\Timesheet-Project\Timesheet Project\bin\Development\Timesheet Project.ispac"
+            $ispacPath = [System.IO.Path]::GetFullPath($ispacPath)
+        }
+        if (-not (Test-Path -Path $ispacPath)) {
+            Write-Error "CRITICAL ERROR: Could not locate 'Timesheet Project.ispac' file."
+            exit 1
+        }
+
+        # #########################################################################
+        # STEP 2: DEFINE TARGET CONFIGURATIONS AND ENVIRONMENT VARIABLES (PARTNER)
+        # #########################################################################
+        # These read the secrets defined inside the partner-production GitHub Environment
+        $tunnelAddress     = "${{ secrets.RUSHIL_SQL_SERVER }}"
+        $dbUser            = "${{ secrets.RUSHIL_SQL_USER }}"
+        $initialDb         = "${{ secrets.RUSHIL_SQL_DATABASE }}"
+        $dbPassword        = "${{ secrets.RUSHIL_SQL_PASSWORD }}"
+        $targetFolder      = "Timesheet ETL"
+        $projectName       = "Timesheet Project"
+        $packageName       = "Timesheets.dtsx"
+        $targetServerName  = "LAPTOP-66HI94H2"  # partner's own machine name (SELECT @@SERVERNAME) — NOT the Pinggy tunnel link
+        $executionJobName  = "Timesheet ETL - Load Consultant and Client Data (Partner)"
+
+        # #########################################################################
+        # STEP 3: CONVERT ISPAC FILE INTO BINARY DATA STREAM
+        # #########################################################################
+        $fileBytes = [System.IO.File]::ReadAllBytes($ispacPath)
+        $hexString = "0x" + [System.BitConverter]::ToString($fileBytes).Replace("-", "")
+
+        # #########################################################################
+        # STEP 4: INITIALIZE SQL SERVER DATABASE CONNECTION OVER NETWORK TUNNEL
+        # #########################################################################
+        Write-Host "Establishing tunnel connection to partner environment..."
+        $connStr = "Data Source=$tunnelAddress;Initial Catalog=$initialDb;User ID=$dbUser;Password=$dbPassword;TrustServerCertificate=True;Encrypt=False;"
+        $connection = New-Object System.Data.SqlClient.SqlConnection($connStr)
+        try {
+            $connection.Open()
+            $sqlLines = @(
+                "SET NOCOUNT ON;",
+                "USE [msdb];",
+                "IF EXISTS (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = N'GitHub_SSIS_Deploy_Job')",
+                "BEGIN",
+                "    EXEC dbo.sp_delete_job @job_name = N'GitHub_SSIS_Deploy_Job', @delete_unused_schedule=1;",
+                "END",
+                "EXEC dbo.sp_add_job @job_name = N'GitHub_SSIS_Deploy_Job', @enabled = 1, @start_step_id = 1;",
+                "DECLARE @deploy_script NVARCHAR(MAX);",
+                "SET @deploy_script = N'USE [SSISDB]; IF NOT EXISTS (SELECT 1 FROM [catalog].[folders] WHERE name = ''$targetFolder'') BEGIN EXEC [catalog].[create_folder] @folder_name = N''$targetFolder''; END DECLARE @project_stream VARBINARY(MAX) = $hexString; EXEC [catalog].[deploy_project] @folder_name = N''$targetFolder'', @project_name = N''$projectName'', @project_stream = @project_stream;';",
+                "EXEC dbo.sp_add_jobstep @job_name = N'GitHub_SSIS_Deploy_Job', @step_name = N'Run Deploy', @subsystem = N'TSQL', @command = @deploy_script, @retry_attempts = 0;",
+                "EXEC dbo.sp_add_jobserver @job_name = N'GitHub_SSIS_Deploy_Job', @server_name = N'(local)';",
+                "EXEC dbo.sp_start_job @job_name = N'GitHub_SSIS_Deploy_Job';",
+                "WAITFOR DELAY '00:00:07';",
+                "EXEC dbo.sp_delete_job @job_name = N'GitHub_SSIS_Deploy_Job';",
+                "IF EXISTS (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = N'$executionJobName')",
+                "BEGIN",
+                "    EXEC dbo.sp_delete_job @job_name = N'$executionJobName', @delete_unused_schedule=1;",
+                "END",
+                "EXEC dbo.sp_add_job @job_name = N'$executionJobName', @enabled = 1, @description = N'Automated execution tracking for $projectName.', @start_step_id = 1;",
+                "DECLARE @run_command NVARCHAR(MAX);",
+                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\$projectName\$packageName' + CHAR(34) + N' /SERVER ' + CHAR(34) + N'$targetServerName' + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
+                "EXEC dbo.sp_add_jobstep @job_name = N'$executionJobName', @step_name = N'Execute SSIS Package', @subsystem = N'SSIS', @command = @run_command, @retry_attempts = 0;",
+                "EXEC dbo.sp_add_jobserver @job_name = N'$executionJobName', @server_name = N'(local)';",
+                "EXEC dbo.sp_add_jobschedule ",
+                "    @job_name = N'$executionJobName', ",
+                "    @name = N'Every_1_Minute_8AM_to_5PM', ",
+                "    @enabled = 1, ",
+                "    @freq_type = 4, ",
+                "    @freq_interval = 1, ",
+                "    @freq_subday_type = 4, ",
+                "    @freq_subday_interval = 1, ",
+                "    @active_start_time = 080000, ",
+                "    @active_end_time = 170000;"
+            )
+            $sqlQuery = $sqlLines -join "`n"
+            $command = $connection.CreateCommand()
+            $command.CommandText = $sqlQuery
+            $command.ExecuteNonQuery() | Out-Null
+            Write-Host "SUCCESS: Partner deployment completed."
+        } catch {
+            Write-Error "Partner Execution Failed: $_"
+            exit 1
+        } finally {
+            $connection.Close()
+        }
+
+    - name: Notify Success
+      if: success()
+      shell: powershell
+      run: |
+        $body = @{ text = "PARTNER DEPLOYMENT SUCCESS`n`nDatabase, SSIS package, and job deployed to partner server.`n`nRun ID: ${{ github.run_id }}" } | ConvertTo-Json
+        Invoke-RestMethod -Uri "${{ secrets.TEAMS_WEBHOOK }}" -Method Post -ContentType "application/json" -Body $body
+
+    - name: Notify Failure
+      if: failure()
+      shell: powershell
+      run: |
+        $body = @{ text = "PARTNER DEPLOYMENT FAILED`n`nCheck GitHub Actions logs.`n`nRun ID: ${{ github.run_id }}" } | ConvertTo-Json
+        Invoke-RestMethod -Uri "${{ secrets.TEAMS_WEBHOOK }}" -Method Post -ContentType "application/json" -Body $body
