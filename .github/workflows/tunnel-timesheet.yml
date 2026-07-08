@@ -10,7 +10,7 @@ jobs:
   deploy-local:
     name: 1. Deploy to Local Laptop
     runs-on: windows-latest
-    environment: production
+    
 
     steps:
     - name: Checkout Repository Code
@@ -38,7 +38,7 @@ jobs:
         # #########################################################################
         $tunnelAddress     = "${{ secrets.SQL_SERVER }}"
         $dbUser            = "${{ secrets.SQL_USER }}"
-        $initialDb         = "${{ secrets.SQL_DATABASE }}"
+        $initialDb         = "${{ secrets.RUSHIL_SQL_DATABASE }}"
         $dbPassword        = "${{ secrets.SQL_PASSWORD }}"
         $targetFolder      = "Timesheet ETL"
         $projectName       = "Timesheet Project"
@@ -115,7 +115,6 @@ jobs:
     runs-on: windows-latest
     needs: deploy-local # This ensures it runs strictly AFTER job 1 finishes successfully
 
-    environment: partner-production
 
     steps:
     - name: Checkout Repository Code
