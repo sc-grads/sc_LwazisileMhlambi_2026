@@ -21,7 +21,6 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
-
     - name: Verify sqlcmd Installation
       run: /opt/mssql-tools18/bin/sqlcmd -?
 
@@ -43,7 +42,6 @@ jobs:
             -P "$SQL_PASSWORD" \
             -C \
             -i "$SQL_SCRIPT"
-
   deploy-ssis:
     needs: deploy-database
 
@@ -60,7 +58,6 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
-
     - name: Verify sqlcmd Installation
       run: /opt/mssql-tools18/bin/sqlcmd -?
 
@@ -74,15 +71,12 @@ jobs:
           SSISDB_PROJECT: "Timesheet Project"
       run: |
           set -e
-
           if [ ! -f "$ISPAC_PATH" ]; then
             echo "ERROR: .ispac not found at: $ISPAC_PATH"
             find . -iname "*.ispac"
             exit 1
           fi
-
           HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
-
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
@@ -93,7 +87,6 @@ jobs:
             -v ProjectName="$SSISDB_PROJECT" \
             -v ProjectStream="$HEX_STREAM" \
             -i "./Timesheet-Project/deploy_ssis.sql"
-
   deploy-job:
     needs: deploy-ssis
     runs-on: ubuntu-latest
@@ -109,7 +102,6 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
-
     - name: Deploy SSIS Job
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}          # tunnel — for sqlcmd -S only
@@ -138,7 +130,6 @@ jobs:
             -v JobEnabled="$JOB_ENABLED" \
             -v OperatorName="$OPERATOR_NAME" \
             -i "./Timesheet-Project/deploy_job.sql"
-
   # --------------------------------------------------------------------------
   # Deploy to Partner (Rushil) Server
   #
@@ -163,7 +154,6 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
-
     - name: Deploy Database (Remote)
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
@@ -179,7 +169,6 @@ jobs:
             -P "$SQL_PASSWORD" \
             -C \
             -i "$SQL_SCRIPT"
-
     - name: Deploy SSIS Package (Remote)
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
@@ -190,15 +179,12 @@ jobs:
           SSISDB_PROJECT: "Timesheet Project"
       run: |
           set -e
-
           if [ ! -f "$ISPAC_PATH" ]; then
             echo "ERROR: .ispac not found at: $ISPAC_PATH"
             find . -iname "*.ispac"
             exit 1
           fi
-
           HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
-
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
@@ -209,7 +195,6 @@ jobs:
             -v ProjectName="$SSISDB_PROJECT" \
             -v ProjectStream="$HEX_STREAM" \
             -i "./Timesheet-Project/deploy_ssis.sql"
-
     - name: Set SQLServerName Parameter (Remote)
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
@@ -229,7 +214,6 @@ jobs:
             -v ProjectName="$SSISDB_PROJECT" \
             -v ServerNameValue="$TARGET_SERVER_NAME" \
             -Q "EXEC SSISDB.catalog.set_object_parameter_value @object_type = 20, @parameter_name = N'SQLServerName', @object_name = N'\$(ProjectName)', @folder_name = N'\$(FolderName)', @project_name = N'\$(ProjectName)', @value_type = N'V', @parameter_value = N'\$(ServerNameValue)';"
-
     - name: Deploy SSIS Job (Remote)
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}     # tunnel — for sqlcmd -S only
@@ -258,7 +242,6 @@ jobs:
             -v JobEnabled="$JOB_ENABLED" \
             -v OperatorName="$OPERATOR_NAME" \
             -i "./Timesheet-Project/deploy_job.sql"
-
     - name: Remote Deployment Success
       if: success()
       run: |
@@ -267,7 +250,6 @@ jobs:
           \"text\": \"🟢 PARTNER DEPLOYMENT SUCCESS 🟢\\n\\nDatabase, SSIS package, and job deployed to partner server.\\n\\nRun ID: ${{ github.run_id }}\"
         }" \
         ${{ secrets.TEAMS_WEBHOOK }}
-
     - name: Remote Deployment Failure
       if: failure()
       run: |
