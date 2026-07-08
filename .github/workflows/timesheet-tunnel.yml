@@ -144,7 +144,7 @@ jobs:
   # parameter after deploying the .ispac. No SSISDB Environments needed.
   # --------------------------------------------------------------------------
   deploy-remote-partner:
-    needs: deploy-database
+    needs: deploy-ssis
     runs-on: ubuntu-latest
 
     steps:
