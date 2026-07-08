@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<DTS:ConnectionManager xmlns:DTS="www.microsoft.com/SqlServer/Dts"
+  DTS:ObjectName="SQLServer"
+  DTS:DTSID="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
+  DTS:CreationName="OLEDB">
+  <DTS:PropertyExpression
+    DTS:Name="ServerName">@[$Project::SQLServerName]</DTS:PropertyExpression>
+  <DTS:ObjectData>
+    <DTS:ConnectionManager
+      DTS:ConnectRetryCount="1"
+      DTS:ConnectRetryInterval="5"
+      DTS:ConnectionString="Data Source=SAMBE2025008;Initial Catalog=Timesheet-DB-LM;Provider=MSOLEDBSQL19.1;Integrated Security=SSPI;Auto Translate=False;Application Name=SSIS-Package-{30655B4E-A297-4EC4-AD0B-437991C75F52}SAMBE2025008.Timesheet-DB 1;" />
+  </DTS:ObjectData>
+</DTS:ConnectionManager>

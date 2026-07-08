@@ -1,0 +1,273 @@
+name: Deploy SSIS Timesheet Project Via Tunneling
+
+on:
+  push:
+
+
+jobs:
+
+  deploy-database:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install sqlcmd
+      run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+    - name: Verify sqlcmd Installation
+      run: /opt/mssql-tools18/bin/sqlcmd -?
+
+    - name: Deploy Database
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
+      run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -i "$SQL_SCRIPT"
+
+  deploy-ssis:
+    needs: deploy-database
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install sqlcmd
+      run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+    - name: Verify sqlcmd Installation
+      run: /opt/mssql-tools18/bin/sqlcmd -?
+
+    - name: Deploy SSIS Package
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
+      run: |
+          set -e
+
+          if [ ! -f "$ISPAC_PATH" ]; then
+            echo "ERROR: .ispac not found at: $ISPAC_PATH"
+            find . -iname "*.ispac"
+            exit 1
+          fi
+
+          HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
+
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -d SSISDB \
+            -v FolderName="$SSISDB_FOLDER" \
+            -v ProjectName="$SSISDB_PROJECT" \
+            -v ProjectStream="$HEX_STREAM" \
+            -i "./Timesheet-Project/deploy_ssis.sql"
+
+  deploy-job:
+    needs: deploy-ssis
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install sqlcmd
+      run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+    - name: Deploy SSIS Job
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}          # tunnel — for sqlcmd -S only
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SSIS_TARGET_SERVER: "SAMBE2025008"              # local server name — baked into the job step's /SERVER arg
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
+          SSIS_PACKAGE: "Timesheets.dtsx"
+          JOB_NAME: "Timesheet ETL - Load Consultant and Client Data"
+          JOB_ENABLED: "1"
+          OPERATOR_NAME: "Timesheet ETL DBA"
+      run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -d msdb \
+            -v ServerName="$SSIS_TARGET_SERVER" \
+            -v SsisFolder="$SSISDB_FOLDER" \
+            -v SsisProject="$SSISDB_PROJECT" \
+            -v SsisPackage="$SSIS_PACKAGE" \
+            -v JobName="$JOB_NAME" \
+            -v JobOwner="NULL" \
+            -v JobEnabled="$JOB_ENABLED" \
+            -v OperatorName="$OPERATOR_NAME" \
+            -i "./Timesheet-Project/deploy_job.sql"
+
+  # --------------------------------------------------------------------------
+  # Deploy to Partner (Rushil) Server
+  #
+  # Deploys the database, the .ispac, and the SQL Agent job directly to the
+  # partner's SQL Server. Since the package now reads its SQL Server
+  # connection from the $Project::SQLServerName parameter instead of a
+  # hardcoded value, all we need to do differently here is override that one
+  # parameter after deploying the .ispac. No SSISDB Environments needed.
+  # --------------------------------------------------------------------------
+  deploy-remote-partner:
+    needs: deploy-database
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Install sqlcmd
+      run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+    - name: Deploy Database (Remote)
+      env:
+          SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
+          SQL_DATABASE: ${{ secrets.RUSHIL_SQL_DATABASE }}
+          SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
+          SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
+      run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -d "$SQL_DATABASE" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -i "$SQL_SCRIPT"
+
+    - name: Deploy SSIS Package (Remote)
+      env:
+          SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
+          SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
+          ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
+      run: |
+          set -e
+
+          if [ ! -f "$ISPAC_PATH" ]; then
+            echo "ERROR: .ispac not found at: $ISPAC_PATH"
+            find . -iname "*.ispac"
+            exit 1
+          fi
+
+          HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
+
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -d SSISDB \
+            -v FolderName="$SSISDB_FOLDER" \
+            -v ProjectName="$SSISDB_PROJECT" \
+            -v ProjectStream="$HEX_STREAM" \
+            -i "./Timesheet-Project/deploy_ssis.sql"
+
+    - name: Set SQLServerName Parameter (Remote)
+      env:
+          SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
+          SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
+          TARGET_SERVER_NAME: "LAPTOP-66HI94H2"           # partner's own machine name (SELECT @@SERVERNAME) — NOT the Pinggy tunnel link
+      run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -d SSISDB \
+            -v FolderName="$SSISDB_FOLDER" \
+            -v ProjectName="$SSISDB_PROJECT" \
+            -v ServerNameValue="$TARGET_SERVER_NAME" \
+            -Q "EXEC SSISDB.catalog.set_object_parameter_value @object_type = 20, @parameter_name = N'SQLServerName', @object_name = N'\$(ProjectName)', @folder_name = N'\$(FolderName)', @project_name = N'\$(ProjectName)', @value_type = N'V', @parameter_value = N'\$(ServerNameValue)';"
+
+    - name: Deploy SSIS Job (Remote)
+      env:
+          SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}     # tunnel — for sqlcmd -S only
+          SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
+          SSIS_TARGET_SERVER: "LAPTOP-66HI94H2"            # partner's own machine name — baked into the job step's /SERVER arg
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
+          SSIS_PACKAGE: "Timesheets.dtsx"
+          JOB_NAME: "Timesheet ETL - Load Consultant and Client Data (Partner)"
+          JOB_ENABLED: "1"
+          OPERATOR_NAME: "Timesheet ETL DBA"
+      run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -d msdb \
+            -v ServerName="$SSIS_TARGET_SERVER" \
+            -v SsisFolder="$SSISDB_FOLDER" \
+            -v SsisProject="$SSISDB_PROJECT" \
+            -v SsisPackage="$SSIS_PACKAGE" \
+            -v JobName="$JOB_NAME" \
+            -v JobOwner="NULL" \
+            -v JobEnabled="$JOB_ENABLED" \
+            -v OperatorName="$OPERATOR_NAME" \
+            -i "./Timesheet-Project/deploy_job.sql"
+
+    - name: Remote Deployment Success
+      if: success()
+      run: |
+        curl -H "Content-Type: application/json" \
+        -d "{
+          \"text\": \"🟢 PARTNER DEPLOYMENT SUCCESS 🟢\\n\\nDatabase, SSIS package, and job deployed to partner server.\\n\\nRun ID: ${{ github.run_id }}\"
+        }" \
+        ${{ secrets.TEAMS_WEBHOOK }}
+
+    - name: Remote Deployment Failure
+      if: failure()
+      run: |
+        curl -H "Content-Type: application/json" \
+        -d "{
+          \"text\": \"🔴 PARTNER DEPLOYMENT FAILED 🔴\\n\\nCheck GitHub Actions logs.\\n\\nRun ID: ${{ github.run_id }}\"
+        }" \
+        ${{ secrets.TEAMS_WEBHOOK }}

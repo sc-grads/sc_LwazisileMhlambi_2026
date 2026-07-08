@@ -1,7 +1,7 @@
 name: Deploy SSIS Timesheet Project
 
 on:
-  push:
+  workflow_dispatch:
     
 
 jobs:
@@ -39,42 +39,6 @@ jobs:
             -P "$SQL_PASSWORD" \
             -C \
             -i "$SQL_SCRIPT"
-
-  deploy-operator:
-    needs: deploy-database
-    runs-on: ubuntu-latest
-
-    steps:
-
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-
-    - name: Install sqlcmd
-      run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
-
-    - name: Deploy SQL Agent Operator
-      env:
-          SQL_SERVER: ${{ secrets.SQL_SERVER }}
-          SQL_USER: ${{ secrets.SQL_USER }}
-          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
-          OPERATOR_NAME: "Timesheet ETL DBA"
-          EMAIL_ADDRESS: ${{ secrets.ALERT_EMAIL }}
-          OPERATOR_ENABLED: "1"
-      run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -d msdb \
-            -v OperatorName="$OPERATOR_NAME" \
-            -v EmailAddress="$EMAIL_ADDRESS" \
-            -v OperatorEnabled="$OPERATOR_ENABLED" \
-            -i "./Timesheet-Project/deploy_operator.sql"
 
   deploy-ssis:
     needs: deploy-database
@@ -127,7 +91,7 @@ jobs:
             -i "./Timesheet-Project/deploy_ssis.sql"
 
   deploy-job:
-    needs: [deploy-ssis, deploy-operator]
+    needs: deploy-ssis
     runs-on: ubuntu-latest
 
     steps:
