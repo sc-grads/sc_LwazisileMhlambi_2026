@@ -1,7 +1,7 @@
 USE msdb;
 GO
 
-EXECUTE AS LOGIN = 'server\winuser'
+EXECUTE AS LOGIN = 'sa'
 
 SET NOCOUNT ON;
 
