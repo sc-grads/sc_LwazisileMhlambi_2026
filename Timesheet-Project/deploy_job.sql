@@ -1,6 +1,8 @@
 USE msdb;
 GO
 
+EXECUTE AS LOGIN = 'server\winuser'
+
 SET NOCOUNT ON;
 
 DECLARE @job_name      sysname        = N'$(JobName)';

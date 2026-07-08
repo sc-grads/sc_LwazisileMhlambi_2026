@@ -12,6 +12,8 @@ SET NOCOUNT ON;
 USE [SSISDB];
 GO
 
+EXECUTE AS LOGIN = 'server\winuser';
+
 DECLARE @folder_name    nvarchar(128)   = N'$(FolderName)';
 DECLARE @project_name   nvarchar(128)   = N'$(ProjectName)';
 DECLARE @project_stream varbinary(max)  = $(ProjectStream);
