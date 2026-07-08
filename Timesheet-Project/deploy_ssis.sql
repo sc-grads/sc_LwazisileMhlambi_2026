@@ -1,5 +1,17 @@
 SET NOCOUNT ON;
 
+-- #############################################################################
+-- FIX: catalog.folders / catalog.create_folder / catalog.deploy_project only
+-- exist inside the SSISDB database. Without explicitly switching context here,
+-- this script runs against whatever database the connection/sqlcmd -d opened
+-- (e.g. master), and every catalog.* call fails with:
+--   "Invalid object name 'catalog.folders'."
+-- The reference workflow handles this by doing `USE [SSISDB];` before any
+-- catalog calls -- this script was missing that statement entirely.
+-- #############################################################################
+USE [SSISDB];
+GO
+
 DECLARE @folder_name    nvarchar(128)   = N'$(FolderName)';
 DECLARE @project_name   nvarchar(128)   = N'$(ProjectName)';
 DECLARE @project_stream varbinary(max)  = $(ProjectStream);
@@ -53,3 +65,4 @@ BEGIN CATCH
     RAISERROR (@err_msg, 16, 1);
 
 END CATCH
+GO
