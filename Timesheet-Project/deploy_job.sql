@@ -1,7 +1,7 @@
 USE msdb;
 GO
 
-EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi';
+--EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi';
 
 SET NOCOUNT ON;
 
