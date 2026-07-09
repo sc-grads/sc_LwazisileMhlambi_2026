@@ -1,7 +1,7 @@
 USE msdb;
 GO
 
-EXECUTE AS LOGIN = 'SAMBE2025008'
+EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi'
 
 SET NOCOUNT ON;
 
@@ -129,8 +129,8 @@ BEGIN TRY
         @enabled                 = 1,
         @freq_type                = 4,      -- daily
         @freq_interval            = 1,
-        @freq_subday_type         = 2,      -- seconds
-        @freq_subday_interval     = 30,
+        @freq_subday_type         = 4,      -- minutes
+        @freq_subday_interval     = 1,
         @freq_relative_interval   = 0,
         @freq_recurrence_factor   = 0,
         @active_start_date        = 20260702,
@@ -144,6 +144,13 @@ BEGIN TRY
 
     COMMIT TRANSACTION;
     PRINT 'Job [' + @job_name + '] created successfully with owner [' + @job_owner + '].';
+
+    -- Kick off an immediate run right after deployment, in addition to the
+    -- recurring schedule. sp_start_job is run outside the transaction since
+    -- it launches the job asynchronously and isn't something to roll back.
+    EXEC msdb.dbo.sp_start_job @job_name = @job_name;
+    PRINT 'Job [' + @job_name + '] started.';
+
     GOTO EndSave;
 
 QuitWithRollback:
