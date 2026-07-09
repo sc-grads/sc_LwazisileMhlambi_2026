@@ -27,7 +27,7 @@ jobs:
     - name: Deploy Database
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
-          SQL_DATABASE: ${{ secrets.SQL_DATABASE }}
+          SQL_DATABASE: "master"
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
           SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
@@ -64,6 +64,7 @@ jobs:
     - name: Deploy SSIS Package
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_DATABASE: "master"
           SQL_USER: ${{ secrets.SQL_USER }}
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
           ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
@@ -79,6 +80,7 @@ jobs:
           HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
+            -d "$SQL_DATABASE" \
             -U "$SQL_USER" \
             -P "$SQL_PASSWORD" \
             -C \
@@ -130,6 +132,20 @@ jobs:
             -v JobEnabled="$JOB_ENABLED" \
             -v OperatorName="$OPERATOR_NAME" \
             -i "./Timesheet-Project/deploy_job.sql"
+    
+    - name: Run SSIS Job
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+      run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -d msdb \
+            -i "./Timesheet-Project/Run-SSIS-Job.sql"
   # --------------------------------------------------------------------------
   # Deploy to Partner (Rushil) Server
   #
