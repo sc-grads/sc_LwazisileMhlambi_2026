@@ -1,6 +1,6 @@
 name: Deployment (Container)
 on:
-  push:
+  workflow_dispatch:
     
 env:
   CACHE_KEY: node-deps

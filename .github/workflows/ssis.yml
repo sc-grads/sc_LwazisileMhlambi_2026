@@ -1,0 +1,71 @@
+name: Deploy SSIS Package
+
+on: push
+
+jobs: 
+  Deploy-SSIS:
+    runs-on: windows-latest
+
+    steps:
+      - name: Deploy SSIS Project
+        shell: pwsh
+        env:
+            SQL_SERVER: ${{ secrets.SQL_SERVER }}
+            SQL_USER: ${{ secrets.SQL_USER }}
+            SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+            ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
+            SSISDB_FOLDER: "Timesheet ETL"
+            SSISDB_PROJECT: "Timesheet Project"
+
+        run: |
+
+            Add-Type -AssemblyName "System.Data"
+
+            [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Management.IntegrationServices") | Out-Null
+            [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo") | Out-Null
+            [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.ConnectionInfo") | Out-Null
+
+            $connection = New-Object Microsoft.SqlServer.Management.Common.ServerConnection
+            $connection.ServerInstance = $env:SQL_SERVER
+            $connection.LoginSecure = $false
+            $connection.Login = $env:SQL_USER
+            $connection.Password = $env:SQL_PASSWORD
+
+            $server = New-Object Microsoft.SqlServer.Management.Smo.Server($connection)
+
+            $ssis = New-Object Microsoft.SqlServer.Management.IntegrationServices.IntegrationServices($server)
+
+            $catalog = $ssis.Catalogs["SSISDB"]
+
+            if ($catalog -eq $null)
+                {
+                throw "SSISDB catalog not found."
+            }
+
+            $folder = $catalog.Folders[$env:SSISDB_FOLDER]
+
+            if ($folder -eq $null)
+            {
+                Write-Host "Creating folder..."
+
+                $folder = New-Object Microsoft.SqlServer.Management.IntegrationServices.CatalogFolder(
+                    $catalog,
+                    $env:SSISDB_FOLDER,
+                    "Created by GitHub Actions"
+                )
+
+                $folder.Create()
+            }
+
+            Write-Host "Reading ISPAC..."
+
+            $ispac = [System.IO.File]::ReadAllBytes($env:ISPAC_PATH)
+
+            Write-Host "Deploying project..."
+
+            $folder.DeployProject(
+            $env:SSISDB_PROJECT,
+            $ispac
+            )
+
+            Write-Host "Deployment completed successfully."

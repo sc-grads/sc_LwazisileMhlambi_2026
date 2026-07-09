@@ -6,7 +6,7 @@ on:
 jobs:
 
   deploy-local:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
 
@@ -14,16 +14,22 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install sqlcmd
+      shell: pwsh
       run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+          choco install sqlserver-cmdlineutils -y
+          # Ensure sqlcmd is on PATH for subsequent steps
+          $sqlcmdDir = "C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn"
+          if (-Not (Test-Path $sqlcmdDir)) {
+            $sqlcmdDir = (Get-ChildItem -Path "C:\Program Files\Microsoft SQL Server" -Recurse -Filter "sqlcmd.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).DirectoryName
+          }
+          echo $sqlcmdDir | Out-File -FilePath $env:GITHUB_PATH -Append
 
     - name: Verify sqlcmd Installation
-      run: /opt/mssql-tools18/bin/sqlcmd -?
+      shell: pwsh
+      run: sqlcmd -?
 
     - name: Deploy Database
+      shell: pwsh
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_DATABASE: "master"
@@ -31,15 +37,16 @@ jobs:
           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
           SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
       run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -d "$SQL_DATABASE" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -i "$SQL_SCRIPT"
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -d "$env:SQL_DATABASE" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -i "$env:SQL_SCRIPT"
 
     - name: Deploy SSIS Package
+      shell: pwsh
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_USER: ${{ secrets.SQL_USER }}
@@ -48,25 +55,31 @@ jobs:
           SSISDB_FOLDER: "Timesheet ETL"
           SSISDB_PROJECT: "Timesheet Project"
       run: |
-          set -e
-          if [ ! -f "$ISPAC_PATH" ]; then
-            echo "ERROR: .ispac not found at: $ISPAC_PATH"
-            find . -iname "*.ispac"
+          $ErrorActionPreference = "Stop"
+
+          if (-Not (Test-Path $env:ISPAC_PATH)) {
+            Write-Host "ERROR: .ispac not found at: $env:ISPAC_PATH"
+            Get-ChildItem -Path . -Recurse -Filter "*.ispac"
             exit 1
-          fi
-          HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -d SSISDB \
-            -v FolderName="$SSISDB_FOLDER" \
-            -v ProjectName="$SSISDB_PROJECT" \
-            -v ProjectStream="$HEX_STREAM" \
+          }
+
+          $bytes = [System.IO.File]::ReadAllBytes($env:ISPAC_PATH)
+          $hex = -join ($bytes | ForEach-Object { $_.ToString("x2") })
+          $hexStream = "0x$hex"
+
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -d SSISDB `
+            -v FolderName="$env:SSISDB_FOLDER" `
+            -v ProjectName="$env:SSISDB_PROJECT" `
+            -v ProjectStream="$hexStream" `
             -i "./Timesheet-Project/deploy_ssis.sql"
 
     - name: Deploy SSIS Job
+      shell: pwsh
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
           SQL_USER: ${{ secrets.SQL_USER }}
@@ -79,20 +92,20 @@ jobs:
           JOB_ENABLED: "1"
           OPERATOR_NAME: "Timesheet ETL DBA"
       run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -d msdb \
-            -v ServerName="$SSIS_TARGET_SERVER" \
-            -v SsisFolder="$SSISDB_FOLDER" \
-            -v SsisProject="$SSISDB_PROJECT" \
-            -v SsisPackage="$SSIS_PACKAGE" \
-            -v JobName="$JOB_NAME" \
-            -v JobOwner="NULL" \
-            -v JobEnabled="$JOB_ENABLED" \
-            -v OperatorName="$OPERATOR_NAME" \
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -d msdb `
+            -v ServerName="$env:SSIS_TARGET_SERVER" `
+            -v SsisFolder="$env:SSISDB_FOLDER" `
+            -v SsisProject="$env:SSISDB_PROJECT" `
+            -v SsisPackage="$env:SSIS_PACKAGE" `
+            -v JobName="$env:JOB_NAME" `
+            -v JobOwner="NULL" `
+            -v JobEnabled="$env:JOB_ENABLED" `
+            -v OperatorName="$env:OPERATOR_NAME" `
             -i "./Timesheet-Project/deploy_job.sql"
 
   # --------------------------------------------------------------------------
@@ -106,7 +119,7 @@ jobs:
   deploy-remote:
     needs: deploy-local
     if: false   # TEMP: disabled until EXECUTE AS LOGIN in deploy_ssis.sql/deploy_job.sql is parameterized for the partner server
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
 
@@ -114,13 +127,17 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install sqlcmd
+      shell: pwsh
       run: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-          sudo apt-get update
-          sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+          choco install sqlserver-cmdlineutils -y
+          $sqlcmdDir = "C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn"
+          if (-Not (Test-Path $sqlcmdDir)) {
+            $sqlcmdDir = (Get-ChildItem -Path "C:\Program Files\Microsoft SQL Server" -Recurse -Filter "sqlcmd.exe" -ErrorAction SilentlyContinue | Select-Object -First 1).DirectoryName
+          }
+          echo $sqlcmdDir | Out-File -FilePath $env:GITHUB_PATH -Append
 
     - name: Deploy Database (Remote)
+      shell: pwsh
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
           SQL_DATABASE: ${{ secrets.RUSHIL_SQL_DATABASE }}
@@ -128,15 +145,16 @@ jobs:
           SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
           SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
       run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -d "$SQL_DATABASE" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -i "$SQL_SCRIPT"
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -d "$env:SQL_DATABASE" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -i "$env:SQL_SCRIPT"
 
     - name: Deploy SSIS Package (Remote)
+      shell: pwsh
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
           SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
@@ -145,25 +163,31 @@ jobs:
           SSISDB_FOLDER: "Timesheet ETL"
           SSISDB_PROJECT: "Timesheet Project"
       run: |
-          set -e
-          if [ ! -f "$ISPAC_PATH" ]; then
-            echo "ERROR: .ispac not found at: $ISPAC_PATH"
-            find . -iname "*.ispac"
+          $ErrorActionPreference = "Stop"
+
+          if (-Not (Test-Path $env:ISPAC_PATH)) {
+            Write-Host "ERROR: .ispac not found at: $env:ISPAC_PATH"
+            Get-ChildItem -Path . -Recurse -Filter "*.ispac"
             exit 1
-          fi
-          HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -d SSISDB \
-            -v FolderName="$SSISDB_FOLDER" \
-            -v ProjectName="$SSISDB_PROJECT" \
-            -v ProjectStream="$HEX_STREAM" \
+          }
+
+          $bytes = [System.IO.File]::ReadAllBytes($env:ISPAC_PATH)
+          $hex = -join ($bytes | ForEach-Object { $_.ToString("x2") })
+          $hexStream = "0x$hex"
+
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -d SSISDB `
+            -v FolderName="$env:SSISDB_FOLDER" `
+            -v ProjectName="$env:SSISDB_PROJECT" `
+            -v ProjectStream="$hexStream" `
             -i "./Timesheet-Project/deploy_ssis.sql"
 
     - name: Set SQLServerName Parameter (Remote)
+      shell: pwsh
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
           SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
@@ -172,18 +196,21 @@ jobs:
           SSISDB_PROJECT: "Timesheet Project"
           TARGET_SERVER_NAME: "LAPTOP-66HI94H2"           # partner's own machine name (SELECT @@SERVERNAME) — NOT the Pinggy tunnel link
       run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -d SSISDB \
-            -v FolderName="$SSISDB_FOLDER" \
-            -v ProjectName="$SSISDB_PROJECT" \
-            -v ServerNameValue="$TARGET_SERVER_NAME" \
-            -Q "EXEC SSISDB.catalog.set_object_parameter_value @object_type = 20, @parameter_name = N'SQLServerName', @object_name = N'\$(ProjectName)', @folder_name = N'\$(FolderName)', @project_name = N'\$(ProjectName)', @value_type = N'V', @parameter_value = N'\$(ServerNameValue)';"
+          $query = "EXEC SSISDB.catalog.set_object_parameter_value @object_type = 20, @parameter_name = N'SQLServerName', @object_name = N'`$(ProjectName)', @folder_name = N'`$(FolderName)', @project_name = N'`$(ProjectName)', @value_type = N'V', @parameter_value = N'`$(ServerNameValue)';"
+
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -d SSISDB `
+            -v FolderName="$env:SSISDB_FOLDER" `
+            -v ProjectName="$env:SSISDB_PROJECT" `
+            -v ServerNameValue="$env:TARGET_SERVER_NAME" `
+            -Q "$query"
 
     - name: Deploy SSIS Job (Remote)
+      shell: pwsh
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}     # tunnel — for sqlcmd -S only
           SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
@@ -196,36 +223,44 @@ jobs:
           JOB_ENABLED: "1"
           OPERATOR_NAME: "Timesheet ETL DBA"
       run: |
-          /opt/mssql-tools18/bin/sqlcmd \
-            -S "$SQL_SERVER" \
-            -U "$SQL_USER" \
-            -P "$SQL_PASSWORD" \
-            -C \
-            -d msdb \
-            -v ServerName="$SSIS_TARGET_SERVER" \
-            -v SsisFolder="$SSISDB_FOLDER" \
-            -v SsisProject="$SSISDB_PROJECT" \
-            -v SsisPackage="$SSIS_PACKAGE" \
-            -v JobName="$JOB_NAME" \
-            -v JobOwner="NULL" \
-            -v JobEnabled="$JOB_ENABLED" \
-            -v OperatorName="$OPERATOR_NAME" \
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -d msdb `
+            -v ServerName="$env:SSIS_TARGET_SERVER" `
+            -v SsisFolder="$env:SSISDB_FOLDER" `
+            -v SsisProject="$env:SSISDB_PROJECT" `
+            -v SsisPackage="$env:SSIS_PACKAGE" `
+            -v JobName="$env:JOB_NAME" `
+            -v JobOwner="NULL" `
+            -v JobEnabled="$env:JOB_ENABLED" `
+            -v OperatorName="$env:OPERATOR_NAME" `
             -i "./Timesheet-Project/deploy_job.sql"
 
     - name: Remote Deployment Success
       if: success()
+      shell: pwsh
+      env:
+        TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
+        RUN_ID: ${{ github.run_id }}
       run: |
-        curl -H "Content-Type: application/json" \
-        -d "{
-          \"text\": \"🟢 PARTNER DEPLOYMENT SUCCESS 🟢\\n\\nDatabase, SSIS package, and job deployed to partner server.\\n\\nRun ID: ${{ github.run_id }}\"
-        }" \
-        ${{ secrets.TEAMS_WEBHOOK }}
+          $body = @{
+            text = "🟢 PARTNER DEPLOYMENT SUCCESS 🟢`n`nDatabase, SSIS package, and job deployed to partner server.`n`nRun ID: $env:RUN_ID"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod -Uri $env:TEAMS_WEBHOOK -Method Post -ContentType "application/json" -Body $body
 
     - name: Remote Deployment Failure
       if: failure()
+      shell: pwsh
+      env:
+        TEAMS_WEBHOOK: ${{ secrets.TEAMS_WEBHOOK }}
+        RUN_ID: ${{ github.run_id }}
       run: |
-        curl -H "Content-Type: application/json" \
-        -d "{
-          \"text\": \"🔴 PARTNER DEPLOYMENT FAILED 🔴\\n\\nCheck GitHub Actions logs.\\n\\nRun ID: ${{ github.run_id }}\"
-        }" \
-        ${{ secrets.TEAMS_WEBHOOK }}
+          $body = @{
+            text = "🔴 PARTNER DEPLOYMENT FAILED 🔴`n`nCheck GitHub Actions logs.`n`nRun ID: $env:RUN_ID"
+          } | ConvertTo-Json
+
+          Invoke-RestMethod -Uri $env:TEAMS_WEBHOOK -Method Post -ContentType "application/json" -Body $body
