@@ -47,6 +47,7 @@ jobs:
           ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
           SSISDB_FOLDER: "Timesheet ETL"
           SSISDB_PROJECT: "Timesheet Project"
+          DEPLOY_LOGIN: "SAMBE2025008\\Lwazisile Mhlambi"
       run: |
           set -e
           if [ ! -f "$ISPAC_PATH" ]; then
@@ -54,6 +55,7 @@ jobs:
             exit 1
           fi
           HEX_STREAM="0x$(xxd -p "$ISPAC_PATH" | tr -d '\n')"
+
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
             -U "$SQL_USER" \
@@ -63,8 +65,55 @@ jobs:
             -v FolderName="$SSISDB_FOLDER" \
             -v ProjectName="$SSISDB_PROJECT" \
             -v ProjectStream="$HEX_STREAM" \
-            -v DeployLogin="SAMBE2025008\Lwazisile Mhlambi" \
-            -i "./Timesheet-Project/deploy_ssis.sql"
+            -v DeployLogin="$DEPLOY_LOGIN" \
+            -Q "
+              SET NOCOUNT ON;
+              USE [SSISDB];
+
+              EXECUTE AS LOGIN = N'\$(DeployLogin)';
+
+              DECLARE @folder_name    nvarchar(128)   = N'\$(FolderName)';
+              DECLARE @project_name   nvarchar(128)   = N'\$(ProjectName)';
+              DECLARE @ProjectStream  varbinary(max);
+
+              SET @ProjectStream = CONVERT(varbinary(max), \$(ProjectStream), 1);
+
+              BEGIN TRY
+                  BEGIN TRANSACTION;
+
+                  IF NOT EXISTS (SELECT 1 FROM catalog.folders WHERE name = @folder_name)
+                  BEGIN
+                      PRINT 'Folder [' + @folder_name + '] not found. Creating it.';
+                      EXEC catalog.create_folder @folder_name;
+                  END
+                  ELSE
+                  BEGIN
+                      PRINT 'Folder [' + @folder_name + '] already exists.';
+                  END
+
+                  PRINT 'Deploying project [' + @project_name + '] to folder [' + @folder_name + ']...';
+
+                  EXEC SSISDB.catalog.deploy_project
+                      @folder_name    = @folder_name,
+                      @project_name   = @project_name,
+                      @project_stream = @ProjectStream;
+
+                  COMMIT TRANSACTION;
+                  REVERT;
+
+                  PRINT 'SSIS project deployment completed successfully.';
+              END TRY
+              BEGIN CATCH
+                  IF @@TRANCOUNT > 0
+                      ROLLBACK TRANSACTION;
+
+                  REVERT;
+
+                  DECLARE @err_msg nvarchar(4000) = ERROR_MESSAGE();
+                  PRINT 'ERROR deploying SSIS project.';
+                  RAISERROR ('%s', 16, 1, @err_msg);
+              END CATCH
+            "
 
     - name: Deploy SSIS Job
       env:
