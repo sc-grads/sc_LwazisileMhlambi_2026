@@ -2,7 +2,10 @@ name: Deploy SSIS Package
 
 on:
   push:
-    
+    branches:
+      - main
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: windows-latest
@@ -17,22 +20,24 @@ jobs:
         SQL_SERVER: ${{ secrets.SQL_SERVER }}
         SQL_USER: ${{ secrets.SQL_USER }}
         SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
-        # Change these to match your SQL Server SSISDB Catalog setup:
         TARGET_FOLDER: "Production_ETL"
-        TARGET_PROJECT: "MySSISProject"
+        # Extracted project name from your path
+        TARGET_PROJECT: "Timesheet Project" 
+        # Explicit path to your desired .ispac file
+        ISPAC_RELATIVE_PATH: "Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
       run: |
         # Load necessary SQL Server Integration Services assembly
         [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Management.IntegrationServices") | Out-Null
         
-        # Locate the compiled .ispac file in the repo
-        $ispacPath = Get-ChildItem -Path .\* -Filter "*.ispac" -Recurse | Select-Object -First 1 -ExpandProperty FullName
+        # Resolve the explicit path
+        $ispacPath = Convert-Path (Join-Path $env:GITHUB_WORKSPACE $env:ISPAC_RELATIVE_PATH) -ErrorAction SilentlyContinue
         
-        if (-not $ispacPath) {
-            Write-Error "No .ispac file found in the repository. Please ensure the project is built before running deployment."
+        if (-not $ispacPath -or -not (Test-Path $ispacPath)) {
+            Write-Error "Could not find the .ispac file at explicit path: $env:ISPAC_RELATIVE_PATH"
             exit 1
         }
         
-        Write-Host "Found ISPAC file at: $ispacPath"
+        Write-Host "Targeting ISPAC file at: $ispacPath"
         
         # Connect to the SQL Server Instance
         $connectionString = "Data Source=$env:SQL_SERVER;Initial Catalog=master;User ID=$env:SQL_USER;Password=$env:SQL_PASSWORD;Encrypt=false;"
@@ -42,17 +47,28 @@ jobs:
         # Access SSISDB Catalog
         $catalog = $integrationServices.Catalogs["SSISDB"]
         
+        if (-not $catalog) {
+            Write-Error "SSISDB Catalog not found on server $env:SQL_SERVER. Ensure SSIS is installed and the catalog is created."
+            exit 1
+        }
+        
         # Ensure the Target Folder exists, create if missing
         if (-not $catalog.Folders[$env:TARGET_FOLDER]) {
-            Write-Host "Creating SSISDB catalog folder: $env:TARGET_FOLDER"
-            $folder = New-Object Microsoft.SqlServer.Management.IntegrationServices.CatalogFolder($catalog, $env:TARGET_FOLDER, "Deployed via GitHub Actions")
-            $folder.Create()
+            Write-Host "Attempting to create SSISDB catalog folder: $env:TARGET_FOLDER"
+            try {
+                $folder = New-Object Microsoft.SqlServer.Management.IntegrationServices.CatalogFolder($catalog, $env:TARGET_FOLDER, "Deployed via GitHub Actions")
+                $folder.Create()
+            } catch {
+                Write-Error "Failed to create folder '$env:TARGET_FOLDER'. Ensure '$env:SQL_USER' has 'ssis_admin' or 'sysadmin' privileges."
+                Write-Error $_.Exception.ToString()
+                exit 1
+            }
         } else {
             $folder = $catalog.Folders[$env:TARGET_FOLDER]
         }
         
         # Deploy the project binary stream
-        Write-Host "Deploying $env:TARGET_PROJECT to folder $env:TARGET_FOLDER on $env:SQL_SERVER..."
+        Write-Host "Deploying '$env:TARGET_PROJECT' to folder '$env:TARGET_FOLDER' on $env:SQL_SERVER..."
         $projectBinary = [System.IO.File]::ReadAllBytes($ispacPath)
         $folder.DeployProject($env:TARGET_PROJECT, $projectBinary)
         
