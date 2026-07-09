@@ -1,7 +1,7 @@
 name: Sequential SSIS Deployment (Local then Partner)
 
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
   # =========================================================================
@@ -107,12 +107,12 @@ jobs:
                 "EXEC dbo.sp_add_jobserver @job_name = N'$executionJobName', @server_name = N'(local)';",
                 "EXEC dbo.sp_add_jobschedule ",
                 "    @job_name = N'$executionJobName', ",
-                "    @name = N'Every_1_Minute_8AM_to_5PM', ",
+                "    @name = N'Every_30_Seconds_8AM_to_5PM', ",
                 "    @enabled = 1, ",
                 "    @freq_type = 4, ",
                 "    @freq_interval = 1, ",
-                "    @freq_subday_type = 4, ",
-                "    @freq_subday_interval = 1, ",
+                "    @freq_subday_type = 2, ",
+                "    @freq_subday_interval = 30, ",
                 "    @active_start_time = 080000, ",
                 "    @active_end_time = 170000;"
             )
@@ -212,12 +212,12 @@ jobs:
                 "EXEC dbo.sp_add_jobserver @job_name = N'$executionJobName', @server_name = N'(local)';",
                 "EXEC dbo.sp_add_jobschedule ",
                 "    @job_name = N'$executionJobName', ",
-                "    @name = N'Every_1_Minute_8AM_to_5PM', ",
+                "    @name = N'Every_30_Seconds_8AM_to_5PM', ",
                 "    @enabled = 1, ",
                 "    @freq_type = 4, ",
                 "    @freq_interval = 1, ",
-                "    @freq_subday_type = 4, ",
-                "    @freq_subday_interval = 1, ",
+                "    @freq_subday_type = 2, ",
+                "    @freq_subday_interval = 30, ",
                 "    @active_start_time = 080000, ",
                 "    @active_end_time = 170000;"
             )
