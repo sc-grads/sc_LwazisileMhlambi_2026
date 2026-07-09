@@ -1,7 +1,7 @@
 name: Sequential SSIS Deployment (Local then Partner)
 
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
   # =========================================================================
