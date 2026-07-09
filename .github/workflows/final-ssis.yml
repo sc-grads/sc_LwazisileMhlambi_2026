@@ -1,0 +1,268 @@
+name: Deploy Windows-Latest SSIS Timesheet Project Via Tunneling
+
+on:
+  push:
+
+jobs:
+
+  deploy-database:
+
+    runs-on: windows-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Verify sqlcmd Installation
+      shell: powershell
+      run: sqlcmd -?
+
+    - name: Deploy Database
+      shell: powershell
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_DATABASE: "master"
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
+      run: |
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -d "$env:SQL_DATABASE" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -i "$env:SQL_SCRIPT"
+
+  deploy-ssis:
+    needs: deploy-database
+
+    runs-on: windows-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Verify sqlcmd Installation
+      shell: powershell
+      run: sqlcmd -?
+
+    - name: Deploy SSIS Package
+      shell: powershell
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
+      run: |
+          if (-not (Test-Path "$env:ISPAC_PATH")) {
+              Write-Host "ERROR: .ispac not found at: $env:ISPAC_PATH"
+              Get-ChildItem -Recurse -Filter *.ispac
+              exit 1
+          }
+
+          $fileBytes = [System.IO.File]::ReadAllBytes("$env:ISPAC_PATH")
+          $hexStream = "0x" + [System.BitConverter]::ToString($fileBytes).Replace("-", "")
+          $folderName = "$env:SSISDB_FOLDER"
+          $projectName = "$env:SSISDB_PROJECT"
+
+          $sqlScript = @(
+              "USE [SSISDB];",
+              "SET NOCOUNT ON;",
+              "BEGIN TRY",
+              "    BEGIN TRANSACTION;",
+              "    IF NOT EXISTS (SELECT 1 FROM catalog.folders WHERE name = N'$folderName')",
+              "    BEGIN",
+              "        PRINT 'Folder [$folderName] not found. Creating it.';",
+              "        EXEC catalog.create_folder N'$folderName';",
+              "    END",
+              "    ELSE",
+              "    BEGIN",
+              "        PRINT 'Folder [$folderName] already exists.';",
+              "    END",
+              "    PRINT 'Deploying project [$projectName] to folder [$folderName]...';",
+              "    EXEC catalog.deploy_project @folder_name = N'$folderName', @project_name = N'$projectName', @project_stream = $hexStream;",
+              "    COMMIT TRANSACTION;",
+              "    PRINT 'SSIS project deployment completed successfully.';",
+              "END TRY",
+              "BEGIN CATCH",
+              "    IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;",
+              "    DECLARE @err_msg nvarchar(4000) = ERROR_MESSAGE();",
+              "    PRINT 'ERROR deploying SSIS project: ' + @err_msg;",
+              "    RAISERROR (@err_msg, 16, 1);",
+              "END CATCH"
+          ) -join "`n"
+
+          $scriptPath = "${{ github.workspace }}\deploy_ssis_inline.sql"
+          Set-Content -Path $scriptPath -Value $sqlScript
+
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -d "master" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -b `
+            -i "$scriptPath"
+  
+    - name: Deploy and Run SSIS Job
+      shell: powershell
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SSIS_TARGET_SERVER: "SAMBE2025008"
+          SSISDB_FOLDER: "Timesheet ETL"
+          SSISDB_PROJECT: "Timesheet Project"
+          SSIS_PACKAGE: "Timesheets.dtsx"
+          JOB_NAME: "Timesheet ETL - Load Consultant and Client Data"
+          OPERATOR_NAME: "Timesheet ETL DBA"
+      run: |
+          $jobName      = "$env:JOB_NAME"
+          $serverName   = "$env:SSIS_TARGET_SERVER"
+          $ssisFolder   = "$env:SSISDB_FOLDER"
+          $ssisProject  = "$env:SSISDB_PROJECT"
+          $ssisPackage  = "$env:SSIS_PACKAGE"
+          $operatorName = "$env:OPERATOR_NAME"
+
+          $sqlScript = @(
+              "USE msdb;",
+              "SET NOCOUNT ON;",
+              "",
+              "DECLARE @job_owner   sysname = N'sa';",
+              "DECLARE @jobId       BINARY(16);",
+              "DECLARE @ReturnCode  INT = 0;",
+              "DECLARE @ssis_command nvarchar(max);",
+              "",
+              "SET @ssis_command =",
+              "    N'/ISSERVER `"`"\SSISDB\$ssisFolder\$ssisProject\$ssisPackage`"`" '",
+              "    + N'/SERVER $serverName '",
+              "    + N'/Par `"`"`$ServerOption::LOGGING_LEVEL(Int16)`"`";1 '",
+              "    + N'/Par `"`"`$ServerOption::SYNCHRONIZED(Boolean)`"`";True '",
+              "    + N'/CALLERINFO SQLAGENT /REPORTING E';",
+              "",
+              "BEGIN TRY",
+              "    BEGIN TRANSACTION;",
+              "",
+              "    IF EXISTS (SELECT 1 FROM msdb.dbo.sysjobs WHERE name = N'$jobName')",
+              "    BEGIN",
+              "        PRINT 'Existing job [$jobName] found. Dropping it.';",
+              "        EXEC msdb.dbo.sp_delete_job @job_name = N'$jobName', @delete_unused_schedule = 1;",
+              "    END",
+              "",
+              "    IF NOT EXISTS (SELECT 1 FROM msdb.dbo.sysoperators WHERE name = N'$operatorName')",
+              "    BEGIN",
+              "        PRINT 'WARNING: Operator [$operatorName] does not exist. Job will be created without failure email notification.';",
+              "    END",
+              "",
+              "    EXEC @ReturnCode = msdb.dbo.sp_add_job",
+              "        @job_name = N'$jobName',",
+              "        @enabled = 1,",
+              "        @notify_level_eventlog = 2,",
+              "        @notify_level_email = 2,",
+              "        @description = N'Runs SSIS ETL package to load Timesheet data',",
+              "        @category_name = N'[Uncategorized (Local)]',",
+              "        @owner_login_name = @job_owner,",
+              "        @notify_email_operator_name = N'$operatorName',",
+              "        @job_id = @jobId OUTPUT;",
+              "    IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback;",
+              "",
+              "    EXEC @ReturnCode = msdb.dbo.sp_add_jobstep",
+              "        @job_id = @jobId,",
+              "        @step_name = N'Run SSIS Package',",
+              "        @step_id = 1,",
+              "        @cmdexec_success_code = 0,",
+              "        @on_success_action = 1,",
+              "        @on_fail_action = 2,",
+              "        @subsystem = N'SSIS',",
+              "        @command = @ssis_command,",
+              "        @database_name = N'master';",
+              "    IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback;",
+              "",
+              "    EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1;",
+              "    IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback;",
+              "",
+              "    EXEC @ReturnCode = msdb.dbo.sp_add_jobserver @job_id = @jobId, @server_name = N'(local)';",
+              "    IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback;",
+              "",
+              "    -- Recurring schedule: every 30 seconds, all day, every day",
+              "    EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule",
+              "        @job_id = @jobId,",
+              "        @name = N'Every30Seconds',",
+              "        @enabled = 1,",
+              "        @freq_type = 4,",
+              "        @freq_interval = 1,",
+              "        @freq_subday_type = 2,",
+              "        @freq_subday_interval = 30,",
+              "        @freq_recurrence_factor = 0,",
+              "        @active_start_time = 0,",
+              "        @active_end_time = 235959;",
+              "    IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback;",
+              "",
+              "    COMMIT TRANSACTION;",
+              "    PRINT 'Job [$jobName] created successfully with a 30-second recurring schedule.';",
+              "",
+              "    -- Run it immediately (in addition to the recurring schedule) and wait for the outcome",
+              "    DECLARE @start_time DATETIME = GETDATE();",
+              "    EXEC msdb.dbo.sp_start_job @job_name = N'$jobName';",
+              "",
+              "    DECLARE @job_status INT = NULL;",
+              "    DECLARE @elapsed INT = 0;",
+              "    DECLARE @max_wait INT = 300;",
+              "",
+              "    WAITFOR DELAY '00:00:05';",
+              "    WHILE @elapsed < @max_wait",
+              "    BEGIN",
+              "        SELECT @job_status = h.run_status",
+              "        FROM msdb.dbo.sysjobs j",
+              "        INNER JOIN msdb.dbo.sysjobhistory h ON j.job_id = h.job_id",
+              "        WHERE j.name = N'$jobName' AND h.step_id = 0",
+              "        AND msdb.dbo.agent_datetime(h.run_date, h.run_time) >= @start_time",
+              "        ORDER BY h.instance_id DESC;",
+              "",
+              "        IF @job_status IS NOT NULL BREAK;",
+              "        WAITFOR DELAY '00:00:05';",
+              "        SET @elapsed = @elapsed + 5;",
+              "    END",
+              "",
+              "    IF @job_status = 1",
+              "        PRINT 'Job completed successfully.';",
+              "    ELSE IF @job_status = 0",
+              "    BEGIN",
+              "        PRINT 'Job failed.';",
+              "        RAISERROR('SSIS Job failed.', 16, 1);",
+              "    END",
+              "    ELSE",
+              "        PRINT 'Job status unknown or timed out.';",
+              "",
+              "    GOTO EndSave;",
+              "",
+              "QuitWithRollback:",
+              "    IF (@@TRANCOUNT > 0) ROLLBACK TRANSACTION;",
+              "    RAISERROR (N'Failed to create SQL Agent job [$jobName].', 16, 1);",
+              "",
+              "EndSave:",
+              "END TRY",
+              "BEGIN CATCH",
+              "    IF (@@TRANCOUNT > 0) ROLLBACK TRANSACTION;",
+              "    DECLARE @err_msg nvarchar(4000) = ERROR_MESSAGE();",
+              "    PRINT 'ERROR: ' + @err_msg;",
+              "    RAISERROR (@err_msg, 16, 1);",
+              "END CATCH"
+          ) -join "`n"
+
+          $scriptPath = "${{ github.workspace }}\deploy_run_job_inline.sql"
+          Set-Content -Path $scriptPath -Value $sqlScript
+
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -b `
+            -d msdb `
+            -i "$scriptPath"
