@@ -57,7 +57,7 @@ jobs:
         $dbPassword        = "${{ secrets.SQL_PASSWORD }}"
         $targetFolder      = "TimesheetDevTestMigration"
         $projectName       = "Timesheet Project"
-        $packageName       = "TimesheetDevTestMigrationPK"
+        $packageName       = "TimesheetDevTestMigrationPK.dtsx"
         $targetServerName  = "SAMBE2025008"  # local server name — baked into the job step's /SERVER arg, NOT the tunnel address
         $executionJobName  = "RunTimesheetDevTestMigrationPK"
 
@@ -152,7 +152,7 @@ jobs:
         $dbPassword        = "${{ secrets.RUSHIL_SQL_PASSWORD }}"
         $targetFolder      = "TimesheetProductionMigration"
         $projectName       = "Timesheet Project"
-        $packageName       = "TimesheetProductionMigrationPK"
+        $packageName       = "TimesheetProductionMigrationPK.dtsx"
         $targetServerName  = "LAPTOP-66HI94H2"  # partner's own machine name (SELECT @@SERVERNAME) — NOT the Pinggy tunnel link
         $executionJobName  = "RunTimesheetProductionMigrationPK"
 
