@@ -4,13 +4,12 @@ on:
   push:
 
 jobs:
-  # ========================================================================
+  # =========================================================================
   # JOB 1: LOCAL LAPTOP DEPLOYMENT
-  # ========================================================================
-  DevTest:
+  # =========================================================================
+  deploy-local:
     name: DevTest/Deploy
     runs-on: windows-latest
-    environment: production
 
     steps:
     - name: Checkout Repository Code
@@ -59,8 +58,8 @@ jobs:
         $targetFolder      = "TimesheetDevTestMigration"
         $projectName       = "Timesheet Project"
         $packageName       = "TimesheetDevTestMigrationPK"
+        $targetServerName  = "SAMBE2025008"  # local server name — baked into the job step's /SERVER arg, NOT the tunnel address
         $executionJobName  = "RunTimesheetDevTestMigrationPK"
-        # No renaming needed here since it's already named correctly in your local project build
 
         # STEP 3: CONVERT ISPAC FILE INTO BINARY DATA STREAM
         $fileBytes = [System.IO.File]::ReadAllBytes($ispacPath)
@@ -93,7 +92,7 @@ jobs:
                 "END",
                 "EXEC dbo.sp_add_job @job_name = N'$executionJobName', @enabled = 1, @description = N'Automated execution tracking for $projectName.', @start_step_id = 1;",
                 "DECLARE @run_command NVARCHAR(MAX);",
-                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\$projectName\$packageName.dtsx' + CHAR(34) + N' /SERVER ' + CHAR(34) + @@SERVERNAME + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
+                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\$projectName\$packageName.dtsx' + CHAR(34) + N' /SERVER ' + CHAR(34) + N'$targetServerName' + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
                 "EXEC dbo.sp_add_jobstep @job_name = N'$executionJobName', @step_name = N'Execute SSIS Package', @subsystem = N'SSIS', @command = @run_command, @retry_attempts = 0;",
                 "EXEC dbo.sp_add_jobserver @job_name = N'$executionJobName', @server_name = N'(local)';",
                 "EXEC dbo.sp_add_jobschedule ",
@@ -122,11 +121,10 @@ jobs:
   # =========================================================================
   # JOB 2: PARTNER SERVER DEPLOYMENT
   # =========================================================================
-  Production:
+  deploy-partner:
     name: Production/Deploy
     runs-on: windows-latest
-    needs: DevTest
-    environment: partner-production
+    needs: deploy-local
 
     steps:
     - name: Checkout Repository Code
@@ -174,48 +172,13 @@ jobs:
         $dbPassword        = "${{ secrets.RUSHIL_SQL_PASSWORD }}"
         $targetFolder      = "TimesheetProductionMigration"
         $projectName       = "Timesheet Project"
+        $packageName       = "TimesheetProductionMigrationPK"
+        $targetServerName  = "LAPTOP-66HI94H2"  # partner's own machine name (SELECT @@SERVERNAME) — NOT the Pinggy tunnel link
         $executionJobName  = "RunTimesheetProductionMigrationPK"
 
-        # Source name in repo vs target name for your partner
-        $sourcePackageName = "TimesheetDevTestMigrationPK"
-        $targetPackageName = "TimesheetProductionMigrationPK"
-
-        # STEP 3: DYNAMICALLY UNPACK, RENAME, AND REPACK THE ISPAC
-        Write-Host "Unpacking ispac to inject Production partner package name..."
-        $workingDir = New-Item -Path ".\ispac_working_prod" -ItemType Directory -Force
-
-        # Convert to a standard .zip to allow native PowerShell extraction
-        Copy-Item $ispacPath "$($workingDir.FullName)\temp.zip"
-        Expand-Archive -Path "$($workingDir.FullName)\temp.zip" -DestinationPath "$($workingDir.FullName)\extracted"
-
-        $extractedPath = "$($workingDir.FullName)\extracted"
-
-        # 1. Rename the physical package file inside the archive
-        if (Test-Path "$extractedPath\$sourcePackageName.dtsx") {
-            Rename-Item -Path "$extractedPath\$sourcePackageName.dtsx" -NewName "$targetPackageName.dtsx"
-        } else {
-            Write-Error "CRITICAL ERROR: Could not find $sourcePackageName.dtsx inside the extracted ISPAC file."
-            exit 1
-        }
-
-        # 2. Open up the project manifest file and replace the internal XML definition string
-        $manifestPath = "$extractedPath\@Project.manifest"
-        (Get-Content $manifestPath) | ForEach-Object {
-            $_ -replace "$sourcePackageName.dtsx", "$targetPackageName.dtsx"
-        } | Set-Content $manifestPath
-
-        # 3. Compress the archive files back up into a clean .ispac file delivery stream
-        Remove-Item "$($workingDir.FullName)\temp.zip" -ErrorAction SilentlyContinue
-        Compress-Archive -Path "$extractedPath\*" -DestinationPath "$($workingDir.FullName)\modified.zip"
-        $modifiedIspacPath = "$($workingDir.FullName)\TimesheetProjectModified.ispac"
-        Move-Item -Path "$($workingDir.FullName)\modified.zip" -Destination $modifiedIspacPath -Force
-
-        # Convert our newly tailored archive into the clean deployment hex string payload
-        $fileBytes = [System.IO.File]::ReadAllBytes($modifiedIspacPath)
+        # STEP 3: CONVERT ISPAC FILE INTO BINARY DATA STREAM
+        $fileBytes = [System.IO.File]::ReadAllBytes($ispacPath)
         $hexString = "0x" + [System.BitConverter]::ToString($fileBytes).Replace("-", "")
-
-        # Housekeeping: Clean up runner directories
-        Remove-Item $workingDir -Recurse -Force
 
         # STEP 4: INITIALIZE SQL SERVER DATABASE CONNECTION OVER NETWORK TUNNEL
         Write-Host "Establishing tunnel connection to partner environment..."
@@ -244,7 +207,7 @@ jobs:
                 "END",
                 "EXEC dbo.sp_add_job @job_name = N'$executionJobName', @enabled = 1, @description = N'Automated execution tracking for $projectName.', @start_step_id = 1;",
                 "DECLARE @run_command NVARCHAR(MAX);",
-                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\$projectName\$targetPackageName.dtsx' + CHAR(34) + N' /SERVER ' + CHAR(34) + @@SERVERNAME + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
+                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\$projectName\$packageName.dtsx' + CHAR(34) + N' /SERVER ' + CHAR(34) + N'$targetServerName' + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
                 "EXEC dbo.sp_add_jobstep @job_name = N'$executionJobName', @step_name = N'Execute SSIS Package', @subsystem = N'SSIS', @command = @run_command, @retry_attempts = 0;",
                 "EXEC dbo.sp_add_jobserver @job_name = N'$executionJobName', @server_name = N'(local)';",
                 "EXEC dbo.sp_add_jobschedule ",
@@ -269,3 +232,4 @@ jobs:
         } finally {
             $connection.Close()
         }
+
