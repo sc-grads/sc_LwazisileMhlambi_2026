@@ -12,7 +12,7 @@ SET NOCOUNT ON;
 USE [SSISDB];
 GO
 
---EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi';
+EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi';
 
 DECLARE @folder_name    nvarchar(128)   = N'$(FolderName)';
 DECLARE @project_name   nvarchar(128)   = N'$(ProjectName)';
