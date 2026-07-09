@@ -1,7 +1,7 @@
 USE msdb;
 GO
 
-EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi'
+EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi';
 
 SET NOCOUNT ON;
 
@@ -123,14 +123,16 @@ BEGIN TRY
     EXEC @ReturnCode = msdb.dbo.sp_update_job @job_id = @jobId, @start_step_id = 1;
     IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback;
 
+    -- FIX: freq_subday_type = 2 means "seconds" (4 was "minutes", which made
+    -- this run every 1 minute instead of every 30 seconds as intended).
     EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule
         @job_id                  = @jobId,
         @name                     = N'Recurring ETL Load',
         @enabled                 = 1,
         @freq_type                = 4,      -- daily
         @freq_interval            = 1,
-        @freq_subday_type         = 4,      -- minutes
-        @freq_subday_interval     = 1,
+        @freq_subday_type         = 2,      -- seconds
+        @freq_subday_interval     = 30,     -- every 30 seconds
         @freq_relative_interval   = 0,
         @freq_recurrence_factor   = 0,
         @active_start_date        = 20260702,
@@ -164,9 +166,16 @@ BEGIN CATCH
 
     IF (@@TRANCOUNT > 0) ROLLBACK TRANSACTION;
 
+    -- FIX: restore original execution context before exiting, success or failure.
+    REVERT;
+
     DECLARE @err_msg nvarchar(4000) = ERROR_MESSAGE();
     PRINT 'ERROR: ' + @err_msg;
-    RAISERROR (@err_msg, 16, 1);
+    RAISERROR ('%s', 16, 1, @err_msg);
 
 END CATCH
+GO
+
+-- FIX: restore original execution context on the success path too.
+REVERT;
 GO

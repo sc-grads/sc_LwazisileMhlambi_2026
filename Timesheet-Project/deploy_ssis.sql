@@ -46,6 +46,10 @@ BEGIN TRY
 
     COMMIT TRANSACTION;
 
+    -- FIX: restore original execution context on success so the impersonation
+    -- doesn't leak into whatever runs next on this session.
+    REVERT;
+
     PRINT 'SSIS project deployment completed successfully.';
 
 END TRY
@@ -53,6 +57,11 @@ BEGIN CATCH
 
     IF @@TRANCOUNT > 0
         ROLLBACK TRANSACTION;
+
+    -- FIX: restore original execution context on the failure path too --
+    -- without this, an impersonated session could remain impersonated
+    -- even after the script errors out.
+    REVERT;
 
     DECLARE @err_msg  nvarchar(4000) = ERROR_MESSAGE();
     DECLARE @err_num  int            = ERROR_NUMBER();
@@ -63,8 +72,12 @@ BEGIN CATCH
     PRINT 'Error Line: ' + CAST(@err_line AS nvarchar(20));
     PRINT 'Error Message: ' + @err_msg;
 
-    -- Force sqlcmd to exit non-zero so the GitHub Actions step fails
-    RAISERROR (@err_msg, 16, 1);
+    -- FIX: pass @err_msg as a %s argument instead of using it directly as the
+    -- format string. RAISERROR treats its first argument as a printf-style
+    -- format string, so a literal '%' inside the original SQL error message
+    -- would otherwise break formatting or throw a separate RAISERROR error.
+    -- Force sqlcmd to exit non-zero so the GitHub Actions step fails.
+    RAISERROR ('%s', 16, 1, @err_msg);
 
 END CATCH
 GO
