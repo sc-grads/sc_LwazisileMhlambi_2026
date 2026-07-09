@@ -8,7 +8,7 @@ GO
   Only impersonate if a specific deployment login variable is provided. 
   If empty, it will run as the connecting sqlcmd user.
 */
-IF '$(DeployLogin)' <> '' AND '$(DeployLogin)' <> '$(DeployLogin' -- Catch uninitialized sqlcmd vars
+IF '$(DeployLogin)' <> '' AND '$(DeployLogin)' <> '$(DeployLogin)' -- Catch uninitialized sqlcmd vars
 BEGIN
     PRINT 'Impersonating login: $(DeployLogin)';
     EXECUTE AS LOGIN = '$(DeployLogin)';
