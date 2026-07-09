@@ -35,20 +35,6 @@ jobs:
             -C `
             -i "$env:SQL_SCRIPT"
 
-  deploy-ssis:
-    needs: deploy-database
-
-    runs-on: windows-latest
-
-    steps:
-
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-
-    - name: Verify sqlcmd Installation
-      shell: powershell
-      run: sqlcmd -?
-
     - name: Deploy SSIS Package
       shell: powershell
       env:
@@ -58,6 +44,7 @@ jobs:
           ISPAC_PATH: "./Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
           SSISDB_FOLDER: "Timesheet ETL"
           SSISDB_PROJECT: "Timesheet Project"
+          WINDOWS_LOGIN: "SAMBE2025008\\Lwazisile Mhlambi"
       run: |
           if (-not (Test-Path "$env:ISPAC_PATH")) {
               Write-Host "ERROR: .ispac not found at: $env:ISPAC_PATH"
@@ -69,10 +56,12 @@ jobs:
           $hexStream = "0x" + [System.BitConverter]::ToString($fileBytes).Replace("-", "")
           $folderName = "$env:SSISDB_FOLDER"
           $projectName = "$env:SSISDB_PROJECT"
+          $windowsLogin = "$env:WINDOWS_LOGIN"
 
           $sqlScript = @(
               "USE [SSISDB];",
               "SET NOCOUNT ON;",
+              "EXECUTE AS LOGIN = N'$windowsLogin';",
               "BEGIN TRY",
               "    BEGIN TRANSACTION;",
               "    IF NOT EXISTS (SELECT 1 FROM catalog.folders WHERE name = N'$folderName')",
@@ -94,7 +83,8 @@ jobs:
               "    DECLARE @err_msg nvarchar(4000) = ERROR_MESSAGE();",
               "    PRINT 'ERROR deploying SSIS project: ' + @err_msg;",
               "    RAISERROR (@err_msg, 16, 1);",
-              "END CATCH"
+              "END CATCH",
+              "REVERT;"
           ) -join "`n"
 
           $scriptPath = "${{ github.workspace }}\deploy_ssis_inline.sql"
