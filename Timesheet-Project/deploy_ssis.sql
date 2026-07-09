@@ -16,7 +16,11 @@ EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi';
 
 DECLARE @folder_name    nvarchar(128)   = N'$(FolderName)';
 DECLARE @project_name   nvarchar(128)   = N'$(ProjectName)';
-DECLARE @project_stream varbinary(max)  = $(ProjectStream);
+DECLARE @ProjectStream varbinary(max);
+
+SELECT @ProjectStream = BulkColumn
+FROM OPENROWSET(BULK '$(ProjectPath)', SINGLE_BLOB) AS x;
+
 
 BEGIN TRY
 
@@ -39,10 +43,10 @@ BEGIN TRY
     -- an existing project of the same name in the same folder.
     PRINT 'Deploying project [' + @project_name + '] to folder [' + @folder_name + ']...';
 
-    EXEC catalog.deploy_project
-        @folder_name    = @folder_name,
-        @project_name   = @project_name,
-        @project_stream = @project_stream;
+    EXEC SSISDB.catalog.deploy_project
+    @folder_name = N'$(FolderName)',
+    @project_name = N'$(ProjectName)',
+    @project_stream = @ProjectStream;
 
     COMMIT TRANSACTION;
 
