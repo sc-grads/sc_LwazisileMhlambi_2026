@@ -1,7 +1,7 @@
 USE msdb;
 GO
 
---EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi';
+EXECUTE AS LOGIN = 'SAMBE2025008\Lwazisile Mhlambi';
 
 SET NOCOUNT ON;
 
@@ -13,18 +13,6 @@ DECLARE @ssis_package  nvarchar(260)  = N'$(SsisPackage)';
 DECLARE @job_owner     sysname        = NULLIF(N'$(JobOwner)', N'NULL');
 DECLARE @job_enabled   tinyint        = CAST('$(JobEnabled)' AS tinyint);
 DECLARE @operator_name sysname        = N'$(OperatorName)';
-DECLARE @env_reference_id bigint      = CAST('$(EnvironmentReferenceId)' AS bigint);
-
--- #############################################################################
--- FIX: without /ENVREFERENCE, the environment/variable mapping created by
--- deploy_environment.sql (which overrides the SQLServer connection manager's
--- ServerName at runtime) is never applied. The job would keep connecting to
--- whatever server was baked into the connection manager at design time,
--- producing "Login timeout expired" / "Server is not found or not
--- accessible" errors on any server other than the original dev machine.
--- @(EnvironmentReferenceId) must be the reference_id returned by
--- deploy_environment.sql for this folder/project.
--- #############################################################################
 
 DECLARE @ssis_command  nvarchar(max);
 DECLARE @ReturnCode    INT = 0;
@@ -52,10 +40,13 @@ END
 
 -- Build the ISSERVER command from parameters so it always matches
 -- whatever was actually deployed by deploy_ssis.sql
+-- NOTE: no /ENVREFERENCE -- the SSISDB Environment step has been removed.
+-- The package's SQLServer connection manager will use whatever value it
+-- resolves at execution time (design-time value, or the $Project::SQLServerName
+-- parameter if that override is set separately).
 SET @ssis_command =
     N'/ISSERVER "\"\SSISDB\' + @ssis_folder + N'\' + @ssis_project + N'\' + @ssis_package + N'\"" '
     + N'/SERVER ' + @server_name + N' '
-    + N'/ENVREFERENCE ' + CAST(@env_reference_id AS nvarchar(20)) + N' '
     + N'/Par "\"$ServerOption::LOGGING_LEVEL(Int16)\"";1 '
     + N'/Par "\"$ServerOption::SYNCHRONIZED(Boolean)\"";True '
     + N'/CALLERINFO SQLAGENT /REPORTING E';

@@ -66,29 +66,6 @@ jobs:
             -v ProjectStream="$HEX_STREAM" \
             -i "./Timesheet-Project/deploy_ssis.sql"
 
-    - name: Deploy SSISDB Environment
-      id: deploy_env
-      env:
-          SQL_SERVER: ${{ secrets.SQL_SERVER }}
-          SQL_USER: ${{ secrets.SQL_USER }}
-          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
-      run: |
-        REF_ID=$(/opt/mssql-tools18/bin/sqlcmd \
-        -S "$SQL_SERVER" \
-        -U "$SQL_USER" \
-        -P "$SQL_PASSWORD" \
-        -C \
-        -d SSISDB \
-        -v FolderName="Timesheet ETL" \
-        -v ProjectName="Timesheet Project" \
-        -v PackageName="Timesheets.dtsx" \
-        -v EnvironmentName="TimesheetEnv" \
-        -v TargetSqlServer="SAMBE2025008" \
-        -v ConnectionManagerName="SQLServer" \
-        -i "./Timesheet-Project/deploy_environment.sql" \
-        -h -1 -W)
-        echo "reference_id=$(echo "$REF_ID" | tail -n1)" >> "$GITHUB_OUTPUT"
-
     - name: Deploy SSIS Job
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}
@@ -101,7 +78,6 @@ jobs:
           JOB_NAME: "Timesheet ETL - Load Consultant and Client Data"
           JOB_ENABLED: "1"
           OPERATOR_NAME: "Timesheet ETL DBA"
-          ENV_REFERENCE_ID: ${{ steps.deploy_env.outputs.reference_id }}
       run: |
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
@@ -117,15 +93,15 @@ jobs:
             -v JobOwner="NULL" \
             -v JobEnabled="$JOB_ENABLED" \
             -v OperatorName="$OPERATOR_NAME" \
-            -v EnvironmentReferenceId="$ENV_REFERENCE_ID" \
             -i "./Timesheet-Project/deploy_job.sql"
 
   # --------------------------------------------------------------------------
   # Deploy to Partner (Rushil) Server
   #
   # Deploys the database, the .ispac, and the SQL Agent job directly to the
-  # partner's SQL Server, using its own SSISDB Environment scoped to the
-  # partner's own machine name.
+  # partner's SQL Server. The package reads its SQL Server connection from
+  # the $Project::SQLServerName parameter, so the only thing overridden here
+  # is that one parameter after deploying the .ispac.
   # --------------------------------------------------------------------------
   deploy-remote:
     needs: deploy-local
@@ -207,29 +183,6 @@ jobs:
             -v ServerNameValue="$TARGET_SERVER_NAME" \
             -Q "EXEC SSISDB.catalog.set_object_parameter_value @object_type = 20, @parameter_name = N'SQLServerName', @object_name = N'\$(ProjectName)', @folder_name = N'\$(FolderName)', @project_name = N'\$(ProjectName)', @value_type = N'V', @parameter_value = N'\$(ServerNameValue)';"
 
-    - name: Deploy SSISDB Environment (Remote)
-      id: deploy_env
-      env:
-          SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
-          SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
-          SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
-      run: |
-        REF_ID=$(/opt/mssql-tools18/bin/sqlcmd \
-        -S "$SQL_SERVER" \
-        -U "$SQL_USER" \
-        -P "$SQL_PASSWORD" \
-        -C \
-        -d SSISDB \
-        -v FolderName="Timesheet ETL" \
-        -v ProjectName="Timesheet Project" \
-        -v PackageName="Timesheets.dtsx" \
-        -v EnvironmentName="TimesheetEnv" \
-        -v TargetSqlServer="LAPTOP-66HI94H2" \
-        -v ConnectionManagerName="SQLServer" \
-        -i "./Timesheet-Project/deploy_environment.sql" \
-        -h -1 -W)
-        echo "reference_id=$(echo "$REF_ID" | tail -n1)" >> "$GITHUB_OUTPUT"
-
     - name: Deploy SSIS Job (Remote)
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}     # tunnel — for sqlcmd -S only
@@ -242,7 +195,6 @@ jobs:
           JOB_NAME: "Timesheet ETL - Load Consultant and Client Data (Partner)"
           JOB_ENABLED: "1"
           OPERATOR_NAME: "Timesheet ETL DBA"
-          ENV_REFERENCE_ID: ${{ steps.deploy_env.outputs.reference_id }}
       run: |
           /opt/mssql-tools18/bin/sqlcmd \
             -S "$SQL_SERVER" \
@@ -258,7 +210,6 @@ jobs:
             -v JobOwner="NULL" \
             -v JobEnabled="$JOB_ENABLED" \
             -v OperatorName="$OPERATOR_NAME" \
-            -v EnvironmentReferenceId="$ENV_REFERENCE_ID" \
             -i "./Timesheet-Project/deploy_job.sql"
 
     - name: Remote Deployment Success
