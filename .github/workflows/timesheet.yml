@@ -1,4 +1,4 @@
-name: Deploy SSIS Timesheet Project
+name: Deploy SSIS Timesheet Projec
 
 on:
   workflow_dispatch:
