@@ -134,4 +134,18 @@ jobs:
             -v JobEnabled="$JOB_ENABLED" \
             -v OperatorName="$OPERATOR_NAME" \
             -i "./Timesheet-Project/deploy_job.sql"
+
+    - name: Run SSIS Job
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+      run: |
+          /opt/mssql-tools18/bin/sqlcmd \
+            -S "$SQL_SERVER" \
+            -U "$SQL_USER" \
+            -P "$SQL_PASSWORD" \
+            -C \
+            -d msdb \
+            -i "./Timesheet-Project/Run-SSIS-Job.sql"
   
