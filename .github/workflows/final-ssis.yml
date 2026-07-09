@@ -35,6 +35,20 @@ jobs:
             -C `
             -i "$env:SQL_SCRIPT"
 
+  deploy-ssis:
+    needs: deploy-database
+
+    runs-on: windows-latest
+
+    steps:
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Verify sqlcmd Installation
+      shell: powershell
+      run: sqlcmd -?
+
     - name: Deploy SSIS Package
       shell: powershell
       env:
@@ -98,7 +112,23 @@ jobs:
             -C `
             -b `
             -i "$scriptPath"
-  
+
+    - name: Show SSIS Deployment Error Details
+      if: failure()
+      shell: powershell
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+      run: |
+          sqlcmd `
+            -S "$env:SQL_SERVER" `
+            -d "SSISDB" `
+            -U "$env:SQL_USER" `
+            -P "$env:SQL_PASSWORD" `
+            -C `
+            -Q "SELECT operation_id, message_time, message_type, message FROM catalog.operation_messages WHERE operation_id = (SELECT MAX(operation_id) FROM catalog.operations) ORDER BY message_time;"
+
     - name: Deploy and Run SSIS Job
       shell: powershell
       env:
