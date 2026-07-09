@@ -13,62 +13,65 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Deploy ISPAC to SSISDB
+    - name: Deploy ISPAC to SSISDB via T-SQL
       shell: powershell
       env:
         SQL_SERVER: ${{ secrets.SQL_SERVER }}
         SQL_USER: ${{ secrets.SQL_USER }}
         SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
         TARGET_FOLDER: "Production_ETL"
-        # Extracted project name from your path
         TARGET_PROJECT: "Timesheet Project" 
-        # Explicit path to your desired .ispac file
         ISPAC_RELATIVE_PATH: "Timesheet-Project/Timesheet Project/bin/Development/Timesheet Project.ispac"
       run: |
-        # Load necessary SQL Server Integration Services assembly
-        [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.SqlServer.Management.IntegrationServices") | Out-Null
-        
-        # Resolve the explicit path
         $ispacPath = Convert-Path (Join-Path $env:GITHUB_WORKSPACE $env:ISPAC_RELATIVE_PATH) -ErrorAction SilentlyContinue
-        
         if (-not $ispacPath -or -not (Test-Path $ispacPath)) {
             Write-Error "Could not find the .ispac file at explicit path: $env:ISPAC_RELATIVE_PATH"
             exit 1
         }
+
+        # Read the file bytes and convert to a hex string for T-SQL ingestion
+        $bytes = [System.IO.File]::ReadAllBytes($ispacPath)
+        $hexString = "0x" + [System.BitConverter]::ToString($bytes).Replace("-", "")
+
+        # Build a T-SQL script that wraps creation and deployment in a try/catch block
+        $tsql = @"
+        SET NOCOUNT ON;
         
-        Write-Host "Targeting ISPAC file at: $ispacPath"
+        -- Try creating the folder if it doesn't exist
+        IF NOT EXISTS (SELECT 1 FROM [SSISDB].[catalog].[folders] WHERE [name] = '$env:TARGET_FOLDER')
+        BEGIN
+            BEGIN TRY
+                EXEC [SSISDB].[catalog].[create_folder] @folder_name = N'$env:TARGET_FOLDER';
+                PRINT 'Folder created successfully.';
+            END TRY
+            BEGIN CATCH
+                PRINT 'Folder creation failed or skipped, attempting to proceed...';
+            END CATCH
+        END
+
+        -- Deploy the project using the hex binary stream
+        DECLARE @project_binary VARBINARY(MAX) = $hexString;
         
-        # Connect to the SQL Server Instance
-        $connectionString = "Data Source=$env:SQL_SERVER;Initial Catalog=master;User ID=$env:SQL_USER;Password=$env:SQL_PASSWORD;Encrypt=false;"
-        $sqlConnection = New-Object System.Data.SqlClient.SqlConnection($connectionString)
-        $integrationServices = New-Object Microsoft.SqlServer.Management.IntegrationServices.IntegrationServices($sqlConnection)
+        EXEC [SSISDB].[catalog].[deploy_project] 
+            @folder_name = N'$env:TARGET_FOLDER', 
+            @project_name = N'$env:TARGET_PROJECT', 
+            @project_stream = @project_binary;
+        PRINT 'Project deployed successfully.';
+"@
+
+        # Run the query using Invoke-Sqlcmd or a raw ADO.NET connection
+        $connectionString = "Data Source=$env:SQL_SERVER;Initial Catalog=SSISDB;User ID=$env:SQL_USER;Password=$env:SQL_PASSWORD;Encrypt=false;"
+        $connection = New-Object System.Data.SqlClient.SqlConnection($connectionString)
+        $command = New-Object System.Data.SqlClient.SqlCommand($tsql, $connection)
         
-        # Access SSISDB Catalog
-        $catalog = $integrationServices.Catalogs["SSISDB"]
-        
-        if (-not $catalog) {
-            Write-Error "SSISDB Catalog not found on server $env:SQL_SERVER. Ensure SSIS is installed and the catalog is created."
+        try {
+            $connection.Open()
+            Write-Host "Executing deployment query on $env:SQL_SERVER..."
+            [void]$command.ExecuteNonQuery()
+            Write-Host "SSIS Deployment completed successfully via T-SQL!"
+        } catch {
+            Write-Error $_.Exception.Message
             exit 1
+        } finally {
+            $connection.Close()
         }
-        
-        # Ensure the Target Folder exists, create if missing
-        if (-not $catalog.Folders[$env:TARGET_FOLDER]) {
-            Write-Host "Attempting to create SSISDB catalog folder: $env:TARGET_FOLDER"
-            try {
-                $folder = New-Object Microsoft.SqlServer.Management.IntegrationServices.CatalogFolder($catalog, $env:TARGET_FOLDER, "Deployed via GitHub Actions")
-                $folder.Create()
-            } catch {
-                Write-Error "Failed to create folder '$env:TARGET_FOLDER'. Ensure '$env:SQL_USER' has 'ssis_admin' or 'sysadmin' privileges."
-                Write-Error $_.Exception.ToString()
-                exit 1
-            }
-        } else {
-            $folder = $catalog.Folders[$env:TARGET_FOLDER]
-        }
-        
-        # Deploy the project binary stream
-        Write-Host "Deploying '$env:TARGET_PROJECT' to folder '$env:TARGET_FOLDER' on $env:SQL_SERVER..."
-        $projectBinary = [System.IO.File]::ReadAllBytes($ispacPath)
-        $folder.DeployProject($env:TARGET_PROJECT, $projectBinary)
-        
-        Write-Host "SSIS Deployment completed successfully!"
