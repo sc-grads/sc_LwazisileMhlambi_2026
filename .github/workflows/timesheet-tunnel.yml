@@ -95,6 +95,7 @@ jobs:
 
     steps:
 
+
     - name: Checkout Repository
       uses: actions/checkout@v4
 
@@ -104,6 +105,30 @@ jobs:
           curl https://packages.microsoft.com/config/ubuntu/22.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc-dev
+
+    - name: Deploy SSISDB Environment
+      id: deploy_env
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+      run: |
+        REF_ID=$(/opt/mssql-tools18/bin/sqlcmd \
+        -S "$SQL_SERVER" \
+        -U "$SQL_USER" \
+        -P "$SQL_PASSWORD" \
+        -C \
+        -d SSISDB \
+        -v FolderName="Timesheet ETL" \
+        -v ProjectName="Timesheet Project" \
+        -v PackageName="Timesheets.dtsx" \
+        -v EnvironmentName="TimesheetEnv" \
+        -v TargetSqlServer="SAMBE2025008" \
+        -v ConnectionManagerName="SQLServer" \
+        -i "./Timesheet-Project/deploy_environment.sql" \
+        -h -1 -W)
+        echo "reference_id=$(echo "$REF_ID" | tail -n1)" >> "$GITHUB_OUTPUT"
+
     - name: Deploy SSIS Job
       env:
           SQL_SERVER: ${{ secrets.SQL_SERVER }}          # tunnel — for sqlcmd -S only
@@ -185,6 +210,7 @@ jobs:
             -P "$SQL_PASSWORD" \
             -C \
             -i "$SQL_SCRIPT"
+
     - name: Deploy SSIS Package (Remote)
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
@@ -230,6 +256,30 @@ jobs:
             -v ProjectName="$SSISDB_PROJECT" \
             -v ServerNameValue="$TARGET_SERVER_NAME" \
             -Q "EXEC SSISDB.catalog.set_object_parameter_value @object_type = 20, @parameter_name = N'SQLServerName', @object_name = N'\$(ProjectName)', @folder_name = N'\$(FolderName)', @project_name = N'\$(ProjectName)', @value_type = N'V', @parameter_value = N'\$(ServerNameValue)';"
+
+    - name: Deploy SSISDB Environment
+      id: deploy_env
+      env:
+          SQL_SERVER: ${{ secrets.SQL_SERVER }}
+          SQL_USER: ${{ secrets.SQL_USER }}
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+      run: |
+        REF_ID=$(/opt/mssql-tools18/bin/sqlcmd \
+        -S "$SQL_SERVER" \
+        -U "$SQL_USER" \
+        -P "$SQL_PASSWORD" \
+        -C \
+        -d SSISDB \
+        -v FolderName="Timesheet ETL" \
+        -v ProjectName="Timesheet Project" \
+        -v PackageName="Timesheets.dtsx" \
+        -v EnvironmentName="TimesheetEnv" \
+        -v TargetSqlServer="SAMBE2025008" \
+        -v ConnectionManagerName="SQLServer" \
+        -i "./Timesheet-Project/deploy_environment.sql" \
+        -h -1 -W)
+        echo "reference_id=$(echo "$REF_ID" | tail -n1)" >> "$GITHUB_OUTPUT"
+        
     - name: Deploy SSIS Job (Remote)
       env:
           SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}     # tunnel — for sqlcmd -S only
