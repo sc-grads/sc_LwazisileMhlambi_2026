@@ -213,16 +213,3 @@ jobs:
             $connection.Close()
         }
 
-    - name: Notify Success
-      if: success()
-      shell: powershell
-      run: |
-        $body = @{ text = "PARTNER DEPLOYMENT SUCCESS`n`nDatabase, SSIS package, and job deployed to partner server.`n`nRun ID: ${{ github.run_id }}" } | ConvertTo-Json
-        Invoke-RestMethod -Uri "${{ secrets.TEAMS_WEBHOOK }}" -Method Post -ContentType "application/json" -Body $body
-
-    - name: Notify Failure
-      if: failure()
-      shell: powershell
-      run: |
-        $body = @{ text = "PARTNER DEPLOYMENT FAILED`n`nCheck GitHub Actions logs.`n`nRun ID: ${{ github.run_id }}" } | ConvertTo-Json
-        Invoke-RestMethod -Uri "${{ secrets.TEAMS_WEBHOOK }}" -Method Post -ContentType "application/json" -Body $body

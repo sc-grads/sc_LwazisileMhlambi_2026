@@ -5,14 +5,14 @@
   DTS:CreationName="Microsoft.Package"
   DTS:CreatorComputerName="SAMBE2025008"
   DTS:CreatorName="SAMBE2025008\Lwazisile Mhlambi"
-  DTS:DTSID="{78875E19-201C-4556-9253-1286B2844EC2}"
+  DTS:DTSID="{9184E1C9-923D-4199-94B2-1FBE906D9A21}"
   DTS:ExecutableType="Microsoft.Package"
   DTS:LastModifiedProductVersion="17.0.1016.0"
   DTS:LocaleID="7177"
-  DTS:ObjectName="Timesheets"
+  DTS:ObjectName="TimesheetDevTestMigrationPK"
   DTS:PackageType="5"
-  DTS:VersionBuild="448"
-  DTS:VersionGUID="{17539F12-4A34-4C81-86D8-A49B17931275}">
+  DTS:VersionBuild="449"
+  DTS:VersionGUID="{51DC4A57-0897-419D-B616-34DFD318D50E}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -113,7 +113,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Fail Timesheet Load"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="1">
+      DTS:ThreadHint="0">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -233,7 +233,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Timesheet"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="1">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -2903,7 +2903,7 @@
           DTS:LocaleID="-1"
           DTS:ObjectName="Truncate Expense Claim Staging"
           DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-          DTS:ThreadHint="0">
+          DTS:ThreadHint="1">
           <DTS:Variables />
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
@@ -2927,7 +2927,7 @@
           DTS:LocaleID="-1"
           DTS:ObjectName="Truncate Staging Table"
           DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-          DTS:ThreadHint="1">
+          DTS:ThreadHint="0">
           <DTS:Variables />
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
