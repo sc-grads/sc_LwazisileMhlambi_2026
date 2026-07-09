@@ -16,6 +16,26 @@ jobs:
     - name: Checkout Repository Code
       uses: actions/checkout@v4
 
+    - name: Deploy Database
+      shell: pwsh
+      env:
+        SQL_SERVER: ${{ secrets.SQL_SERVER }}
+        SQL_DATABASE: "master"
+        SQL_USER: ${{ secrets.SQL_USER }}
+        SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+        SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
+      run: |
+        Install-Module -Name SqlServer -Force -AllowClobber -Scope CurrentUser -ErrorAction Stop
+        Import-Module SqlServer
+
+        Invoke-Sqlcmd `
+          -ServerInstance $env:SQL_SERVER `
+          -Database $env:SQL_DATABASE `
+          -Username $env:SQL_USER `
+          -Password $env:SQL_PASSWORD `
+          -InputFile $env:SQL_SCRIPT `
+          -TrustServerCertificate
+
     - name: Deploy SSIS and Create Execution Job (Local)
       shell: powershell
       run: |
