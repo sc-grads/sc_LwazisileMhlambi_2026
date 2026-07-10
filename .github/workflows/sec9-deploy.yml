@@ -1,6 +1,6 @@
 name: Section 9 Deployment
 on:
-  push:
+  workflow_dispatch:
     
 jobs:
   lint:

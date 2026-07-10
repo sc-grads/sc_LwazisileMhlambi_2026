@@ -1,13 +1,12 @@
-name: Sequential SSIS Deployment (Local then Partner)
+name: Timesheet-SSIS-Migration
 
 on:
-  workflow_dispatch:
+  push:
 
 jobs:
-  # =========================================================================
-  # JOB 1: LOCAL LAPTOP DEPLOYMENT
-  # =========================================================================
-  deploy-local:
+
+  # JOB 1 LOCAL DEPLOYMENT
+  DevTest:
     name: DevTest/Deploy
     runs-on: windows-latest
 
@@ -49,23 +48,33 @@ jobs:
             Write-Error "CRITICAL ERROR: Could not locate 'Timesheet Project.ispac' file."
             exit 1
         }
-
-        # STEP 2: DEFINE TARGET CONFIGURATIONS AND ENVIRONMENT VARIABLES (LOCAL)
-        $tunnelAddress     = "${{ secrets.SQL_SERVER }}"
-        $dbUser            = "${{ secrets.SQL_USER }}"
-        $initialDb         = "Timesheet-DB-LM"
-        $dbPassword        = "${{ secrets.SQL_PASSWORD }}"
-        $targetFolder      = "TimesheetDevTestMigration"
-        $projectName       = "Timesheet Project"
-        $packageName       = "TimesheetDevTestMigrationPK"
-        $targetServerName  = "SAMBE2025008"  # local server name — baked into the job step's /SERVER arg, NOT the tunnel address
-        $executionJobName  = "RunTimesheetDevTestMigrationPK"
-
-        # STEP 3: CONVERT ISPAC FILE INTO BINARY DATA STREAM
+        
+        
+        
+        # STEP 2 DEFINE TARGET CONFIGURATIONS AND ENVIRONMENT VARIABLES 
+        $tunnelAddress = "${{ secrets.SQL_SERVER }}"
+        $dbUser        = "${{ secrets.SQL_USER }}"
+        $initialDb     = "master"
+        $dbPassword    = "${{ secrets.SQL_PASSWORD }}"
+        $targetFolder  = "TimesheetDevTestMigration"
+        $executionJobName = "RunTimesheetDevTestMigrationPK"
+        $packageName   = "TimesheetDevTestMigrationPK"
+       
+       
+       
+       
+       
+        # STEP 3 CONVERT ISPAC FILE INTO BINARY DATA STREAM
+        # No renaming needed here since it's already named correctly in your local project build
         $fileBytes = [System.IO.File]::ReadAllBytes($ispacPath)
         $hexString = "0x" + [System.BitConverter]::ToString($fileBytes).Replace("-", "")
-
-        # STEP 4: INITIALIZE SQL SERVER DATABASE CONNECTION OVER NETWORK TUNNEL
+       
+       
+       
+       
+       
+       
+        # STEP 4 INITIALIZE SQL SERVER DATABASE CONNECTION OVER NETWORK TUNNEL
         Write-Host "Establishing tunnel connection via automation_user to Local..."
         $connStr = "Data Source=$tunnelAddress;Initial Catalog=$initialDb;User ID=$dbUser;Password=$dbPassword;TrustServerCertificate=True;Encrypt=False;"
         $connection = New-Object System.Data.SqlClient.SqlConnection($connStr)
@@ -80,7 +89,7 @@ jobs:
                 "END",
                 "EXEC dbo.sp_add_job @job_name = N'GitHub_SSIS_Deploy_Job', @enabled = 1, @start_step_id = 1;",
                 "DECLARE @deploy_script NVARCHAR(MAX);",
-                "SET @deploy_script = N'USE [SSISDB]; IF NOT EXISTS (SELECT 1 FROM [catalog].[folders] WHERE name = ''$targetFolder'') BEGIN EXEC [catalog].[create_folder] @folder_name = N''$targetFolder''; END DECLARE @project_stream VARBINARY(MAX) = $hexString; EXEC [catalog].[deploy_project] @folder_name = N''$targetFolder'', @project_name = N''$projectName'', @project_stream = @project_stream;';",
+                "SET @deploy_script = N'USE [SSISDB]; IF NOT EXISTS (SELECT 1 FROM [catalog].[folders] WHERE name = ''$targetFolder'') BEGIN EXEC [catalog].[create_folder] @folder_name = N''$targetFolder''; END DECLARE @project_stream VARBINARY(MAX) = $hexString; EXEC [catalog].[deploy_project] @folder_name = N''$targetFolder'', @project_name = N''Timesheet Project'', @project_stream = @project_stream;';",
                 "EXEC dbo.sp_add_jobstep @job_name = N'GitHub_SSIS_Deploy_Job', @step_name = N'Run Deploy', @subsystem = N'TSQL', @command = @deploy_script, @retry_attempts = 0;",
                 "EXEC dbo.sp_add_jobserver @job_name = N'GitHub_SSIS_Deploy_Job', @server_name = N'(local)';",
                 "EXEC dbo.sp_start_job @job_name = N'GitHub_SSIS_Deploy_Job';",
@@ -90,9 +99,9 @@ jobs:
                 "BEGIN",
                 "    EXEC dbo.sp_delete_job @job_name = N'$executionJobName', @delete_unused_schedule=1;",
                 "END",
-                "EXEC dbo.sp_add_job @job_name = N'$executionJobName', @enabled = 1, @description = N'Automated execution tracking for $projectName.', @start_step_id = 1;",
+                "EXEC dbo.sp_add_job @job_name = N'$executionJobName', @enabled = 1, @description = N'Automated execution tracking for TimesheetNew.', @start_step_id = 1;",
                 "DECLARE @run_command NVARCHAR(MAX);",
-                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\$projectName\$packageName.dtsx' + CHAR(34) + N' /SERVER ' + CHAR(34) + N'$targetServerName' + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
+                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\Timesheet Project\$packageName.dtsx' + CHAR(34) + N' /SERVER ' + CHAR(34) + @@SERVERNAME + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
                 "EXEC dbo.sp_add_jobstep @job_name = N'$executionJobName', @step_name = N'Execute SSIS Package', @subsystem = N'SSIS', @command = @run_command, @retry_attempts = 0;",
                 "EXEC dbo.sp_add_jobserver @job_name = N'$executionJobName', @server_name = N'(local)';",
                 "EXEC dbo.sp_add_jobschedule ",
@@ -117,14 +126,15 @@ jobs:
         } finally {
             $connection.Close()
         }
+  
+  
+  
 
-  # =========================================================================
-  # JOB 2: PARTNER SERVER DEPLOYMENT
-  # =========================================================================
-  deploy-partner:
+# JOB 2 PARTNER SERVER DEPLOYMENT
+  Production:
     name: Production/Deploy
     runs-on: windows-latest
-    needs: deploy-local
+    needs: DevTest
 
     steps:
     - name: Checkout Repository Code
@@ -133,10 +143,10 @@ jobs:
     - name: Deploy Database
       shell: pwsh
       env:
-        SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
+        SQL_SERVER: ${{ secrets.SQL_SERVER }}
         SQL_DATABASE: "master"
-        SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
-        SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
+        SQL_USER: ${{ secrets.SQL_USER }}
+        SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
         SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
       run: |
         Install-Module -Name SqlServer -Force -AllowClobber -Scope CurrentUser -ErrorAction Stop
@@ -164,23 +174,70 @@ jobs:
             Write-Error "CRITICAL ERROR: Could not locate 'Timesheet Project.ispac' file."
             exit 1
         }
-
-        # STEP 2: DEFINE TARGET CONFIGURATIONS AND ENVIRONMENT VARIABLES (PARTNER)
-        $tunnelAddress     = "${{ secrets.RUSHIL_SQL_SERVER }}"
-        $dbUser            = "${{ secrets.RUSHIL_SQL_USER }}"
-        $initialDb         = "Timesheet-DB-LM"
-        $dbPassword        = "${{ secrets.RUSHIL_SQL_PASSWORD }}"
-        $targetFolder      = "TimesheetProductionMigration"
-        $projectName       = "Timesheet Project"
-        $packageName       = "TimesheetProductionMigrationPK"
-        $targetServerName  = "LAPTOP-66HI94H2"  # partner's own machine name (SELECT @@SERVERNAME) — NOT the Pinggy tunnel link
-        $executionJobName  = "RunTimesheetProductionMigrationPK"
-
-        # STEP 3: CONVERT ISPAC FILE INTO BINARY DATA STREAM
-        $fileBytes = [System.IO.File]::ReadAllBytes($ispacPath)
+       
+       
+       
+       
+        # STEP 2 DEFINE TARGET CONFIGURATIONS AND ENVIRONMENT VARIABLES
+        $tunnelAddress = "${{ secrets.SQL_SERVER }}"
+        $dbUser        = "${{ secrets.SQL_USER }}"
+        $initialDb     = "master"
+        $dbPassword    = "${{ secrets.SQL_PASSWORD }}"
+        $targetFolder  = "TimesheetProductionMigration"
+        $executionJobName = "RunTimesheetProductionMigrationPK"
+        
+        
+        
+        
+        # Source name in repo vs target name for your partner
+        $sourcePackageName = "TimesheetDevTestMigrationPK"
+        $targetPackageName = "TimesheetProductionMigrationPK"
+       
+       
+       
+       
+        # STEP 3 DYNAMICALLY UNPACK, RENAME, AND REPACK THE ISPAC
+        Write-Host "Unpacking ispac to inject Production partner package name..."
+        $workingDir = New-Item -Path ".\ispac_working_prod" -ItemType Directory -Force
+        
+        # Convert to a standard .zip to allow native PowerShell extraction
+        Copy-Item $ispacPath "$($workingDir.FullName)\temp.zip"
+        Expand-Archive -Path "$($workingDir.FullName)\temp.zip" -DestinationPath "$($workingDir.FullName)\extracted"
+        
+        $extractedPath = "$($workingDir.FullName)\extracted"
+        
+        # 1. Rename the physical package file inside the archive
+        if (Test-Path "$extractedPath\$sourcePackageName.dtsx") {
+            Rename-Item -Path "$extractedPath\$sourcePackageName.dtsx" -NewName "$targetPackageName.dtsx"
+        } else {
+            Write-Error "CRITICAL ERROR: Could not find $sourcePackageName.dtsx inside the extracted ISPAC file."
+            exit 1
+        }
+        
+        # 2. Open up the project manifest file and replace the internal XML definition string
+        $manifestPath = "$extractedPath\@Project.manifest"
+        (Get-Content $manifestPath) | ForEach-Object {
+            $_ -replace "$sourcePackageName.dtsx", "$targetPackageName.dtsx"
+        } | Set-Content $manifestPath
+        
+        # 3. Compress the archive files back up into a clean .ispac file delivery stream
+        Remove-Item "$($workingDir.FullName)\temp.zip" -ErrorAction SilentlyContinue
+        Compress-Archive -Path "$extractedPath\*" -DestinationPath "$($workingDir.FullName)\modified.zip"
+        $modifiedIspacPath = "$($workingDir.FullName)\TimesheetNewModified.ispac"
+        Move-Item -Path "$($workingDir.FullName)\modified.zip" -Destination $modifiedIspacPath -Force
+        # Convert our newly tailored archive into the clean deployment hex string payload
+        $fileBytes = [System.IO.File]::ReadAllBytes($modifiedIspacPath)
         $hexString = "0x" + [System.BitConverter]::ToString($fileBytes).Replace("-", "")
-
-        # STEP 4: INITIALIZE SQL SERVER DATABASE CONNECTION OVER NETWORK TUNNEL
+        
+        # Housekeeping: Clean up runner directories
+        Remove-Item $workingDir -Recurse -Force
+       
+       
+       
+       
+       
+       
+        # STEP 4 INITIALIZE SQL SERVER DATABASE CONNECTION OVER NETWORK TUNNEL
         Write-Host "Establishing tunnel connection to partner environment..."
         $connStr = "Data Source=$tunnelAddress;Initial Catalog=$initialDb;User ID=$dbUser;Password=$dbPassword;TrustServerCertificate=True;Encrypt=False;"
         $connection = New-Object System.Data.SqlClient.SqlConnection($connStr)
@@ -195,7 +252,7 @@ jobs:
                 "END",
                 "EXEC dbo.sp_add_job @job_name = N'GitHub_SSIS_Deploy_Job', @enabled = 1, @start_step_id = 1;",
                 "DECLARE @deploy_script NVARCHAR(MAX);",
-                "SET @deploy_script = N'USE [SSISDB]; IF NOT EXISTS (SELECT 1 FROM [catalog].[folders] WHERE name = ''$targetFolder'') BEGIN EXEC [catalog].[create_folder] @folder_name = N''$targetFolder''; END DECLARE @project_stream VARBINARY(MAX) = $hexString; EXEC [catalog].[deploy_project] @folder_name = N''$targetFolder'', @project_name = N''$projectName'', @project_stream = @project_stream;';",
+                "SET @deploy_script = N'USE [SSISDB]; IF NOT EXISTS (SELECT 1 FROM [catalog].[folders] WHERE name = ''$targetFolder'') BEGIN EXEC [catalog].[create_folder] @folder_name = N''$targetFolder''; END DECLARE @project_stream VARBINARY(MAX) = $hexString; EXEC [catalog].[deploy_project] @folder_name = N''$targetFolder'', @project_name = N''Timesheet Project'', @project_stream = @project_stream;';",
                 "EXEC dbo.sp_add_jobstep @job_name = N'GitHub_SSIS_Deploy_Job', @step_name = N'Run Deploy', @subsystem = N'TSQL', @command = @deploy_script, @retry_attempts = 0;",
                 "EXEC dbo.sp_add_jobserver @job_name = N'GitHub_SSIS_Deploy_Job', @server_name = N'(local)';",
                 "EXEC dbo.sp_start_job @job_name = N'GitHub_SSIS_Deploy_Job';",
@@ -205,9 +262,9 @@ jobs:
                 "BEGIN",
                 "    EXEC dbo.sp_delete_job @job_name = N'$executionJobName', @delete_unused_schedule=1;",
                 "END",
-                "EXEC dbo.sp_add_job @job_name = N'$executionJobName', @enabled = 1, @description = N'Automated execution tracking for $projectName.', @start_step_id = 1;",
+                "EXEC dbo.sp_add_job @job_name = N'$executionJobName', @enabled = 1, @description = N'Automated execution tracking for TimesheetNew.', @start_step_id = 1;",
                 "DECLARE @run_command NVARCHAR(MAX);",
-                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\$projectName\$packageName.dtsx' + CHAR(34) + N' /SERVER ' + CHAR(34) + N'$targetServerName' + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
+                "SET @run_command = N'/ISSERVER ' + CHAR(34) + N'\SSISDB\$targetFolder\Timesheet Project\$targetPackageName.dtsx' + CHAR(34) + N' /SERVER ' + CHAR(34) + @@SERVERNAME + CHAR(34) + N' /Par ' + CHAR(34) + N'`$ServerOption::LOGGING_LEVEL(Int16)' + CHAR(34) + N';1 /CALLERINFO SQLAGENT /REPORTING E';",
                 "EXEC dbo.sp_add_jobstep @job_name = N'$executionJobName', @step_name = N'Execute SSIS Package', @subsystem = N'SSIS', @command = @run_command, @retry_attempts = 0;",
                 "EXEC dbo.sp_add_jobserver @job_name = N'$executionJobName', @server_name = N'(local)';",
                 "EXEC dbo.sp_add_jobschedule ",
@@ -232,4 +289,3 @@ jobs:
         } finally {
             $connection.Close()
         }
-
