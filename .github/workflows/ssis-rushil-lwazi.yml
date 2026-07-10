@@ -262,7 +262,7 @@ jobs:
                 #-----------------------------------------------------------------------
                     #NewCode
                 
-                "EXEC [catalog].[set_object_parameter_value]",
+                "EXEC SSISDB.[catalog].[set_object_parameter_value]",
                 "    @object_type = 20,",
                 "    @parameter_name = N'ConnectionString',",
                 "    @object_name = N'SQLServer',",
@@ -270,7 +270,6 @@ jobs:
                 "    @project_name = N'Timesheet Project',",
                 "    @value_type = N'V',",
                 "    @parameter_value = N'Data Source=LAPTOP-66HI94H2;Initial Catalog=Timesheet-DB-LM;Provider=SQLNCLI11;User ID=$dbUser;Password=$dbPassword;';",
-
                 #-----------------------------------------------------------------------
 
                 "IF EXISTS (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = N'$executionJobName')",
