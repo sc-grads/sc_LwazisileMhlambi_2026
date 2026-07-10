@@ -143,10 +143,10 @@ jobs:
     - name: Deploy Database
       shell: pwsh
       env:
-        SQL_SERVER: ${{ secrets.SQL_SERVER }}
+        SQL_SERVER: ${{ secrets.RUSHIL_SQL_SERVER }}
         SQL_DATABASE: "master"
-        SQL_USER: ${{ secrets.SQL_USER }}
-        SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+        SQL_USER: ${{ secrets.RUSHIL_SQL_USER }}
+        SQL_PASSWORD: ${{ secrets.RUSHIL_SQL_PASSWORD }}
         SQL_SCRIPT: "./Timesheet-Project/Deploy-Databases.sql"
       run: |
         Install-Module -Name SqlServer -Force -AllowClobber -Scope CurrentUser -ErrorAction Stop
@@ -179,10 +179,10 @@ jobs:
        
        
         # STEP 2 DEFINE TARGET CONFIGURATIONS AND ENVIRONMENT VARIABLES
-        $tunnelAddress = "${{ secrets.SQL_SERVER }}"
-        $dbUser        = "${{ secrets.SQL_USER }}"
+        $tunnelAddress = "${{ secrets.RUSHIL_SQL_SERVER }}"
+        $dbUser        = "${{ secrets.RUSHIL_SQL_USER }}"
         $initialDb     = "master"
-        $dbPassword    = "${{ secrets.SQL_PASSWORD }}"
+        $dbPassword    = "${{ secrets.RUSHIL_SQL_PASSWORD }}"
         $targetFolder  = "TimesheetProductionMigration"
         $executionJobName = "RunTimesheetProductionMigrationPK"
         
