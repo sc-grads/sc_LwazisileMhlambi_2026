@@ -259,17 +259,18 @@ jobs:
                 "WAITFOR DELAY '00:00:07';",
                 "EXEC dbo.sp_delete_job @job_name = N'GitHub_SSIS_Deploy_Job';",
 
-                #-----------------------------------------------------------------------
+                #------------------------------------------------------------------------
                     #NewCode
                 
                 "EXEC SSISDB.[catalog].[set_object_parameter_value]",
                 "    @object_type = 20,",
-                "    @parameter_name = N'ConnectionString',",
-                "    @object_name = N'SQLServer',",
+                "    @parameter_name = N'SQLServerName',",
+                "    @object_name = N'Timesheet Project',",
                 "    @folder_name = N'$targetFolder',",
                 "    @project_name = N'Timesheet Project',",
                 "    @value_type = N'V',",
-                "    @parameter_value = N'Data Source=LAPTOP-66HI94H2;Initial Catalog=Timesheet-DB-LM;Provider=SQLNCLI11;User ID=$dbUser;Password=$dbPassword;';",
+                "    @parameter_value = N'LAPTOP-66HI94H2';",
+                
                 #-----------------------------------------------------------------------
 
                 "IF EXISTS (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = N'$executionJobName')",
