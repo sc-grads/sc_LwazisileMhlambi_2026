@@ -252,27 +252,13 @@ jobs:
                 "END",
                 "EXEC dbo.sp_add_job @job_name = N'GitHub_SSIS_Deploy_Job', @enabled = 1, @start_step_id = 1;",
                 "DECLARE @deploy_script NVARCHAR(MAX);",
-                "SET @deploy_script = N'USE [SSISDB]; IF NOT EXISTS (SELECT 1 FROM [catalog].[folders] WHERE name = ''$targetFolder'') BEGIN EXEC [catalog].[create_folder] @folder_name = N''$targetFolder''; END DECLARE @project_stream VARBINARY(MAX) = $hexString; EXEC [catalog].[deploy_project] @folder_name = N''$targetFolder'', @project_name = N''Timesheet Project'', @project_stream = @project_stream;';",
+                # Combined deployment and parameter configuration into the Agent Job script string with doubled quotes
+                "SET @deploy_script = N'USE [SSISDB]; IF NOT EXISTS (SELECT 1 FROM [catalog].[folders] WHERE name = ''$targetFolder'') BEGIN EXEC [catalog].[create_folder] @folder_name = N''$targetFolder''; END DECLARE @project_stream VARBINARY(MAX) = $hexString; EXEC [catalog].[deploy_project] @folder_name = N''$targetFolder'', @project_name = N''Timesheet Project'', @project_stream = @project_stream; EXEC [catalog].[set_object_parameter_value] @object_type = 20, @parameter_name = N''SQLServerName'', @object_name = N''Timesheet Project'', @folder_name = N''$targetFolder'', @project_name = N''Timesheet Project'', @value_type = N''V'', @parameter_value = N''LAPTOP-66HI94H2'';';",
                 "EXEC dbo.sp_add_jobstep @job_name = N'GitHub_SSIS_Deploy_Job', @step_name = N'Run Deploy', @subsystem = N'TSQL', @command = @deploy_script, @retry_attempts = 0;",
                 "EXEC dbo.sp_add_jobserver @job_name = N'GitHub_SSIS_Deploy_Job', @server_name = N'(local)';",
                 "EXEC dbo.sp_start_job @job_name = N'GitHub_SSIS_Deploy_Job';",
                 "WAITFOR DELAY '00:00:07';",
                 "EXEC dbo.sp_delete_job @job_name = N'GitHub_SSIS_Deploy_Job';",
-
-                #------------------------------------------------------------------------
-                    #NewCode
-                
-                "EXEC SSISDB.[catalog].[set_object_parameter_value]",
-                "    @object_type = 20,",
-                "    @parameter_name = N'SQLServerName',",
-                "    @object_name = N'Timesheet Project',",
-                "    @folder_name = N'$targetFolder',",
-                "    @project_name = N'Timesheet Project',",
-                "    @value_type = N'V',",
-                "    @parameter_value = N'LAPTOP-66HI94H2';",
-                
-                #-----------------------------------------------------------------------
-
                 "IF EXISTS (SELECT job_id FROM msdb.dbo.sysjobs WHERE name = N'$executionJobName')",
                 "BEGIN",
                 "    EXEC dbo.sp_delete_job @job_name = N'$executionJobName', @delete_unused_schedule=1;",
