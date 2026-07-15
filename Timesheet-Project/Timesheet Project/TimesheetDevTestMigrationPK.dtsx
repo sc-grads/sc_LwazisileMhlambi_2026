@@ -11,8 +11,8 @@
   DTS:LocaleID="7177"
   DTS:ObjectName="TimesheetDevTestMigrationPK"
   DTS:PackageType="5"
-  DTS:VersionBuild="460"
-  DTS:VersionGUID="{CE07ECAA-CA5D-450D-8C11-7CD1E26EEA5A}">
+  DTS:VersionBuild="461"
+  DTS:VersionGUID="{4B53E3E7-0886-45E5-9F12-D9160589B4C3}">
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
@@ -113,7 +113,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Fail Timesheet Load"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="2">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -137,7 +137,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Clients"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="1">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -185,7 +185,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Consultants Fail"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="1">
+      DTS:ThreadHint="0">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -233,7 +233,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Expense Claim Fail"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="1">
+      DTS:ThreadHint="3">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -257,7 +257,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Expense Claim Table"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="2">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -281,7 +281,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Leave Fail"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="1">
+      DTS:ThreadHint="4">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -305,7 +305,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Leave Table"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="1">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -329,7 +329,7 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Timesheet"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="1">
+      DTS:ThreadHint="5">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
@@ -353,12 +353,12 @@
       DTS:LocaleID="-1"
       DTS:ObjectName="Load Timesheet Entries"
       DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-      DTS:ThreadHint="0">
+      DTS:ThreadHint="2">
       <DTS:Variables />
       <DTS:ObjectData>
         <SQLTask:SqlTaskData
           SQLTask:Connection="{30655B4E-A297-4EC4-AD0B-437991C75F52}"
-          SQLTask:SqlStatementSource="DECLAR @PerformedBy NVARCHAR(128) = ?;&#xA; &#xA;IF OBJECT_ID('tempdb..#MergeResults') IS NOT NULL DROP TABLE #MergeResults;&#xA; &#xA;CREATE TABLE #MergeResults (&#xA;    ActionTaken     NVARCHAR(10),&#xA;    WasDeletedAfter BIT,&#xA;    WasDeletedBefore BIT&#xA;);&#xA; &#xA;;WITH SourceRows AS (&#xA;    SELECT&#xA;        c.ConsultantID,&#xA;        CAST(src.DateValue AS DATE)                                                AS WorkDate,&#xA;        cl.ClientID,&#xA;        src.ClientProjectName,&#xA;        src.WorkDescription,&#xA;        src.BillableFlag,&#xA;        src.Comments,&#xA;        CAST(src.StartTime AS TIME)                                                AS StartTime,&#xA;        CAST(src.EndTime AS TIME)                                                  AS EndTime,&#xA;        DATEDIFF(MINUTE, CAST('00:00:00' AS TIME), CAST(src.TotalHours AS TIME))   AS MinutesWorked,&#xA;        -- Ordinal position among rows sharing the same Consultant+Date+Start+End,&#xA;        -- ordered by their original row order (StagingID) in the source sheet.&#xA;        -- This is what lets us tell apart &quot;row 9&quot; from other same-slot entries.&#xA;        ROW_NUMBER() OVER (&#xA;            PARTITION BY c.ConsultantID, CAST(src.DateValue AS DATE),&#xA;                         CAST(src.StartTime AS TIME), CAST(src.EndTime AS TIME)&#xA;            ORDER BY src.StagingID&#xA;        ) AS RowSeq&#xA;    FROM (&#xA;        SELECT DISTINCT&#xA;            SheetName, StagingID, ConsultantName, DateValue, DOfWeek, Client,&#xA;            ClientProjectName, WorkDescription, BillableFlag, Comments,&#xA;            TotalHours, StartTime, EndTime&#xA;        FROM tblStagingTimesheet&#xA;        WHERE DateValue IS NOT NULL&#xA;          AND WorkDescription IS NOT NULL&#xA;          AND Comments &lt;&gt; 'Detailed Description of task(s) done'&#xA;          AND WorkDescription &lt;&gt; 'Public Holiday'&#xA;    ) src&#xA;    INNER JOIN (&#xA;        SELECT ConsultantID, FullName,&#xA;               ROW_NUMBER() OVER (PARTITION BY LTRIM(RTRIM(FullName)) ORDER BY ConsultantID) AS rn&#xA;        FROM tblConsultant&#xA;    ) c ON c.FullName = src.ConsultantName AND c.rn = 1&#xA;    INNER JOIN tblClient cl&#xA;        ON cl.ClientName = src.Client&#xA;),&#xA; &#xA;-- Only these (Consultant, Year, Month) combos are &quot;in scope&quot; for this run.&#xA;-- Anything outside this scope in tblTimesheetEntries is left untouched.&#xA;ScopeKeys AS (&#xA;    SELECT DISTINCT ConsultantID, YEAR(WorkDate) AS WorkYear, MONTH(WorkDate) AS WorkMonth&#xA;    FROM SourceRows&#xA;),&#xA; &#xA;TargetInScope AS (&#xA;    SELECT te.*&#xA;    FROM tblTimesheetEntries te&#xA;    INNER JOIN ScopeKeys sk&#xA;        ON sk.ConsultantID = te.ConsultantID&#xA;       AND sk.WorkYear     = YEAR(te.WorkDate)&#xA;       AND sk.WorkMonth    = MONTH(te.WorkDate)&#xA;    WHERE te.IsDeleted = 0   -- already-soft-deleted rows are excluded from matching;&#xA;                             -- a genuine re-add of the same slot inserts fresh, keeping history intact&#xA;)&#xA; &#xA;MERGE TargetInScope AS tgt&#xA;USING SourceRows AS src&#xA;   ON  tgt.ConsultantID = src.ConsultantID&#xA;   AND tgt.WorkDate     = src.WorkDate&#xA;   AND ISNULL(tgt.StartTime, '00:00:00') = ISNULL(src.StartTime, '00:00:00')&#xA;   AND ISNULL(tgt.EndTime,   '00:00:00') = ISNULL(src.EndTime,   '00:00:00')&#xA;   AND ISNULL(tgt.RowSeq, 1)             = src.RowSeq&#xA; &#xA;-- Row still exists, but content changed (e.g. description Training -&gt; Meeting)&#xA;WHEN MATCHED AND (&#xA;        ISNULL(tgt.WorkDescription, '')    &lt;&gt; ISNULL(src.WorkDescription, '')&#xA;     OR ISNULL(tgt.Comments, '')           &lt;&gt; ISNULL(src.Comments, '')&#xA;     OR ISNULL(tgt.ClientProjectName, '')  &lt;&gt; ISNULL(src.ClientProjectName, '')&#xA;     OR ISNULL(tgt.BillableFlag, '')       &lt;&gt; ISNULL(src.BillableFlag, '')&#xA;     OR ISNULL(tgt.ClientID, -1)           &lt;&gt; ISNULL(src.ClientID, -1)&#xA;     OR ISNULL(tgt.MinutesWorked, -1)      &lt;&gt; ISNULL(src.MinutesWorked, -1)&#xA;) THEN&#xA;    UPDATE SET&#xA;        ClientID          = src.ClientID,&#xA;        ClientProjectName = src.ClientProjectName,&#xA;        WorkDescription   = src.WorkDescription,&#xA;        BillableFlag      = src.BillableFlag,&#xA;        Comments          = src.Comments,&#xA;        MinutesWorked     = src.MinutesWorked,&#xA;        RowSeq            = src.RowSeq,&#xA;        UpdatedAt         = GETDATE()&#xA; &#xA;-- Row is new&#xA;WHEN NOT MATCHED BY TARGET THEN&#xA;    INSERT (ConsultantID, WorkDate, ClientID, ClientProjectName, WorkDescription,&#xA;            BillableFlag, Comments, StartTime, EndTime, MinutesWorked, RowSeq, UpdatedAt, IsDeleted)&#xA;    VALUES (src.ConsultantID, src.WorkDate, src.ClientID, src.ClientProjectName, src.WorkDescription,&#xA;            src.BillableFlag, src.Comments, src.StartTime, src.EndTime, src.MinutesWorked, src.RowSeq, GETDATE(), 0)&#xA; &#xA;-- Row existed before, in scope, but is missing from this run's file -&gt; soft delete&#xA;WHEN NOT MATCHED BY SOURCE THEN&#xA;    UPDATE SET&#xA;        IsDeleted = 1,&#xA;        DeletedAt = GETDATE()&#xA; &#xA;OUTPUT&#xA;    $action,&#xA;    inserted.IsDeleted,&#xA;    deleted.IsDeleted&#xA;INTO #MergeResults (ActionTaken, WasDeletedAfter, WasDeletedBefore);&#xA; &#xA; &#xA;-- Classify the MERGE's raw $action values into Insert / Update / Soft-Delete,&#xA;-- since a soft-delete is technically an UPDATE statement under the hood.&#xA;DECLARE @RowsInserted INT, @RowsUpdated INT, @RowsDeleted INT, @RowsAffected INT;&#xA; &#xA;SELECT&#xA;    @RowsInserted = SUM(CASE WHEN ActionTaken = 'INSERT' THEN 1 ELSE 0 END),&#xA;    @RowsUpdated  = SUM(CASE WHEN ActionTaken = 'UPDATE' AND WasDeletedAfter = 0 THEN 1 ELSE 0 END),&#xA;    @RowsDeleted  = SUM(CASE WHEN ActionTaken = 'UPDATE' AND WasDeletedAfter = 1 AND ISNULL(WasDeletedBefore,0) = 0 THEN 1 ELSE 0 END)&#xA;FROM #MergeResults;&#xA; &#xA;SET @RowsInserted = ISNULL(@RowsInserted, 0);&#xA;SET @RowsUpdated  = ISNULL(@RowsUpdated, 0);&#xA;SET @RowsDeleted  = ISNULL(@RowsDeleted, 0);&#xA;SET @RowsAffected = @RowsInserted + @RowsUpdated + @RowsDeleted;&#xA; &#xA;IF @RowsAffected &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, RowsInserted, RowsUpdated, RowsDeleted, PerformedBy)&#xA;    VALUES (&#xA;        'tblTimesheetEntries',&#xA;        'MERGE',&#xA;        'SUCCESS',&#xA;        CONCAT('Timesheet entries synced from staging: ', @RowsInserted, ' inserted, ',&#xA;               @RowsUpdated, ' updated, ', @RowsDeleted, ' soft-deleted'),&#xA;        @RowsAffected,&#xA;        @RowsInserted,&#xA;        @RowsUpdated,&#xA;        @RowsDeleted,&#xA;        @PerformedBy&#xA;    );&#xA; &#xA;DROP TABLE #MergeResults;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
+          SQLTask:SqlStatementSource="DECLARE @PerformedBy NVARCHAR(128) = ?;&#xA; &#xA;IF OBJECT_ID('tempdb..#MergeResults') IS NOT NULL DROP TABLE #MergeResults;&#xA; &#xA;CREATE TABLE #MergeResults (&#xA;    ActionTaken     NVARCHAR(10),&#xA;    WasDeletedAfter BIT,&#xA;    WasDeletedBefore BIT&#xA;);&#xA; &#xA;;WITH SourceRows AS (&#xA;    SELECT&#xA;        c.ConsultantID,&#xA;        CAST(src.DateValue AS DATE)                                                AS WorkDate,&#xA;        cl.ClientID,&#xA;        src.ClientProjectName,&#xA;        src.WorkDescription,&#xA;        src.BillableFlag,&#xA;        src.Comments,&#xA;        CAST(src.StartTime AS TIME)                                                AS StartTime,&#xA;        CAST(src.EndTime AS TIME)                                                  AS EndTime,&#xA;        DATEDIFF(MINUTE, CAST('00:00:00' AS TIME), CAST(src.TotalHours AS TIME))   AS MinutesWorked,&#xA;        -- Ordinal position among rows sharing the same Consultant+Date+Start+End,&#xA;        -- ordered by their original row order (StagingID) in the source sheet.&#xA;        -- This is what lets us tell apart &quot;row 9&quot; from other same-slot entries.&#xA;        ROW_NUMBER() OVER (&#xA;            PARTITION BY c.ConsultantID, CAST(src.DateValue AS DATE),&#xA;                         CAST(src.StartTime AS TIME), CAST(src.EndTime AS TIME)&#xA;            ORDER BY src.StagingID&#xA;        ) AS RowSeq&#xA;    FROM (&#xA;        SELECT DISTINCT&#xA;            SheetName, StagingID, ConsultantName, DateValue, DOfWeek, Client,&#xA;            ClientProjectName, WorkDescription, BillableFlag, Comments,&#xA;            TotalHours, StartTime, EndTime&#xA;        FROM tblStagingTimesheet&#xA;        WHERE DateValue IS NOT NULL&#xA;          AND WorkDescription IS NOT NULL&#xA;          AND Comments &lt;&gt; 'Detailed Description of task(s) done'&#xA;          AND WorkDescription &lt;&gt; 'Public Holiday'&#xA;    ) src&#xA;    INNER JOIN (&#xA;        SELECT ConsultantID, FullName,&#xA;               ROW_NUMBER() OVER (PARTITION BY LTRIM(RTRIM(FullName)) ORDER BY ConsultantID) AS rn&#xA;        FROM tblConsultant&#xA;    ) c ON c.FullName = src.ConsultantName AND c.rn = 1&#xA;    INNER JOIN tblClient cl&#xA;        ON cl.ClientName = src.Client&#xA;),&#xA; &#xA;-- Only these (Consultant, Year, Month) combos are &quot;in scope&quot; for this run.&#xA;-- Anything outside this scope in tblTimesheetEntries is left untouched.&#xA;ScopeKeys AS (&#xA;    SELECT DISTINCT ConsultantID, YEAR(WorkDate) AS WorkYear, MONTH(WorkDate) AS WorkMonth&#xA;    FROM SourceRows&#xA;),&#xA; &#xA;TargetInScope AS (&#xA;    SELECT te.*&#xA;    FROM tblTimesheetEntries te&#xA;    INNER JOIN ScopeKeys sk&#xA;        ON sk.ConsultantID = te.ConsultantID&#xA;       AND sk.WorkYear     = YEAR(te.WorkDate)&#xA;       AND sk.WorkMonth    = MONTH(te.WorkDate)&#xA;    WHERE te.IsDeleted = 0   -- already-soft-deleted rows are excluded from matching;&#xA;                             -- a genuine re-add of the same slot inserts fresh, keeping history intact&#xA;)&#xA; &#xA;MERGE TargetInScope AS tgt&#xA;USING SourceRows AS src&#xA;   ON  tgt.ConsultantID = src.ConsultantID&#xA;   AND tgt.WorkDate     = src.WorkDate&#xA;   AND ISNULL(tgt.StartTime, '00:00:00') = ISNULL(src.StartTime, '00:00:00')&#xA;   AND ISNULL(tgt.EndTime,   '00:00:00') = ISNULL(src.EndTime,   '00:00:00')&#xA;   AND ISNULL(tgt.RowSeq, 1)             = src.RowSeq&#xA; &#xA;-- Row still exists, but content changed (e.g. description Training -&gt; Meeting)&#xA;WHEN MATCHED AND (&#xA;        ISNULL(tgt.WorkDescription, '')    &lt;&gt; ISNULL(src.WorkDescription, '')&#xA;     OR ISNULL(tgt.Comments, '')           &lt;&gt; ISNULL(src.Comments, '')&#xA;     OR ISNULL(tgt.ClientProjectName, '')  &lt;&gt; ISNULL(src.ClientProjectName, '')&#xA;     OR ISNULL(tgt.BillableFlag, '')       &lt;&gt; ISNULL(src.BillableFlag, '')&#xA;     OR ISNULL(tgt.ClientID, -1)           &lt;&gt; ISNULL(src.ClientID, -1)&#xA;     OR ISNULL(tgt.MinutesWorked, -1)      &lt;&gt; ISNULL(src.MinutesWorked, -1)&#xA;) THEN&#xA;    UPDATE SET&#xA;        ClientID          = src.ClientID,&#xA;        ClientProjectName = src.ClientProjectName,&#xA;        WorkDescription   = src.WorkDescription,&#xA;        BillableFlag      = src.BillableFlag,&#xA;        Comments          = src.Comments,&#xA;        MinutesWorked     = src.MinutesWorked,&#xA;        RowSeq            = src.RowSeq,&#xA;        UpdatedAt         = GETDATE()&#xA; &#xA;-- Row is new&#xA;WHEN NOT MATCHED BY TARGET THEN&#xA;    INSERT (ConsultantID, WorkDate, ClientID, ClientProjectName, WorkDescription,&#xA;            BillableFlag, Comments, StartTime, EndTime, MinutesWorked, RowSeq, UpdatedAt, IsDeleted)&#xA;    VALUES (src.ConsultantID, src.WorkDate, src.ClientID, src.ClientProjectName, src.WorkDescription,&#xA;            src.BillableFlag, src.Comments, src.StartTime, src.EndTime, src.MinutesWorked, src.RowSeq, GETDATE(), 0)&#xA; &#xA;-- Row existed before, in scope, but is missing from this run's file -&gt; soft delete&#xA;WHEN NOT MATCHED BY SOURCE THEN&#xA;    UPDATE SET&#xA;        IsDeleted = 1,&#xA;        DeletedAt = GETDATE()&#xA; &#xA;OUTPUT&#xA;    $action,&#xA;    inserted.IsDeleted,&#xA;    deleted.IsDeleted&#xA;INTO #MergeResults (ActionTaken, WasDeletedAfter, WasDeletedBefore);&#xA; &#xA; &#xA;-- Classify the MERGE's raw $action values into Insert / Update / Soft-Delete,&#xA;-- since a soft-delete is technically an UPDATE statement under the hood.&#xA;DECLARE @RowsInserted INT, @RowsUpdated INT, @RowsDeleted INT, @RowsAffected INT;&#xA; &#xA;SELECT&#xA;    @RowsInserted = SUM(CASE WHEN ActionTaken = 'INSERT' THEN 1 ELSE 0 END),&#xA;    @RowsUpdated  = SUM(CASE WHEN ActionTaken = 'UPDATE' AND WasDeletedAfter = 0 THEN 1 ELSE 0 END),&#xA;    @RowsDeleted  = SUM(CASE WHEN ActionTaken = 'UPDATE' AND WasDeletedAfter = 1 AND ISNULL(WasDeletedBefore,0) = 0 THEN 1 ELSE 0 END)&#xA;FROM #MergeResults;&#xA; &#xA;SET @RowsInserted = ISNULL(@RowsInserted, 0);&#xA;SET @RowsUpdated  = ISNULL(@RowsUpdated, 0);&#xA;SET @RowsDeleted  = ISNULL(@RowsDeleted, 0);&#xA;SET @RowsAffected = @RowsInserted + @RowsUpdated + @RowsDeleted;&#xA; &#xA;IF @RowsAffected &gt; 0&#xA;    INSERT INTO tblAuditLog (TableName, Action, StatusCode, StatusMessage, RowsAffected, RowsInserted, RowsUpdated, RowsDeleted, PerformedBy)&#xA;    VALUES (&#xA;        'tblTimesheetEntries',&#xA;        'MERGE',&#xA;        'SUCCESS',&#xA;        CONCAT('Timesheet entries synced from staging: ', @RowsInserted, ' inserted, ',&#xA;               @RowsUpdated, ' updated, ', @RowsDeleted, ' soft-deleted'),&#xA;        @RowsAffected,&#xA;        @RowsInserted,&#xA;        @RowsUpdated,&#xA;        @RowsDeleted,&#xA;        @PerformedBy&#xA;    );&#xA; &#xA;DROP TABLE #MergeResults;" xmlns:SQLTask="www.microsoft.com/sqlserver/dts/tasks/sqltask">
           <SQLTask:ParameterBinding
             SQLTask:ParameterName="0"
             SQLTask:DtsVariableName="User::ExecutedBy"
@@ -2999,7 +2999,7 @@
           DTS:LocaleID="-1"
           DTS:ObjectName="Truncate Expense Claim Staging"
           DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-          DTS:ThreadHint="0">
+          DTS:ThreadHint="1">
           <DTS:Variables />
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
@@ -3023,7 +3023,7 @@
           DTS:LocaleID="-1"
           DTS:ObjectName="Truncate Staging Table"
           DTS:TaskContact="Execute SQL Task; Microsoft Corporation; SQL Server 2025; © 2025 Microsoft Corporation; All Rights Reserved;http://www.microsoft.com/sql/support/default.asp;1"
-          DTS:ThreadHint="1">
+          DTS:ThreadHint="0">
           <DTS:Variables />
           <DTS:ObjectData>
             <SQLTask:SqlTaskData
@@ -3187,13 +3187,29 @@
           Id="Package\Load Clients"
           TopLeft="1417.85706538885,771.333327969578" />
         <NodeLayout
+          Size="156,41.6"
+          Id="Package\Load Clients Fail"
+          TopLeft="1413.16662682676,851.999996456305" />
+        <NodeLayout
+          Size="179.2,41.6"
+          Id="Package\Load Consultants Fail"
+          TopLeft="944.966652233237,844.199996004304" />
+        <NodeLayout
           Size="188,41.6"
           Id="Package\Load Consultants Table"
           TopLeft="928.571377836525,766.380947051635" />
         <NodeLayout
+          Size="193.6,41.6"
+          Id="Package\Load Expense Claim Fail"
+          TopLeft="1652.33328042594,853.666663189266" />
+        <NodeLayout
           Size="203.2,41.6"
           Id="Package\Load Expense Claim Table"
           TopLeft="1616.6665783359,777.047613787179" />
+        <NodeLayout
+          Size="152,41.6"
+          Id="Package\Load Leave Fail"
+          TopLeft="1181.4999728178,847.533329759505" />
         <NodeLayout
           Size="161.6,41.6"
           Id="Package\Load Leave Table"
@@ -3460,6 +3476,42 @@
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 10]"
+          TopLeft="1718.2665783359,818.647613787179">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="30.866702090035,35.0190494020866"
+              Start="0,0"
+              End="30.866702090035,27.5190494020866">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,13.5095247010433" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,13.5095247010433"
+                    Point2="0,17.5095247010433"
+                    Point3="4,17.5095247010433" />
+                  <mssgle:LineSegment
+                    End="26.866702090035,17.5095247010433" />
+                  <mssgle:CubicBezierSegment
+                    Point1="26.866702090035,17.5095247010433"
+                    Point2="30.866702090035,17.5095247010433"
+                    Point3="30.866702090035,21.5095247010433" />
+                  <mssgle:LineSegment
+                    End="30.866702090035,27.5190494020866" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <mssgm:EdgeLabel
+              BoundingBox="0.192003388767503,22.5095247010433,30.4826953125,9.7490234375"
+              RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint 11]"
           TopLeft="2053.47608855107,793.887296211349">
           <EdgeLayout.Curve>
@@ -3506,6 +3558,78 @@
           </EdgeLayout.Labels>
         </EdgeLayout>
         <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 3]"
+          TopLeft="1022.57137783653,807.980947051635">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="11.9952743967119,36.2190489526686"
+              Start="0,0"
+              End="11.9952743967119,28.7190489526686">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,14.1095244763343" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,14.1095244763343"
+                    Point2="0,18.1095244763343"
+                    Point3="4,18.1095244763343" />
+                  <mssgle:LineSegment
+                    End="7.99527439671192,18.1095244763343" />
+                  <mssgle:CubicBezierSegment
+                    Point1="7.99527439671192,18.1095244763343"
+                    Point2="11.9952743967119,18.1095244763343"
+                    Point3="11.9952743967119,22.1095244763343" />
+                  <mssgle:LineSegment
+                    End="11.9952743967119,28.7190489526686" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <mssgm:EdgeLabel
+              BoundingBox="-9.24371045789404,23.1095244763343,30.4826953125,9.7490234375"
+              RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 4]"
+          TopLeft="1270.08564930601,814.171423199064">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="-12.5856764882105,33.3619065604408"
+              Start="0,0"
+              End="-12.5856764882105,25.8619065604408">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,12.6809532802204" />
+                  <mssgle:CubicBezierSegment
+                    Point1="0,12.6809532802204"
+                    Point2="0,16.6809532802204"
+                    Point3="-4,16.6809532802204" />
+                  <mssgle:LineSegment
+                    End="-8.58567648821054,16.6809532802204" />
+                  <mssgle:CubicBezierSegment
+                    Point1="-8.58567648821054,16.6809532802204"
+                    Point2="-12.5856764882105,16.6809532802204"
+                    Point3="-12.5856764882105,20.6809532802204" />
+                  <mssgle:LineSegment
+                    End="-12.5856764882105,25.8619065604408" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <mssgm:EdgeLabel
+              BoundingBox="-21.5341859003553,21.6809532802204,30.4826953125,9.7490234375"
+              RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
           Id="Package.PrecedenceConstraints[Constraint 5]"
           TopLeft="1350.88564930601,792.752375584321">
           <EdgeLayout.Curve>
@@ -3526,6 +3650,30 @@
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
               BoundingBox="4.43125491642002,5,50.60890625,11.609375"
+              RelativePosition="Any" />
+          </EdgeLayout.Labels>
+        </EdgeLayout>
+        <EdgeLayout
+          Id="Package.PrecedenceConstraints[Constraint 6]"
+          TopLeft="1488.5118461078,812.933327969578">
+          <EdgeLayout.Curve>
+            <mssgle:Curve
+              StartConnector="{assembly:Null}"
+              EndConnector="0,39.0666684867273"
+              Start="0,0"
+              End="0,31.5666684867273">
+              <mssgle:Curve.Segments>
+                <mssgle:SegmentCollection
+                  Capacity="5">
+                  <mssgle:LineSegment
+                    End="0,31.5666684867273" />
+                </mssgle:SegmentCollection>
+              </mssgle:Curve.Segments>
+            </mssgle:Curve>
+          </EdgeLayout.Curve>
+          <EdgeLayout.Labels>
+            <mssgm:EdgeLabel
+              BoundingBox="-15.24134765625,10.9088225246136,30.4826953125,9.7490234375"
               RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
@@ -3610,154 +3758,6 @@
           <EdgeLayout.Labels>
             <mssgm:EdgeLabel
               BoundingBox="-6.24969801741508,5,50.60890625,11.609375"
-              RelativePosition="Any" />
-          </EdgeLayout.Labels>
-        </EdgeLayout>
-        <NodeLayout
-          Size="179.2,41.6"
-          Id="Package\Load Consultants Fail"
-          TopLeft="944.966652233237,844.199996004304" />
-        <EdgeLayout
-          Id="Package.PrecedenceConstraints[Constraint 3]"
-          TopLeft="1022.57137783653,807.980947051635">
-          <EdgeLayout.Curve>
-            <mssgle:Curve
-              StartConnector="{assembly:Null}"
-              EndConnector="11.9952743967119,36.2190489526686"
-              Start="0,0"
-              End="11.9952743967119,28.7190489526686">
-              <mssgle:Curve.Segments>
-                <mssgle:SegmentCollection
-                  Capacity="5">
-                  <mssgle:LineSegment
-                    End="0,14.1095244763343" />
-                  <mssgle:CubicBezierSegment
-                    Point1="0,14.1095244763343"
-                    Point2="0,18.1095244763343"
-                    Point3="4,18.1095244763343" />
-                  <mssgle:LineSegment
-                    End="7.99527439671192,18.1095244763343" />
-                  <mssgle:CubicBezierSegment
-                    Point1="7.99527439671192,18.1095244763343"
-                    Point2="11.9952743967119,18.1095244763343"
-                    Point3="11.9952743967119,22.1095244763343" />
-                  <mssgle:LineSegment
-                    End="11.9952743967119,28.7190489526686" />
-                </mssgle:SegmentCollection>
-              </mssgle:Curve.Segments>
-            </mssgle:Curve>
-          </EdgeLayout.Curve>
-          <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="-9.24371045789404,23.1095244763343,30.4826953125,9.7490234375"
-              RelativePosition="Any" />
-          </EdgeLayout.Labels>
-        </EdgeLayout>
-        <NodeLayout
-          Size="152,41.6"
-          Id="Package\Load Leave Fail"
-          TopLeft="1181.4999728178,847.533329759505" />
-        <NodeLayout
-          Size="156,41.6"
-          Id="Package\Load Clients Fail"
-          TopLeft="1413.16662682676,851.999996456305" />
-        <NodeLayout
-          Size="193.6,41.6"
-          Id="Package\Load Expense Claim Fail"
-          TopLeft="1652.33328042594,853.666663189266" />
-        <EdgeLayout
-          Id="Package.PrecedenceConstraints[Constraint 4]"
-          TopLeft="1270.08564930601,814.171423199064">
-          <EdgeLayout.Curve>
-            <mssgle:Curve
-              StartConnector="{assembly:Null}"
-              EndConnector="-12.5856764882105,33.3619065604408"
-              Start="0,0"
-              End="-12.5856764882105,25.8619065604408">
-              <mssgle:Curve.Segments>
-                <mssgle:SegmentCollection
-                  Capacity="5">
-                  <mssgle:LineSegment
-                    End="0,12.6809532802204" />
-                  <mssgle:CubicBezierSegment
-                    Point1="0,12.6809532802204"
-                    Point2="0,16.6809532802204"
-                    Point3="-4,16.6809532802204" />
-                  <mssgle:LineSegment
-                    End="-8.58567648821054,16.6809532802204" />
-                  <mssgle:CubicBezierSegment
-                    Point1="-8.58567648821054,16.6809532802204"
-                    Point2="-12.5856764882105,16.6809532802204"
-                    Point3="-12.5856764882105,20.6809532802204" />
-                  <mssgle:LineSegment
-                    End="-12.5856764882105,25.8619065604408" />
-                </mssgle:SegmentCollection>
-              </mssgle:Curve.Segments>
-            </mssgle:Curve>
-          </EdgeLayout.Curve>
-          <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="-21.5341859003553,21.6809532802204,30.4826953125,9.7490234375"
-              RelativePosition="Any" />
-          </EdgeLayout.Labels>
-        </EdgeLayout>
-        <EdgeLayout
-          Id="Package.PrecedenceConstraints[Constraint 6]"
-          TopLeft="1488.5118461078,812.933327969578">
-          <EdgeLayout.Curve>
-            <mssgle:Curve
-              StartConnector="{assembly:Null}"
-              EndConnector="0,39.0666684867273"
-              Start="0,0"
-              End="0,31.5666684867273">
-              <mssgle:Curve.Segments>
-                <mssgle:SegmentCollection
-                  Capacity="5">
-                  <mssgle:LineSegment
-                    End="0,31.5666684867273" />
-                </mssgle:SegmentCollection>
-              </mssgle:Curve.Segments>
-            </mssgle:Curve>
-          </EdgeLayout.Curve>
-          <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="-15.24134765625,10.9088225246136,30.4826953125,9.7490234375"
-              RelativePosition="Any" />
-          </EdgeLayout.Labels>
-        </EdgeLayout>
-        <EdgeLayout
-          Id="Package.PrecedenceConstraints[Constraint 10]"
-          TopLeft="1718.2665783359,818.647613787179">
-          <EdgeLayout.Curve>
-            <mssgle:Curve
-              StartConnector="{assembly:Null}"
-              EndConnector="30.866702090035,35.0190494020866"
-              Start="0,0"
-              End="30.866702090035,27.5190494020866">
-              <mssgle:Curve.Segments>
-                <mssgle:SegmentCollection
-                  Capacity="5">
-                  <mssgle:LineSegment
-                    End="0,13.5095247010433" />
-                  <mssgle:CubicBezierSegment
-                    Point1="0,13.5095247010433"
-                    Point2="0,17.5095247010433"
-                    Point3="4,17.5095247010433" />
-                  <mssgle:LineSegment
-                    End="26.866702090035,17.5095247010433" />
-                  <mssgle:CubicBezierSegment
-                    Point1="26.866702090035,17.5095247010433"
-                    Point2="30.866702090035,17.5095247010433"
-                    Point3="30.866702090035,21.5095247010433" />
-                  <mssgle:LineSegment
-                    End="30.866702090035,27.5190494020866" />
-                </mssgle:SegmentCollection>
-              </mssgle:Curve.Segments>
-            </mssgle:Curve>
-          </EdgeLayout.Curve>
-          <EdgeLayout.Labels>
-            <mssgm:EdgeLabel
-              BoundingBox="0.192003388767503,22.5095247010433,30.4826953125,9.7490234375"
               RelativePosition="Any" />
           </EdgeLayout.Labels>
         </EdgeLayout>
