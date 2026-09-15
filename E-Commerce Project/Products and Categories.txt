@@ -1,0 +1,50 @@
+--------------------------------------------------
+Categories
+--------------------------------------------------
+-Cows:1
+-Horses:2
+-Chickens:3
+-Ducks:4
+-Animal Housing:5
+-Cages:6
+
+--------------------------------------------------
+Customers(Users)
+--------------------------------------------------
+lwazisile@gmail.com: Guest1 --Customer
+test@gmail.com: Guest1 --Admin
+
+--------------------------------------------------
+Products
+--------------------------------------------------
+{
+  "category_id": 1,
+  "category_name": "cows",
+  "current_price": 8500.0,
+  "flash_sale": false,
+  "id": 1,
+  "in_stock": 4,
+  "previous_price": 9000.0,
+  "product_name": "Weaned Brahman Heifer",
+  "product_picture": "https://placehold.co/400x400?text=Brahman+Heifer"
+}
+{
+  "product_name": "20 Capactiy Mobile Chicken Tractor",
+  "current_price": 3200.00,
+  "previous_price": 3200.00,
+  "in_stock": 10,
+  "product_picture": "https://placehold.co/400x400?text=Chicken+Coop",
+  "category_id": 5
+}
+
+{
+  "product_name": "150 Capacatiy Chicken Coop",
+  "current_price": 9000.00,
+  "previous_price": 9000.00,
+  "in_stock": 5,
+  "product_picture": "https://placehold.co/400x400?text=Chicken+Coop",
+  "category_id": 6
+}
+
+
+
