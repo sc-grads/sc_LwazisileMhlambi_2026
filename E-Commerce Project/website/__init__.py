@@ -20,7 +20,7 @@ def create_app():
 
     db.init_app(app)
     jwt.init_app(app)
-    CORS(app)
+    CORS(app, origins=["http://localhost:5173"]) #Takes to Front-End Dev Server
 
     from .views import views
     from  .auth import auth

@@ -6,6 +6,7 @@ import re
 
 auth = Blueprint('auth', __name__) #Tells python that endpoints live here
 
+EMAIL_PATTERN = re.compile(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
 
 @auth.route('/api/auth/sign-up', methods=['POST'])
 def sign_up():
@@ -15,12 +16,16 @@ def sign_up():
         return jsonify({"error": "No input data provided"}), 400
 
     email = data.get('email')
-    username = data.get('username')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
     password1 = data.get("password1")
     password2 = data.get("password2")
 
-    if not all([email, username, password1, password2]):
+    if not all([email, first_name, last_name, password1, password2]):
         return jsonify({"error": "all fields are required"}), 400
+
+    if not EMAIL_PATTERN.match(email):
+        return jsonify({"error": "Please enter a valid email address"}), 400
 
     if Customer.query.filter_by(email=email).first():
         return jsonify({"error": "Email already registered"}), 400
@@ -37,13 +42,17 @@ def sign_up():
     }), 400
 
     
-    new_customer = Customer(email=email, username=username)
+    new_customer = Customer(email=email, first_name=first_name, last_name=last_name)
     new_customer.password = password1
     db.session.add(new_customer)
     db.session.commit()
 
     token = create_access_token(identity=str(new_customer.id))
-    return jsonify({"token": token, "username": new_customer.username}), 201
+    return jsonify({
+        "token": token, 
+        "first_name": new_customer.first_name,
+        "last_name": new_customer.last_name
+        }), 201
     
 
 @auth.route('/api/auth/login', methods=['POST'])
@@ -59,11 +68,15 @@ def login():
     customer = Customer.query.filter_by(email=email).first()
 
     if not customer or not customer.verify_password(password):
-        return jsonify({"token": token, "username": customer.username}), 200
+        return jsonify({"token": token, "first_name": customer.first_name, "last_name": customer.last_name}), 200
 
 
     token = create_access_token(identity=str(customer.id))
-    return jsonify({"token": token, "username": customer.username}), 200
+    return jsonify({
+        "token": token, 
+        "first_name": customer.first_name,
+        "last_name": customer.last_name
+        }), 200
 
 
 

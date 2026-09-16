@@ -6,7 +6,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 class Customer(db.Model, UserMixin): #UserMixin allows us to use flask login for authentication
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
-    username = db.Column(db.String(100))
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
     password_hash = db.Column(db.String(150))
     date_joined = db.Column(db.DateTime(), default=lambda: datetime.now(timezone.utc))
 
@@ -21,6 +22,7 @@ class Customer(db.Model, UserMixin): #UserMixin allows us to use flask login for
 
     cart_items = db.relationship('Cart', backref=db.backref('customer', lazy=True))
     orders = db.relationship('Order', backref=db.backref('customer', lazy=True))
+    wishlist_items = db.relationship('Wishlist', backref=db.backref('customer', lazy=True))
 
     @property
     def password(self):
@@ -53,6 +55,7 @@ class Product(db.Model):
 
     carts = db.relationship('Cart', backref=db.backref('product', lazy=True))
     orders = db.relationship('Order', backref=db.backref('product', lazy=True))
+    wishlist_entries = db.relationship('Wishlist', backref=db.backref('product', lazy=True))
 
     def __str__(self):
         return '<Product %r' % self.product_name
@@ -102,3 +105,13 @@ class Order_Item(db.Model):
 
     customer_link = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
     product_link = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+
+class Wishlist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    date_added = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    customer_link = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    product_link = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+
+    def __str__(self):
+        return '<Wishlist %r>' % self.id
