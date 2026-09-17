@@ -32,6 +32,51 @@ def get_all_users():
         "country": user.country
     } for user in all_users])
 
+@admin.route('/api/admin/users/<int:user_id>/role', methods=['PUT'])
+@jwt_required()
+def update_user_role(user_id):
+    current_user = Customer.query.get(int(get_jwt_identity()))
+    if not current_user or not current_user.is_admin():
+        return jsonify({"error": "Admins only"}), 403
+        
+    user = Customer.query.get_or_404(user_id)
+    data = request.get_json()
+    new_role = data.get('role')
+    
+    if new_role not in ['customer', 'admin']:
+        return jsonify({"error": "Invalid role specified"}), 400
+        
+    # Prevent an admin from accidentally stripping their own admin status if desired
+    if user.id == current_user.id and new_role != 'admin':
+        return jsonify({"error": "You cannot remove your own admin status"}), 400
+
+    user.role = new_role
+    db.session.commit()
+    
+    return jsonify({
+        "id": user.id,
+        "email": user.email,
+        "role": user.role,
+        "message": "User role updated successfully"
+    }), 200
+
+@admin.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    current_user = Customer.query.get(int(get_jwt_identity()))
+    if not current_user or not current_user.is_admin():
+        return jsonify({"error": "Admins only"}), 403
+        
+    user = Customer.query.get_or_404(user_id)
+    
+    if user.id == current_user.id:
+        return jsonify({"error": "You cannot delete your own account"}), 400
+
+    db.session.delete(user)
+    db.session.commit()
+    
+    return jsonify({"message": f"User {user_id} deleted"}), 200
+
 #----------------------------------------------
 ###########PRODUCTS############################
 #----------------------------------------------
@@ -101,7 +146,7 @@ def update_product(product_id):
     if 'current_price' in data:
         product.current_price = data['current_price']
     if 'previous_price' in data:
-        product.previous = data['previous_price']
+        product.previous_price = data['previous_price']
     if 'in_stock' in data:
         product.in_stock = data['in_stock']
     if 'product_picture' in data:

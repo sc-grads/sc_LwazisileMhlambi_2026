@@ -1,12 +1,22 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import farmBg from '../assets/farm-bg.jpg' // Update path to match your folder structure
 
 function Login() {
+  useEffect(() => {
+    document.title = 'Log In | WeanerMart'
+  }, [])
+
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const { loginUser } = useAuth()
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -15,6 +25,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setLoading(true)
 
     try {
       const response = await fetch('http://127.0.0.1:5001/api/auth/login', {
@@ -30,17 +41,32 @@ function Login() {
         return
       }
 
-      console.log('Logged in:', data)
-      // Token handling and redirect will come once we build that piece
+      loginUser(data.token, data.first_name, data.role)
+
+    // Redirect based on whether they are admin
+      if (data.role === 'admin') {
+        navigate('/admin')
+      } else {
+        navigate('/')
+      }
     } catch (err) {
       setError('Could not connect to the server')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Log In</h1>
+    <div 
+      className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center relative"
+      style={{ backgroundImage: `url(${farmBg})` }}
+    >
+      {/* Dark overlay for contrast */}
+      <div className="absolute inset-0 bg-black/40"></div>
+
+      {/* Form Container (relative to sit above the overlay) */}
+      <div className="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-sm p-8 rounded-lg shadow-xl">
+        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">Log In</h1>
 
         {error && (
           <div className="bg-red-100 text-red-700 text-sm p-3 rounded mb-4">
@@ -79,9 +105,10 @@ function Login() {
 
           <button
             type="submit"
-            className="w-full bg-[#F2AC38] text-white py-2 rounded-md font-medium hover:opacity-90"
+            disabled={loading}
+            className="w-full bg-[#F2AC38] text-white py-2 rounded-md font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
-            Log In
+            {loading ? 'Logging In...' : 'Log In'}
           </button>
         </form>
 

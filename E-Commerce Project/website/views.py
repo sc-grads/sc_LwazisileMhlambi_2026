@@ -24,8 +24,8 @@ def me():
     return jsonify({
         "id": customer.id, 
         "email": customer.email, 
-        "first_name": customer.first_username,
-        "last_name": customer.last_username,
+        "first_name": customer.first_name,
+        "last_name": customer.last_name,
         "role": customer.role,
         "address_line1": customer.address_line1,
         "address_line2": customer.address_line2,
@@ -48,7 +48,7 @@ def update_me():
     if 'first_name' in data:
         customer.first_name = data['first_name']
     if 'last_name' in data:
-            customer.last_name = data['last_name']
+        customer.last_name = data['last_name']
     if 'address_line1' in data:
         customer.address_line1 = data['address_line1']
     if 'address_line2' in data:
@@ -67,7 +67,8 @@ def update_me():
     return jsonify({
         "id": customer.id,
         "email": customer.email,
-        "username": customer.username,
+        "first_name": customer.first_name,
+        "last_name": customer.last_name,
         "role": customer.role,
         "address_line1": customer.address_line1,
         "address_line2": customer.address_line2,

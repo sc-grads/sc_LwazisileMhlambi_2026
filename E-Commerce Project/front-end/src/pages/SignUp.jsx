@@ -1,8 +1,13 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import farmBg from '../assets/farm-bg.jpg'
 
 function SignUp() {
+  useEffect(() => {
+    document.title = 'Sign Up | WeanerMart'
+  }, [])
+  
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -11,6 +16,10 @@ function SignUp() {
     password2: ''
   })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const { loginUser } = useAuth()
+  const navigate = useNavigate()
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -19,6 +28,14 @@ function SignUp() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    // Client-side password matching check
+    if (formData.password1 !== formData.password2) {
+      setError('Passwords do not match')
+      return
+    }
+
+    setLoading(true)
 
     try {
       const response = await fetch('http://127.0.0.1:5001/api/auth/sign-up', {
@@ -34,17 +51,27 @@ function SignUp() {
         return
       }
 
-      console.log('Signed up:', data)
-      // Token handling and redirect will come once we build that piece
+      // Automatically log them in with the token/name returned by Flask and redirect home
+      loginUser(data.token, data.first_name)
+      navigate('/')
     } catch (err) {
       setError('Could not connect to the server')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-6">Create an Account</h1>
+    <div 
+      className="min-h-screen flex items-center justify-center px-4 bg-cover bg-center relative"
+      style={{ backgroundImage: `url(${farmBg})` }}
+    >
+      {/* Dark overlay for contrast */}
+      <div className="absolute inset-0 bg-black/40"></div>
+
+      {/* Form Container */}
+      <div className="relative z-10 w-full max-w-md bg-white/95 backdrop-blur-sm p-8 rounded-lg shadow-xl">
+        <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">Create an Account</h1>
 
         {error && (
           <div className="bg-red-100 text-red-700 text-sm p-3 rounded mb-4">
@@ -126,9 +153,10 @@ function SignUp() {
 
           <button
             type="submit"
-            className="w-full bg-[#F2AC38] text-white py-2 rounded-md font-medium hover:opacity-90"
+            disabled={loading}
+            className="w-full bg-[#F2AC38] text-white py-2 rounded-md font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
           >
-            Sign Up
+            {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 

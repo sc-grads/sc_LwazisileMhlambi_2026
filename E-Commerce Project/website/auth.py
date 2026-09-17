@@ -65,17 +65,20 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
+    if not all([email, password]):
+        return jsonify({"error": "Email and password are required"}), 400
+
     customer = Customer.query.filter_by(email=email).first()
 
     if not customer or not customer.verify_password(password):
-        return jsonify({"token": token, "first_name": customer.first_name, "last_name": customer.last_name}), 200
-
+        return jsonify({"error": "Invalid email or password"}), 401
 
     token = create_access_token(identity=str(customer.id))
     return jsonify({
         "token": token, 
         "first_name": customer.first_name,
-        "last_name": customer.last_name
+        "last_name": customer.last_name,
+        "role": customer.role
         }), 200
 
 
