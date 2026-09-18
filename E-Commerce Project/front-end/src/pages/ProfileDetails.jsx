@@ -111,7 +111,7 @@ function ProfileDetails() {
       <div className="max-w-3xl mx-auto">
         <div className="mb-6">
           <Link to="/profile" className="text-sm font-medium text-[#ffac00] hover:underline">
-            &larr; Back to Account Dashboard
+            &larr; Back to Profile Dashboard
           </Link>
         </div>
 

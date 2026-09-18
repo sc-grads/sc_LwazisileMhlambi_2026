@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from .models import Customer, Product, Category
+from .models import Customer, Product, Category, Order
 from .import db
 
 admin = Blueprint('admin', __name__) #Tells python that admin endpoints live here
@@ -251,3 +251,89 @@ def delete_category(category_id):
     db.session.commit()
 
     return jsonify({"message": f"Category {category_id} deleted"}), 200
+
+
+#------------------------------------------------
+#############ORDERS#############################
+#------------------------------------------------
+
+@admin.route('/api/admin/orders', methods=['GET'])
+@jwt_required()
+def get_all_orders():
+    current_user = Customer.query.get(int(get_jwt_identity()))
+    if not current_user or not current_user.is_admin():
+        return jsonify({"error": "Admins only"}), 403
+    
+    orders = Order.query.order_by(Order.id.desc()).all()
+    
+    orders_data = []
+    for order in orders:
+        # Fetch related customer and product info if relationships exist
+        customer = Customer.query.get(order.customer_link)
+        product = Product.query.get(order.product_link)
+
+        orders_data.append({
+            "id": order.id,
+            "quantity": order.quantity,
+            "price": order.price,
+            "status": order.status,
+            "payment_id": order.payment_id,
+            "customer_id": order.customer_link,
+            "customer_email": customer.email if customer else "N/A",
+            "customer_name": f"{customer.first_name} {customer.last_name}" if customer else "Unknown",
+            "product_id": order.product_link,
+            "product_name": product.name if hasattr(product, 'name') else "N/A"
+        })
+
+    return jsonify(orders_data), 200
+
+@admin.route('/api/admin/orders/<int:order_id>/status', methods=['PUT'])
+@jwt_required()
+def update_order_status(order_id):
+    current_user = Customer.query.get(int(get_jwt_identity()))
+    if not current_user or not current_user.is_admin():
+        return jsonify({"error": "Admins only"}), 403
+
+    data = request.get_json()
+    if not data or 'status' not in data:
+        return jsonify({"error": "New status is required"}), 400
+
+    order = Order.query.get(order_id)
+    if not order:
+        return jsonify({"error": "Order not found"}), 404
+
+    # Update status
+    order.status = data['status']
+    db.session.commit()
+
+    return jsonify({
+        "message": f"Order #{order.id} status updated to '{order.status}' successfully.",
+        "order": {
+            "id": order.id,
+            "status": order.status,
+            "quantity": order.quantity,
+            "price": order.price,
+            "payment_id": order.payment_id,
+            "customer_id": order.customer_link,
+            "product_id": order.product_link
+        }
+    }), 200
+
+@admin.route('/api/admin/orders/statuses', methods=['GET'])
+@jwt_required()
+def get_order_statuses():
+    current_user = Customer.query.get(int(get_jwt_identity()))
+    if not current_user or not current_user.is_admin():
+        return jsonify({"error": "Admins only"}), 403
+
+    # List of available order statuses / categories
+    statuses = [
+        "Pending",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Cancelled"
+    ]
+
+    return jsonify(statuses), 200
+

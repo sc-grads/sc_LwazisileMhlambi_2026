@@ -1,14 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import farmerLogo from '../assets/farmer-icon.png'; 
+import CartLogo from '../assets/cart-icon.png';
 
 function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isLoggedIn, firstName, role, logoutUser } = useAuth();
+  
+  // States for counts
   const [cartCount, setCartCount] = useState(0); 
+  const [wishlistCount, setWishlistCount] = useState(0);
 
   const isAdmin = isLoggedIn && role === 'admin';
+
+  // Fetch counts when auth state changes or component mounts
+  useEffect(() => {
+    if (isLoggedIn && !isAdmin) {
+      fetchCounts();
+    } else {
+      setCartCount(0);
+      setWishlistCount(0);
+    }
+  }, [isLoggedIn, isAdmin]);
+
+  const fetchCounts = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    try {
+      // Fetch Cart Count
+      const cartRes = await fetch('http://127.0.0.1:5001/api/cart', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (cartRes.ok) {
+        const cartData = await cartRes.json();
+        // Sum up total quantities in cart, or use cartData.length for unique items
+        const totalCartItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
+        setCartCount(totalCartItems);
+      }
+
+      // Fetch Wishlist Count
+      const wishlistRes = await fetch('http://127.0.0.1:5001/api/wishlist', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (wishlistRes.ok) {
+        const wishlistData = await wishlistRes.json();
+        setWishlistCount(wishlistData.length);
+      }
+    } catch (err) {
+      console.error('Failed to fetch navbar badge counts', err);
+    }
+  };
 
   return (
     <nav className="bg-white sticky top-0 z-50 shadow-sm">
@@ -39,15 +82,31 @@ function Navbar() {
               <>
                 <Link to="/" className="text-gray-700 hover:text-[#ffac00] transition-colors">Home</Link>
                 <Link to="/products" className="text-gray-700 hover:text-[#ffac00] transition-colors">Products</Link>
-                <Link to="/wishlist" className="text-gray-700 hover:text-[#ffac00] transition-colors">Wishlist</Link>
-                <Link to="/cart" className="text-gray-700 hover:text-[#ffac00] transition-colors relative">
-                  Cart
-                  {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-3 bg-[#ffac00] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
-                      {cartCount}
+                
+                {/* Wishlist Link with dynamic badge */}
+                <Link to="/wishlist" className="text-gray-700 hover:text-[#ffac00] transition-colors relative">
+                  Wishlist
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-[#ffac00] text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-semibold">
+                      {wishlistCount}
                     </span>
                   )}
                 </Link>
+
+                {/* Cart Link with dynamic badge and CartLogo icon */}
+                <Link to="/cart" className="text-gray-700 hover:text-[#ffac00] transition-colors relative flex items-center space-x-1.5">
+                <span>Cart</span>
+                  <div className="relative">
+                    <img src={CartLogo} alt="Cart Logo" className="w-8 h-8 object-contain" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-2 -right-2 bg-[#ffac00] text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-semibold">
+                        {cartCount}
+                      </span>
+                    )}
+                  </div>
+                  
+                </Link>
+                
               </>
             )}
           </div>
@@ -68,7 +127,6 @@ function Navbar() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                   
-                  {/* Customer name is a clickable link to profile with underline on hover; Admin name is plain text */}
                   {isAdmin ? (
                     <span className="text-gray-700 font-medium">{firstName}</span>
                   ) : (
@@ -124,7 +182,9 @@ function Navbar() {
             <>
               <Link to="/" onClick={() => setIsOpen(false)} className="block text-gray-700 hover:text-[#ffac00]">Home</Link>
               <Link to="/products" onClick={() => setIsOpen(false)} className="block text-gray-700 hover:text-[#ffac00]">Products</Link>
-              <Link to="/wishlist" onClick={() => setIsOpen(false)} className="block text-gray-700 hover:text-[#ffac00]">Wishlist</Link>
+              <Link to="/wishlist" onClick={() => setIsOpen(false)} className="block text-gray-700 hover:text-[#ffac00]">
+                Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
+              </Link>
               <Link to="/cart" onClick={() => setIsOpen(false)} className="block text-gray-700 hover:text-[#ffac00]">
                 Cart {cartCount > 0 && `(${cartCount})`}
               </Link>

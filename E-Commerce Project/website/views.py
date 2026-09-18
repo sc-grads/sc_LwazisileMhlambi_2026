@@ -121,6 +121,7 @@ def get_product(product_id):
         "product_name": product.product_name,
         "current_price": product.current_price,
         "previous_price": product.previous_price,
+        "description": product.description,
         "in_stock": product.in_stock,
         "product_picture": product.product_picture,
         "flash_sale": product.flash_sale,
@@ -219,6 +220,44 @@ def remove_from_cart(cart_item_id):
 
     return jsonify({"message": "Item removed from cart"}), 200
 
+@views.route('/api/cart/<int:cart_item_id>', methods=['PUT'])
+@jwt_required()
+def update_cart_quantity(cart_item_id):
+    customer_id = int(get_jwt_identity())
+
+    cart_item = Cart.query.get(cart_item_id)
+    if not cart_item:
+        return jsonify({"error": "Cart item not found"}), 404
+
+    if cart_item.customer_link != customer_id:
+        return jsonify({"error": "Not authorized to update this item"}), 403
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No input data provided"}), 400
+
+    quantity = data.get('quantity')
+    if quantity is None:
+        return jsonify({"error": "quantity is required"}), 400
+
+    if quantity < 1:
+        return jsonify({"error": "Quantity must be at least 1"}), 400
+
+    # Check against product stock availability
+    product = Product.query.get(cart_item.product_link)
+    if product and quantity > product.in_stock:
+        return jsonify({"error": "Not enough stock available"}), 400
+
+    cart_item.quantity = quantity
+    db.session.commit()
+
+    return jsonify({
+        "id": cart_item.id,
+        "product_id": cart_item.product_link,
+        "quantity": cart_item.quantity,
+        "subtotal": product.current_price * cart_item.quantity if product else 0
+    }), 200
+
 #------------------------------------------------
 ################## WISHLIST ###########################
 #------------------------------------------------
@@ -287,6 +326,35 @@ def remove_from_wishlist(wishlist_item_id):
     db.session.commit()
 
     return jsonify({"message": "Item removed from wishlist"}), 200
+
+@views.route('/api/wishlist/add-all-to-cart', methods=['POST'])
+@jwt_required()
+def add_all_to_cart():
+    customer_id = int(get_jwt_identity())
+    wishlist_items = Wishlist.query.filter_by(customer_link=customer_id).all()
+
+    if not wishlist_items:
+        return jsonify({"error": "No items in wishlist to add to cart"}), 400
+
+    for item in wishlist_items:
+        # Check if product is already in the user's cart
+        existing_cart_item = Cart.query.filter_by(
+            customer_link=customer_id, 
+            product_link=item.product_link
+        ).first()
+
+        if existing_cart_item:
+            existing_cart_item.quantity += 1
+        else:
+            new_cart_item = Cart(
+                customer_link=customer_id, 
+                product_link=item.product_link, 
+                quantity=1
+            )
+            db.session.add(new_cart_item)
+
+    db.session.commit()
+    return jsonify({"message": "All wishlist items added to cart successfully"}), 200
 
 #------------------------------------------------
 ################## CHECKOUT ###########################

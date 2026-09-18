@@ -46,6 +46,7 @@ class Product(db.Model):
     product_name = db.Column(db.String(100), nullable=False)
     current_price = db.Column(db.Float, nullable =False)
     previous_price = db.Column(db.Float, nullable =False)
+    description = db.Column(db.Text, nullable=True)
     in_stock = db.Column(db.Integer, nullable=False)
     product_picture = db.Column(db.String(1000), nullable=False)
     flash_sale = db.Column(db.Boolean, default=False)

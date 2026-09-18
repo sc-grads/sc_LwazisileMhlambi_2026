@@ -2,10 +2,11 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
+from flask_migrate import Migrate  # 1. Import Flask-Migrate
 
 jwt = JWTManager()
-
 db = SQLAlchemy()
+migrate = Migrate()  # 2. Instantiate Migrate
 DB_NAME = 'database.sqlite3'
 
 def create_database():
@@ -19,6 +20,7 @@ def create_app():
     app.config['JWT_SECRET_KEY'] = 'jfhdjfhgjd'
 
     db.init_app(app)
+    migrate.init_app(app, db)  # 3. Initialize Migrate with the app and db
     jwt.init_app(app)
     CORS(app, origins=["http://localhost:5173"]) #Takes to Front-End Dev Server
 

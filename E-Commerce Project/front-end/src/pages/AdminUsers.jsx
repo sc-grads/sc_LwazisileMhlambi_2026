@@ -117,7 +117,7 @@ function AdminUsers() {
 
                       {/* Role Badge & Status */}
                       <div className="flex items-center space-x-6 px-4 flex-shrink-0">
-                        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                        <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${
                           isAdmin ? 'bg-orange-100 text-[#ffac00]' : 'bg-gray-100 text-gray-700'
                         }`}>
                           {user.role.toUpperCase()}
@@ -130,7 +130,7 @@ function AdminUsers() {
                           onClick={() => handleRoleToggle(user)}
                           className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors"
                         >
-                          {isAdmin ? 'Demote to Customer' : 'Make Admin'}
+                          {isAdmin ? 'Demote to Customer' : 'Promote to Admin'}
                         </button>
                         <button
                           onClick={() => handleDelete(user.id)}

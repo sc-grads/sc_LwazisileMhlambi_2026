@@ -9,6 +9,9 @@ import AdminCategories from './pages/AdminCategories'
 import AdminUsers from './pages/AdminUsers'
 import Profile from './pages/Profile'
 import ProfileDetails from './pages/ProfileDetails'
+import ProductDetail from './pages/ProductDetail'
+import Wishlist from './pages/Wishlist'
+import Cart from './pages/Cart'
 
 function AdminRoute({ children }) {
   const { isLoggedIn, role } = useAuth()
@@ -28,6 +31,9 @@ function AppContent() {
         <Route path="/products" element={<Products />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/profile/details" element={<ProfileDetails />} />
+        <Route path="/products/:id" element={<ProductDetail />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/cart" element={<Cart />} />
 
         {/* Protected Admin Products Route */}
         <Route 

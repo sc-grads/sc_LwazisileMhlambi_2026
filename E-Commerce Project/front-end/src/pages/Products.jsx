@@ -48,7 +48,7 @@ function Products() {
         
         {/* Header Section */}
         <div className="text-center mb-10">
-          <span className="text-[#ffac00] font-medium text-sm tracking-widest uppercase block mb-1 font-serif bold">
+          <span className="text-[#ffac00] font-medium text-sm tracking-widest uppercase block mb-1 font-serif">
             Recently Added
           </span>
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
@@ -86,41 +86,24 @@ function Products() {
               <p className="col-span-full text-center text-gray-500 py-12">No products found in this category.</p>
             ) : (
               filteredProducts.map((product) => (
-                <div key={product.id} className="group flex flex-col">
+                // Wrapped the entire card in a Link to route to /products/:id
+                <Link 
+                  key={product.id} 
+                  to={`/products/${product.id}`}
+                  className="group flex flex-col focus:outline-none"
+                >
                   
                   {/* Image Card Container */}
-                  <div className="relative bg-[#f8f8f8] rounded-xl overflow-hidden aspect-square flex items-center justify-center p-6 shadow-sm hover:shadow-md transition-shadow">
+                   <div className="relative bg-[#f8f8f8] rounded-xl overflow-hidden aspect-square flex items-center justify-center p-6 shadow-sm group-hover:shadow-md transition-shadow"> 
                     <img 
                       src={product.product_picture} 
                       alt={product.product_name} 
                       className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
                     />
 
-                    {/* Quick Action Buttons (Wishlist & Cart overlay on hover) */}
-                    {/*}
-                    <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-3">
-                      <button 
-                        aria-label="Add to Wishlist"
-                        className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow hover:bg-[#ffac00] transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </button>
-                      <button 
-                        aria-label="Add to Cart"
-                        className="w-10 h-10 bg-black text-white rounded-full flex items-center justify-center shadow hover:bg-[#ffac00] transition-colors"
-                      >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                      </button>
-                    </div>
-                    */}
-
                     {/* Optional Flash Sale Badge */}
                     {product.flash_sale && (
-                      <span className="absolute top-3 left-3 bg-[#ffac00] text-white text-xs font-bold px-2.5 py-1 rounded">
+                      <span className="absolute top-3 left-3 bg-[#ffac00] text-white text-xs font-bold px-2.5 py-1">
                         SALE
                       </span>
                     )}
@@ -128,7 +111,7 @@ function Products() {
 
                   {/* Product Details info */}
                   <div className="text-center mt-4">
-                    <h3 className="text-gray-900 font-medium text-lg">
+                    <h3 className="text-gray-900 font-medium text-lg group-hover:text-[#ffac00] transition-colors">
                       {product.product_name}
                     </h3>
                     <div className="mt-1 flex items-center justify-center space-x-2">
@@ -143,7 +126,7 @@ function Products() {
                     </div>
                   </div>
 
-                </div>
+                </Link>
               ))
             )}
           </div>

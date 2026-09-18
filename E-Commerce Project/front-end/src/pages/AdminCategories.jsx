@@ -113,7 +113,7 @@ function AdminCategories() {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Manage Product Categories</h1>
-            <p className="text-sm text-gray-500 mt-1">Admin category control panel</p>
+            <p className="text-sm text-gray-500 mt-1">View and manage all categories</p>
           </div>
           <button 
             onClick={handleOpenAddModal}
