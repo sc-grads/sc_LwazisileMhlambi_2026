@@ -8,6 +8,7 @@ class Customer(db.Model, UserMixin): #UserMixin allows us to use flask login for
     email = db.Column(db.String(100), unique=True)
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
+    phone_number = db.Column(db.String(20), nullable=True)
     password_hash = db.Column(db.String(150))
     date_joined = db.Column(db.DateTime(), default=lambda: datetime.now(timezone.utc))
 
@@ -39,7 +40,7 @@ class Customer(db.Model, UserMixin): #UserMixin allows us to use flask login for
         return self.role == 'admin'
 
     def __str__(self):
-        return '<Customer %r>' % Customer.id
+        return '<Customer %r>' % self.id
 
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -55,7 +56,7 @@ class Product(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=True)
 
     carts = db.relationship('Cart', backref=db.backref('product', lazy=True))
-    orders = db.relationship('Order', backref=db.backref('product', lazy=True))
+    # Removed the invalid direct 'orders' relationship. Use product.order_items instead.
     wishlist_entries = db.relationship('Wishlist', backref=db.backref('product', lazy=True))
 
     def __str__(self):
@@ -67,9 +68,6 @@ class Cart(db.Model):
 
     customer_link = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
     product_link = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
-
-    #customer
-
 
     def __str__(self):
         return '<Cart %r>' % self.id
@@ -84,28 +82,40 @@ class Category(db.Model):
         return '<Category %r>' % self.name
 
 class Order(db.Model):
+    __tablename__ = 'order'
     id = db.Column(db.Integer, primary_key=True)
-    quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(100), nullable=False)
+    total_price = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(100), nullable=False, default='Pending')
     payment_id = db.Column(db.String(1000), nullable=False)
+    date_created = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
 
     customer_link = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
-    product_link = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    
+    # --- New Shipping Address Fields ---
+    shipping_address = db.Column(db.String(250), nullable=True)
+    city = db.Column(db.String(100), nullable=True)
+    province = db.Column(db.String(100), nullable=True)
+    postal_code = db.Column(db.String(20), nullable=True)
+    phone = db.Column(db.String(20), nullable=True)
 
-    # customer
+    items = db.relationship('Order_Item', backref='order', cascade='all, delete-orphan', lazy=True)
 
     def __str__(self):
-        return '<Order %r>' % self.id
-
+        return f'<Order {self.id}>'
+    
 class Order_Item(db.Model):
+    __tablename__ = 'order_item'
     id = db.Column(db.Integer, primary_key=True)
     quantity = db.Column(db.Integer, nullable=False)
-    price = db.Column(db.Float, nullable=False)
-    product_id = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)  # Price at the time of purchase
 
-    customer_link = db.Column(db.Integer, db.ForeignKey('customer.id'), nullable=False)
+    order_link = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
     product_link = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+
+    product = db.relationship('Product', backref=db.backref('order_items', lazy=True))
+
+    def __str__(self):
+        return f'<Order_Item {self.id}>'
 
 class Wishlist(db.Model):
     id = db.Column(db.Integer, primary_key=True)

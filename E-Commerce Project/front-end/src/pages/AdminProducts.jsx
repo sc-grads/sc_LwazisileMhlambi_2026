@@ -13,6 +13,7 @@ function AdminProducts() {
   
   const [formData, setFormData] = useState({
     product_name: '',
+    description: '',
     current_price: '',
     previous_price: '',
     in_stock: '',
@@ -43,7 +44,7 @@ function AdminProducts() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5001/api/categories') // Adjust if your category route differs
+      const response = await fetch('http://127.0.0.1:5001/api/categories')
       const data = await response.json()
       if (response.ok) setCategories(data)
     } catch (err) {
@@ -56,6 +57,7 @@ function AdminProducts() {
     setCurrentProductId(null)
     setFormData({
       product_name: '',
+      description: '',
       current_price: '',
       previous_price: '',
       in_stock: '',
@@ -72,6 +74,7 @@ function AdminProducts() {
     setCurrentProductId(product.id)
     setFormData({
       product_name: product.product_name,
+      description: product.description || '',
       current_price: product.current_price,
       previous_price: product.previous_price,
       in_stock: product.in_stock,
@@ -90,6 +93,7 @@ function AdminProducts() {
 
     const payload = {
       product_name: formData.product_name,
+      description: formData.description,
       current_price: parseFloat(formData.current_price),
       previous_price: parseFloat(formData.previous_price),
       in_stock: parseInt(formData.in_stock, 10),
@@ -141,7 +145,7 @@ function AdminProducts() {
 
       if (!response.ok) {
         const data = await response.json()
-        alert(data.error || 'Failed to delete product (Status: ${response.status})')
+        alert(data.error || `Failed to delete product (Status: ${response.status})`)
         return
       }
 
@@ -180,7 +184,6 @@ function AdminProducts() {
             ) : (
               <div className="divide-y divide-gray-200">
                 {products.map((product) => {
-                  const isAvailable = product.in_stock > 0;
                   return (
                     <div key={product.id} className="flex items-center justify-between p-4 sm:px-6 hover:bg-gray-50/50 transition-colors">
                       
@@ -197,19 +200,15 @@ function AdminProducts() {
                           <h3 className="text-gray-900 font-medium text-base truncate">
                             {product.product_name}
                           </h3>
+                          <p className="text-xs text-gray-500 truncate mt-0.5">
+                            {product.description || <span className="italic text-gray-300">No description provided</span>}
+                          </p>
                           <span className="text-xs text-gray-400 block mt-0.5">ID: {product.id}</span>
                         </div>
                       </div>
 
                       {/* Status, Stock, Price */}
                       <div className="flex items-center space-x-8 sm:space-x-12 px-4 flex-shrink-0">
-                        <div className="hidden md:flex items-center space-x-1.5 text-sm">
-                          {/* <span className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-green-500' : 'bg-red-500'}`}></span> 
-                          <span className={isAvailable ? 'text-gray-700 font-medium' : 'text-red-600 font-medium'}>
-                            {isAvailable ? 'Available' : 'Disabled'}
-                          </span> */}
-                        </div>
-
                         <div className="text-sm font-semibold text-gray-700 w-12 text-right">
                           <span className="text-xs text-gray-400 block font-normal">Stock</span>
                           {product.in_stock}
@@ -263,6 +262,17 @@ function AdminProducts() {
                     required
                     value={formData.product_name}
                     onChange={(e) => setFormData({...formData, product_name: e.target.value})}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea 
+                    rows="3"
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Enter product details..."
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 text-sm"
                   />
                 </div>

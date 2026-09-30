@@ -1,9 +1,27 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from .models import Customer, Category, Product, Cart, Wishlist, Order
+from .models import Customer, Category, Product, Cart, Wishlist, Order, Order_Item
+from datetime import datetime, timedelta,timezone
 import uuid
 from . import db
 views = Blueprint('views', __name__) #Tells python that the customer endpoints live here
+
+from .email_service import get_buyer_details, send_order_confirmation
+
+def format_title(text):
+    if not text:
+        return text
+    return text.strip().title()
+
+def get_shipping_fields(data):
+    s = (data or {}).get('shipping_details') or {}
+    return {
+        'shipping_address': s.get('address'),
+        'city': s.get('city'),
+        'province': s.get('province'),
+        'postal_code': s.get('postalCode') or s.get('postal_code'),
+        'phone': s.get('phone'),
+    }
 
 #------------------------------------------------
 ################## HOME ###########################
@@ -26,6 +44,7 @@ def me():
         "email": customer.email, 
         "first_name": customer.first_name,
         "last_name": customer.last_name,
+        "phone_number": customer.phone_number, # Added phone number here
         "role": customer.role,
         "address_line1": customer.address_line1,
         "address_line2": customer.address_line2,
@@ -46,9 +65,11 @@ def update_me():
 
     # Only update fields that were provided
     if 'first_name' in data:
-        customer.first_name = data['first_name']
+        customer.first_name = format_title(data['first_name'])
     if 'last_name' in data:
-        customer.last_name = data['last_name']
+        customer.last_name = format_title(data['last_name'])
+    if 'phone_number' in data: # Added handling for updating phone number
+        customer.phone_number = data['phone_number']
     if 'address_line1' in data:
         customer.address_line1 = data['address_line1']
     if 'address_line2' in data:
@@ -69,6 +90,7 @@ def update_me():
         "email": customer.email,
         "first_name": customer.first_name,
         "last_name": customer.last_name,
+        "phone_number": customer.phone_number, # Included in response
         "role": customer.role,
         "address_line1": customer.address_line1,
         "address_line2": customer.address_line2,
@@ -106,6 +128,7 @@ def get_products():
         "product_name": product.product_name,
         "current_price": product.current_price,
         "previous_price": product.previous_price,
+        "description": product.description,
         "in_stock": product.in_stock,
         "product_picture": product.product_picture,
         "flash_sale": product.flash_sale,
@@ -353,6 +376,8 @@ def add_all_to_cart():
             )
             db.session.add(new_cart_item)
 
+        db.session.delete(item)
+
     db.session.commit()
     return jsonify({"message": "All wishlist items added to cart successfully"}), 200
 
@@ -369,6 +394,10 @@ def checkout_cart():
     if not cart_items:
         return jsonify({"error": "Cart is empty"}), 400
 
+    # Extract JSON payload and shipping details sent from frontend
+    data = request.get_json() or {}
+    shipping_details = data.get('shipping_details', {})
+
     # Validate stock for everything BEFORE creating any orders
     for item in cart_items:
         if item.quantity > item.product.in_stock:
@@ -376,39 +405,78 @@ def checkout_cart():
                 "error": f"Not enough stock for {item.product.product_name}"
             }), 400
 
-    created_orders = []
-    fake_payment_id = f"pretend_{uuid.uuid4().hex[:12]}"  # stand-in for a real Stripe payment_intent id
+    fake_payment_id = f"pretend_{uuid.uuid4().hex[:12]}" 
 
-    for item in cart_items:
-        order = Order(
-            quantity=item.quantity,
-            price=item.product.current_price * item.quantity,
-            status='paid',  # pretending payment succeeded instantly
+    try:
+        # Calculate total price for the entire order
+        total_order_price = sum(item.product.current_price * item.quantity for item in cart_items)
+
+        # 1. Create the single parent Order record including shipping details
+        new_order = Order(
+            total_price=total_order_price,
+            status='paid',
             payment_id=fake_payment_id,
             customer_link=customer_id,
-            product_link=item.product_link
+            date_created=datetime.now(timezone.utc),
+            shipping_address=shipping_details.get('address'),
+            city=shipping_details.get('city'),
+            province=shipping_details.get('province'),
+            postal_code=shipping_details.get('postalCode'),
+            phone=shipping_details.get('phone')
         )
-        item.product.in_stock -= item.quantity
-        db.session.add(order)
-        created_orders.append(order)
+        db.session.add(new_order)
+        db.session.flush() # Flushes so new_order.id is generated for the children items
 
-    # Clear the cart now that everything's been converted to orders
-    for item in cart_items:
-        db.session.delete(item)
+        created_order_items = []
 
-    db.session.commit()
+        # 2. Create Order_Item records for each product in the cart
+        for item in cart_items:
+            item_total_price = item.product.current_price * item.quantity
+            
+            order_item = Order_Item(
+                quantity=item.quantity,
+                price=item_total_price,
+                order_link=new_order.id,
+                product_link=item.product_link
+            )
+            db.session.add(order_item)
+            created_order_items.append(order_item)
 
-    return jsonify({
-        "message": "Checkout successful (mock payment)",
-        "payment_id": fake_payment_id,
-        "orders": [{
-            "id": order.id,
-            "product_id": order.product_link,
-            "quantity": order.quantity,
-            "price": order.price,
-            "status": order.status
-        } for order in created_orders]
-    }), 201
+            # Deduct stock
+            item.product.in_stock -= item.quantity
+
+        # 3. Clear the cart
+        for item in cart_items:
+            db.session.delete(item)
+
+        db.session.commit()
+
+        # 4. Return response including shipping details & formatted timestamp
+        return jsonify({
+            "message": "Checkout successful (mock payment)",
+            "payment_id": fake_payment_id,
+            "order": {
+                "id": new_order.id,
+                "total_price": new_order.total_price,
+                "status": new_order.status,
+                "date_created": new_order.date_created.strftime('%d/%m/%Y %H:%M'),
+                "shipping_address": new_order.shipping_address,
+                "city": new_order.city,
+                "province": new_order.province,
+                "postal_code": new_order.postal_code,
+                "phone": new_order.phone,
+                "items": [{
+                    "product_id": oi.product_link,
+                    "product_name": oi.product.product_name if hasattr(oi, 'product') else "Product",
+                    "quantity": oi.quantity,
+                    "price": oi.price
+                } for oi in created_order_items]
+            }
+        }), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @views.route('/api/checkout/wishlist/<int:wishlist_item_id>', methods=['POST'])
 @jwt_required()
@@ -461,6 +529,248 @@ def checkout_wishlist_item(wishlist_item_id):
         }
     }), 201
 
+@views.route('/api/checkout/stripe-success', methods=['POST'])
+@jwt_required()
+def stripe_success():
+    customer_id = int(get_jwt_identity())
+    
+    # 🛑 GUARD: Prevent duplicate orders within 15 seconds
+    recent_threshold = datetime.utcnow() - timedelta(seconds=15)
+    recent_order = Order.query.filter(
+        Order.customer_link == customer_id,
+        Order.date_created >= recent_threshold
+    ).first()
+ 
+    if recent_order:
+        return jsonify({"message": "Order already processed recently", "order_id": recent_order.id}), 200
+ 
+    cart_items = Cart.query.filter_by(customer_link=customer_id).all()
+ 
+    if not cart_items:
+        return jsonify({"message": "Cart already processed or empty"}), 200
+ 
+    # Validate stock again just in case
+    for item in cart_items:
+        if item.quantity > item.product.in_stock:
+            return jsonify({"error": f"Not enough stock for {item.product.product_name}"}), 400
+ 
+    payment_id = f"stripe_{uuid.uuid4().hex[:12]}"
+ 
+    try:
+        subtotal = sum(item.product.current_price * item.quantity for item in cart_items)
+        shipping_fee = 250.00
+        total_order_price = subtotal + shipping_fee
+ 
+        shipping = get_shipping_fields(request.get_json(silent=True))  # ADDED
+ 
+        # ADDED (email): capture email details BEFORE the cart is cleared
+        buyer = get_buyer_details(request.get_json(silent=True))
+        email_items = [
+            {
+                "name": item.product.product_name,
+                "quantity": item.quantity,
+                "price": item.product.current_price * item.quantity
+            }
+            for item in cart_items
+        ]
+ 
+        # 1. Create Order record including delivery fee in total price
+        new_order = Order(
+            total_price=total_order_price,
+            status='paid',
+            payment_id=payment_id,
+            customer_link=customer_id,
+            date_created=datetime.utcnow(),
+            **shipping  # ADDED
+        )
+        db.session.add(new_order)
+        db.session.flush()
+ 
+        created_order_items = []
+ 
+        # 2. Create Order Items & Deduct Stock
+        for item in cart_items:
+            item_total_price = item.product.current_price * item.quantity
+            
+            order_item = Order_Item(
+                quantity=item.quantity,
+                price=item_total_price,
+                order_link=new_order.id,
+                product_link=item.product_link
+            )
+            db.session.add(order_item)
+            created_order_items.append(order_item)
+ 
+            item.product.in_stock -= item.quantity
+ 
+        # 3. Clear the Cart
+        for item in cart_items:
+            db.session.delete(item)
+ 
+        db.session.commit()
+ 
+        # ADDED (email): send the purchase confirmation (a failed email never breaks the order)
+        send_order_confirmation(new_order.id, buyer, email_items, total_order_price, shipping)
+ 
+        return jsonify({"message": "Order successfully placed via Stripe", "order_id": new_order.id}), 201
+ 
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+ 
+@views.route('/api/checkout/paystack-success', methods=['POST'])
+@jwt_required()
+def paystack_success():
+    import uuid
+    from datetime import datetime, timedelta
+ 
+    current_user_id = int(get_jwt_identity())
+ 
+    try:
+        # 🛑 CRITICAL RACE-CONDITION FIX: Use database transaction isolation or 
+        # check recent orders within a very tight window (e.g., last 3 seconds)
+        recent_threshold = datetime.utcnow() - timedelta(seconds=3)
+        recent_order = Order.query.filter(
+            Order.customer_link == current_user_id,
+            Order.date_created >= recent_threshold
+        ).first()
+ 
+        if recent_order:
+            return jsonify({"message": "Order already processed recently", "order_id": recent_order.id}), 200
+ 
+        # Fetch cart items
+        cart_items = Cart.query.filter_by(customer_link=current_user_id).all()
+ 
+        if not cart_items:
+            return jsonify({"message": "Cart already processed or empty"}), 200
+ 
+        for item in cart_items:
+            if item.quantity > item.product.in_stock:
+                return jsonify({"error": f"Not enough stock for {item.product.product_name}"}), 400
+ 
+        payment_id = f"paystack_{uuid.uuid4().hex[:12]}"
+ 
+        subtotal = sum(item.product.current_price * item.quantity for item in cart_items)
+        shipping_fee = 250.00
+        total_order_price = subtotal + shipping_fee
+ 
+        shipping = get_shipping_fields(request.get_json(silent=True))  # ADDED
+ 
+        # ADDED (email): capture email details BEFORE the cart is cleared
+        buyer = get_buyer_details(request.get_json(silent=True))
+        email_items = [
+            {
+                "name": item.product.product_name,
+                "quantity": item.quantity,
+                "price": item.product.current_price * item.quantity
+            }
+            for item in cart_items
+        ]
+ 
+        new_order = Order(
+            total_price=total_order_price,
+            status='paid',
+            payment_id=payment_id,
+            customer_link=current_user_id,
+            date_created=datetime.utcnow(),
+            **shipping  # ADDED
+        )
+        db.session.add(new_order)
+        db.session.flush()
+ 
+        for item in cart_items:
+            item_total_price = item.product.current_price * item.quantity
+            order_item = Order_Item(
+                quantity=item.quantity,
+                price=item_total_price,
+                order_link=new_order.id,
+                product_link=item.product_link
+            )
+            db.session.add(order_item)
+            item.product.in_stock -= item.quantity
+ 
+        # Delete the cart items immediately
+        for item in cart_items:
+            db.session.delete(item)
+ 
+        db.session.commit()
+ 
+        # ADDED (email): send the purchase confirmation (a failed email never breaks the order)
+        send_order_confirmation(new_order.id, buyer, email_items, total_order_price, shipping)
+ 
+        return jsonify({"message": "Order successfully placed via PayStack", "order_id": new_order.id}), 201
+ 
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+ 
+@views.route('/api/checkout/payfast-success', methods=['POST'])
+@jwt_required()
+def payfast_success():
+    customer_id = int(get_jwt_identity())
+ 
+    recent_threshold = datetime.utcnow() - timedelta(seconds=15)
+    recent_order = Order.query.filter(
+        Order.customer_link == customer_id,
+        Order.date_created >= recent_threshold
+    ).first()
+ 
+    if recent_order:
+        return jsonify({"message": "Order already processed recently", "order_id": recent_order.id}), 200
+ 
+    cart_items = Cart.query.filter_by(customer_link=customer_id).all()
+    if not cart_items:
+        return jsonify({"message": "Cart already processed or empty"}), 200
+ 
+    payment_id = f"payfast_{uuid.uuid4().hex[:12]}"
+ 
+    subtotal = sum(item.product.current_price * item.quantity for item in cart_items)
+    shipping_fee = 250.00
+    total_order_price = subtotal + shipping_fee
+ 
+    shipping = get_shipping_fields(request.get_json(silent=True))  # ADDED
+ 
+    # ADDED (email): capture email details BEFORE the cart is cleared
+    buyer = get_buyer_details(request.get_json(silent=True))
+    email_items = [
+        {
+            "name": item.product.product_name,
+            "quantity": item.quantity,
+            "price": item.product.current_price * item.quantity
+        }
+        for item in cart_items
+    ]
+ 
+    new_order = Order(
+        total_price=total_order_price,
+        status='paid',
+        payment_id=payment_id,
+        customer_link=customer_id,
+        date_created=datetime.utcnow(),
+        **shipping  # ADDED
+    )
+    db.session.add(new_order)
+    db.session.flush()
+ 
+    for item in cart_items:
+        item_total_price = item.product.current_price * item.quantity
+        order_item = Order_Item(
+            quantity=item.quantity,
+            price=item_total_price,
+            order_link=new_order.id,
+            product_link=item.product_link
+        )
+        db.session.add(order_item)
+        item.product.in_stock -= item.quantity
+        db.session.delete(item)
+ 
+    db.session.commit()
+ 
+    # ADDED (email): send the purchase confirmation (a failed email never breaks the order)
+    send_order_confirmation(new_order.id, buyer, email_items, total_order_price, shipping)
+ 
+    return jsonify({"message": "Order successfully placed via PayFast", "order_id": new_order.id}), 201
+
 #------------------------------------------------
 ################## VIEW ORDER HISTORY #######################
 #------------------------------------------------
@@ -469,15 +779,28 @@ def checkout_wishlist_item(wishlist_item_id):
 @jwt_required()
 def get_order_history():
     customer_id = int(get_jwt_identity())
-    orders = Order.query.filter_by(customer_link=customer_id).all()
+    # Fetch orders for this customer, sorted by newest first
+    orders = Order.query.filter_by(customer_link=customer_id).order_by(Order.date_created.desc()).all()
 
     return jsonify([{
         "id": order.id,
-        "product_id": order.product_link,
-        "product_name": order.product.product_name,
-        "product_picture": order.product.product_picture,
-        "quantity": order.quantity,
-        "price": order.price,
+        "total_price": order.total_price,
         "status": order.status,
-        "payment_id": order.payment_id
-    } for order in orders])
+        "payment_id": order.payment_id,
+        "date_created": order.date_created.strftime('%d/%m/%Y %H:%M') if order.date_created else None,
+        
+        # Shipping address details
+        "shipping_address": getattr(order, 'shipping_address', None) or getattr(order, 'address', None),
+        "city": getattr(order, 'city', None),
+        "province": getattr(order, 'province', None) or getattr(order, 'state', None),
+        "postal_code": getattr(order, 'postal_code', None) or getattr(order, 'zip_code', None),
+        "phone": getattr(order, 'phone', None) or getattr(order, 'phone_number', None),
+
+        "items": [{
+            "product_id": item.product_link,
+            "product_name": item.product.product_name if item.product else "Product",
+            "product_picture": item.product.product_picture if item.product else None,
+            "quantity": item.quantity,
+            "price": item.price
+        } for item in order.items]
+    } for order in orders]), 200

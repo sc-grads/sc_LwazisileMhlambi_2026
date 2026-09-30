@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 
 function ProfileDetails() {
-  // Removed setFirstName since it's not defined in your AuthContext
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     email: '',
+    phone_number: '',
     address_line1: '',
     address_line2: '',
     city: '',
@@ -39,6 +38,7 @@ function ProfileDetails() {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
+        phone_number: data.phone_number || '',
         address_line1: data.address_line1 || '',
         address_line2: data.address_line2 || '',
         city: data.city || '',
@@ -67,6 +67,22 @@ function ProfileDetails() {
       return
     }
 
+    // --- FORM VALIDATION ---
+    const nameRegex = /^[A-Za-zÀ-ÿ\s'-]+$/
+    // Allows numbers, spaces, hyphens, and an optional leading plus sign
+    const phoneRegex = /^\+?[0-9\s-]+$/
+
+    if (!nameRegex.test(formData.first_name) || !nameRegex.test(formData.last_name)) {
+      setMessage({ type: 'error', text: 'First and last names cannot contain numbers or invalid symbols.' })
+      return
+    }
+
+    if (formData.phone_number && !phoneRegex.test(formData.phone_number)) {
+      setMessage({ type: 'error', text: 'Phone number can only contain numbers, spaces, hyphens, and a leading + sign (no letters).' })
+      return
+    }
+    // -----------------------
+
     setSaving(true)
     setMessage({ type: '', text: '' })
 
@@ -81,6 +97,7 @@ function ProfileDetails() {
         body: JSON.stringify({
           first_name: formData.first_name,
           last_name: formData.last_name,
+          phone_number: formData.phone_number,
           address_line1: formData.address_line1,
           address_line2: formData.address_line2,
           city: formData.city,
@@ -95,6 +112,15 @@ function ProfileDetails() {
 
       setMessage({ type: 'success', text: 'Profile updated successfully!' })
       setIsEditing(false)
+      
+      // Optional: Update state with any formatted response data returned by the backend
+      if (data.first_name) {
+        setFormData(prev => ({
+          ...prev,
+          first_name: data.first_name,
+          last_name: data.last_name || prev.last_name
+        }))
+      }
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Error updating profile.' })
     } finally {
@@ -179,14 +205,27 @@ function ProfileDetails() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                 <input
-                  type="text"
-                  disabled
-                  value={formData.date_joined}
-                  className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-md text-gray-500 cursor-not-allowed"
+                  type="tel"
+                  name="phone_number"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  placeholder="e.g. +27821234567 or 082 123 4567"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-[#ffac00] focus:border-[#ffac00] ${!isEditing ? 'bg-gray-50 border-gray-200 text-gray-600 cursor-not-allowed' : 'border-gray-300'}`}
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Member Since</label>
+              <input
+                type="text"
+                disabled
+                value={formData.date_joined}
+                className="w-full sm:w-1/2 px-3 py-2 border border-gray-200 bg-gray-50 rounded-md text-gray-500 cursor-not-allowed"
+              />
             </div>
 
             <div className="border-t border-gray-200 pt-6">

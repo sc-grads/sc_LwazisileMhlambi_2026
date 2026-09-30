@@ -1,23 +1,21 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [role, setRole] = useState('customer');
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedName = localStorage.getItem('firstName');
-    const storedRole = localStorage.getItem('role');
-
-    if (token) {
-      setIsLoggedIn(true);
-      if (storedName) setFirstName(storedName);
-      if (storedRole) setRole(storedRole);
-    }
-  }, []);
+  // Initialize state directly from localStorage so it's correct on the very first render
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return !!localStorage.getItem('token');
+  });
+  const [firstName, setFirstName] = useState(() => {
+    return localStorage.getItem('firstName') || '';
+  });
+  const [role, setRole] = useState(() => {
+    return localStorage.getItem('role') || 'customer';
+  });
+  
+  const navigate = useNavigate();
 
   const loginUser = (token, name, userRole) => {
     localStorage.setItem('token', token);
@@ -26,6 +24,8 @@ export function AuthProvider({ children }) {
     setIsLoggedIn(true);
     setFirstName(name);
     setRole(userRole || 'customer');
+    triggerCartUpdate();
+    triggerWishlistUpdate();
   };
 
   const logoutUser = () => {
@@ -35,10 +35,20 @@ export function AuthProvider({ children }) {
     setIsLoggedIn(false);
     setFirstName('');
     setRole('customer');
+    navigate('/login');
+  };
+
+  // Global helper functions to notify the navbar to update in real time
+  const triggerCartUpdate = () => {
+    window.dispatchEvent(new Event('cartUpdated'));
+  };
+
+  const triggerWishlistUpdate = () => {
+    window.dispatchEvent(new Event('wishlistUpdated'));
   };
 
   return (
-    <AuthContext.Provider value={{ isLoggedIn, firstName, role, loginUser, logoutUser }}>
+    <AuthContext.Provider value={{ isLoggedIn, firstName, role, loginUser, logoutUser, triggerCartUpdate, triggerWishlistUpdate }}>
       {children}
     </AuthContext.Provider>
   );

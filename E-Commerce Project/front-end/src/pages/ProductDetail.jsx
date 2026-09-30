@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 function ProductDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { triggerCartUpdate, triggerWishlistUpdate } = useAuth()
   
   const [product, setProduct] = useState(null)
   const [quantity, setQuantity] = useState(1)
@@ -55,6 +57,9 @@ function ProductDetail() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Failed to add to cart')
 
+      // Trigger navbar counter update
+      triggerCartUpdate()
+
       setMessage({ type: 'success', text: `Added ${quantity} ${product.product_name}(s) to your cart!` })
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Error adding to cart.' })
@@ -81,6 +86,9 @@ function ProductDetail() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || 'Failed to add to wishlist')
 
+      // Trigger navbar counter update
+      triggerWishlistUpdate()
+
       setMessage({ type: 'success', text: `${product.product_name} added to your wishlist!` })
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Error adding to wishlist.' })
@@ -98,7 +106,7 @@ function ProductDetail() {
   return (
     <div className="min-h-screen bg-white py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto mb-8">
-        <Link to="/products" className="text-mb font-medium text-[#ffac00] hover:underline">
+        <Link to="/products" className="text-sm font-medium text-[#ffac00] hover:underline">
           &larr; Back to Products
         </Link>
       </div>
@@ -123,7 +131,9 @@ function ProductDetail() {
         <div className="space-y-6">
           <div>
             <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">{product.product_name}</h1>
-            <p className="text-2xl font-semibold text-green-600 mt-2">R{product.current_price.toFixed(2)}</p>
+            <p className="text-2xl font-semibold text-green-600 mt-2">
+              R{product.current_price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </p>
           </div>
 
           {/* Stock Display */}
@@ -133,9 +143,13 @@ function ProductDetail() {
             </span>
           </div>
 
-          <p className="text-gray-600 leading-relaxed text-base">
-            {product.description || 'No detailed description available for this product yet.'}
-          </p>
+          {/* Product Description */}
+          <div className="border-t border-b border-gray-100 py-4">
+            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-2">Description</h3>
+            <p className="text-gray-600 leading-relaxed text-base whitespace-pre-line">
+              {product.description || 'No detailed description available for this product yet.'}
+            </p>
+          </div>
 
           {/* Quantity Selector */}
           <div className="flex items-center space-x-4 pt-2">

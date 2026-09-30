@@ -98,7 +98,7 @@ function Products() {
                     <img 
                       src={product.product_picture} 
                       alt={product.product_name} 
-                      className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full rounded object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-300"
                     />
 
                     {/* Optional Flash Sale Badge */}

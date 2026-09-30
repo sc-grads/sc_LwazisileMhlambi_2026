@@ -47,7 +47,7 @@ function Login() {
       if (data.role === 'admin') {
         navigate('/admin')
       } else {
-        navigate('/')
+        navigate('/products')
       }
     } catch (err) {
       setError('Could not connect to the server')

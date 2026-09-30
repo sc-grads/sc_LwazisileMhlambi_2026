@@ -8,39 +8,25 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { isLoggedIn, firstName, role, logoutUser } = useAuth();
   
-  // States for counts
   const [cartCount, setCartCount] = useState(0); 
   const [wishlistCount, setWishlistCount] = useState(0);
 
   const isAdmin = isLoggedIn && role === 'admin';
-
-  // Fetch counts when auth state changes or component mounts
-  useEffect(() => {
-    if (isLoggedIn && !isAdmin) {
-      fetchCounts();
-    } else {
-      setCartCount(0);
-      setWishlistCount(0);
-    }
-  }, [isLoggedIn, isAdmin]);
 
   const fetchCounts = async () => {
     const token = localStorage.getItem('token');
     if (!token) return;
 
     try {
-      // Fetch Cart Count
       const cartRes = await fetch('http://127.0.0.1:5001/api/cart', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (cartRes.ok) {
         const cartData = await cartRes.json();
-        // Sum up total quantities in cart, or use cartData.length for unique items
         const totalCartItems = cartData.reduce((acc, item) => acc + item.quantity, 0);
         setCartCount(totalCartItems);
       }
 
-      // Fetch Wishlist Count
       const wishlistRes = await fetch('http://127.0.0.1:5001/api/wishlist', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -53,12 +39,28 @@ function Navbar() {
     }
   };
 
+  useEffect(() => {
+    if (isLoggedIn && !isAdmin) {
+      fetchCounts();
+
+      window.addEventListener('cartUpdated', fetchCounts);
+      window.addEventListener('wishlistUpdated', fetchCounts);
+
+      return () => {
+        window.removeEventListener('cartUpdated', fetchCounts);
+        window.removeEventListener('wishlistUpdated', fetchCounts);
+      };
+    } else {
+      setCartCount(0);
+      setWishlistCount(0);
+    }
+  }, [isLoggedIn, isAdmin]);
+
   return (
     <nav className="bg-white sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
-          {/* Logo / Brand switches dynamically */}
           <div className="flex-shrink-0">
             <Link to={isAdmin ? "/admin" : "/"} className="flex items-center space-x-2">
               <img src={farmerLogo} alt="WeanerMart Logo" className="w-8 h-8 object-contain" />
@@ -68,11 +70,10 @@ function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Nav Links (Changes for Admin) */}
           <div className="hidden md:flex items-center space-x-8">
             {isAdmin ? (
               <>
-                <Link to="/admin" className="text-gray-700 hover:text-[#ffac00] transition-colors">Home</Link>
+                <Link to="/admin" className="text-gray-700 hover:text-[#ffac00] transition-colors">Dashboard</Link>
                 <Link to="/admin/products" className="text-gray-700 hover:text-[#ffac00] transition-colors">Products</Link>
                 <Link to="/admin/categories" className="text-gray-700 hover:text-[#ffac00] transition-colors">Categories</Link>
                 <Link to="/admin/orders" className="text-gray-700 hover:text-[#ffac00] transition-colors">Orders</Link>
@@ -83,7 +84,6 @@ function Navbar() {
                 <Link to="/" className="text-gray-700 hover:text-[#ffac00] transition-colors">Home</Link>
                 <Link to="/products" className="text-gray-700 hover:text-[#ffac00] transition-colors">Products</Link>
                 
-                {/* Wishlist Link with dynamic badge */}
                 <Link to="/wishlist" className="text-gray-700 hover:text-[#ffac00] transition-colors relative">
                   Wishlist
                   {wishlistCount > 0 && (
@@ -93,9 +93,8 @@ function Navbar() {
                   )}
                 </Link>
 
-                {/* Cart Link with dynamic badge and CartLogo icon */}
                 <Link to="/cart" className="text-gray-700 hover:text-[#ffac00] transition-colors relative flex items-center space-x-1.5">
-                <span>Cart</span>
+                  <span>Cart</span>
                   <div className="relative">
                     <img src={CartLogo} alt="Cart Logo" className="w-8 h-8 object-contain" />
                     {cartCount > 0 && (
@@ -104,14 +103,11 @@ function Navbar() {
                       </span>
                     )}
                   </div>
-                  
                 </Link>
-                
               </>
             )}
           </div>
 
-          {/* Auth buttons / User Profile (Desktop) */}
           <div className="hidden md:flex items-center space-x-4">
             {!isLoggedIn ? (
               <>
@@ -126,7 +122,6 @@ function Navbar() {
                   <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  
                   {isAdmin ? (
                     <span className="text-gray-700 font-medium">{firstName}</span>
                   ) : (
@@ -146,7 +141,6 @@ function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
             <button 
               onClick={() => setIsOpen(!isOpen)}
@@ -168,7 +162,6 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
       {isOpen && (
         <div className="md:hidden bg-white border-b border-gray-100 px-4 pt-2 pb-4 space-y-3">
           {isAdmin ? (
@@ -181,7 +174,7 @@ function Navbar() {
           ) : (
             <>
               <Link to="/" onClick={() => setIsOpen(false)} className="block text-gray-700 hover:text-[#ffac00]">Home</Link>
-              <Link to="/products" onClick={() => setIsOpen(false)} className="block text-gray-700 hover:text-[#ffac00]">Products</Link>
+              <Link to="/products" onClick={() => setIsOpen(false)} className="block text-gray-750 hover:text-[#ffac00]">Products</Link>
               <Link to="/wishlist" onClick={() => setIsOpen(false)} className="block text-gray-700 hover:text-[#ffac00]">
                 Wishlist {wishlistCount > 0 && `(${wishlistCount})`}
               </Link>

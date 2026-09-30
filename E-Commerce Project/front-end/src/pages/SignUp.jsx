@@ -53,7 +53,7 @@ function SignUp() {
 
       // Automatically log them in with the token/name returned by Flask and redirect home
       loginUser(data.token, data.first_name)
-      navigate('/')
+      navigate('/products')
     } catch (err) {
       setError('Could not connect to the server')
     } finally {

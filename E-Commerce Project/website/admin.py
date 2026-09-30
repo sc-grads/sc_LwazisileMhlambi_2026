@@ -5,6 +5,22 @@ from .import db
 
 admin = Blueprint('admin', __name__) #Tells python that admin endpoints live here
 
+from .email_service import send_status_update
+
+def format_title(text):
+    if not text:
+        return text
+    return text.strip().title()
+
+def format_sentence(text):
+    if not text:
+        return text
+    text = text.strip()
+    if not text:
+        return text
+    # Capitalize the first character and keep the rest of the string as entered
+    return text[0].upper() + text[1:]
+
 #----------------------------------------------
 ##########USERS################################
 #----------------------------------------------
@@ -93,6 +109,7 @@ def create_product():
         return jsonify({"error": "No input data provided"}), 400
 
     name = data.get('product_name')
+    description = data.get('description')
     current_price = data.get('current_price')
     previous_price = data.get('previous_price')
     in_stock = data.get('in_stock')
@@ -105,15 +122,18 @@ def create_product():
     if category_id is not None and not Category.query.get(category_id):
         return jsonify({"error": "Invalid category_id"}), 400
 
+    # Apply formatting transformations
+    formatted_name = format_title(name)
+    formatted_description = format_sentence(description) if description else None
 
     new_product = Product(
-        product_name=name,
+        product_name=formatted_name,
+        description=formatted_description,
         current_price=current_price,
         previous_price=previous_price,
         in_stock=in_stock,
         product_picture=picture,
         category_id=category_id
-        
     )
     db.session.add(new_product)
     db.session.commit()
@@ -121,6 +141,7 @@ def create_product():
     return jsonify({
         "id": new_product.id,
         "product_name": new_product.product_name,
+        "description": new_product.description,
         "current_price": new_product.current_price,
         "category_id": new_product.category_id
     }), 201
@@ -139,10 +160,12 @@ def update_product(product_id):
 
     data = request.get_json()
     if not data:
-        return jsonify({"error": "No input data provided"})
+        return jsonify({"error": "No input data provided"}), 400
 
     if 'product_name' in data:
-        product.product_name = data['product_name']
+        product.product_name = format_title(data['product_name'])
+    if 'description' in data:
+        product.description = format_sentence(data['description'])
     if 'current_price' in data:
         product.current_price = data['current_price']
     if 'previous_price' in data:
@@ -163,13 +186,13 @@ def update_product(product_id):
     return jsonify({
         "id": product.id,
         "product_name": product.product_name,
+        "description": product.description,
         "current_price": product.current_price,
         "previous_price": product.previous_price,
         "in_stock": product.in_stock,
         "product_picture": product.product_picture,
         "flash_sale": product.flash_sale
     }), 200
-
 
 @admin.route('/api/admin/products/<int:product_id>', methods=['DELETE'])
 @jwt_required()
@@ -201,20 +224,23 @@ def create_category():
 
     data = request.get_json()
     if not data:
-        return jsonify ({"error": "No input data provided!"}), 400
+        return jsonify({"error": "No input data provided!"}), 400
 
-    name = data.get('name').lower()
-    if not name:
+    raw_name = data.get('name')
+    if not raw_name:
         return jsonify({"error": "Category name is required!"}), 400
 
-    if Category.query.filter_by(name=name).first():
-        return jsonify({"Category already exists!"}), 400
+    formatted_name = format_title(raw_name)
 
-    new_category = Category(name=name)
+    if Category.query.filter_by(name=formatted_name).first():
+        return jsonify({"error": "Category already exists!"}), 400
+
+    new_category = Category(name=formatted_name)
     db.session.add(new_category)
     db.session.commit()
 
     return jsonify({"id": new_category.id, "name": new_category.name}), 201
+
 
 @admin.route('/api/admin/categories/<int:category_id>', methods=['PUT'])
 @jwt_required()
@@ -231,7 +257,14 @@ def update_category(category_id):
     if not data or 'name' not in data:
         return jsonify({"error": "Name is required"}), 400
 
-    category.name = data['name']
+    formatted_name = format_title(data['name'])
+
+    # Optional: check if another category with the same formatted name already exists
+    existing = Category.query.filter_by(name=formatted_name).first()
+    if existing and existing.id != category_id:
+        return jsonify({"error": "Category name already exists"}), 400
+
+    category.name = formatted_name
     db.session.commit()
 
     return jsonify({"id": category.id, "name": category.name}), 200
@@ -260,29 +293,56 @@ def delete_category(category_id):
 @admin.route('/api/admin/orders', methods=['GET'])
 @jwt_required()
 def get_all_orders():
-    current_user = Customer.query.get(int(get_jwt_identity()))
-    if not current_user or not current_user.is_admin():
-        return jsonify({"error": "Admins only"}), 403
-    
-    orders = Order.query.order_by(Order.id.desc()).all()
-    
+    # 1. Get the current customer ID from the JWT token
+    current_user_id = get_jwt_identity()
+    customer = Customer.query.get(current_user_id)
+
+    # 2. Verify that the user exists and is an admin
+    if not customer or not customer.is_admin():
+        return jsonify({"error": "Unauthorized access. Admins only."}), 403
+
+    # 3. Fetch all orders and format them for your React frontend
+    orders = Order.query.order_by(Order.date_created.desc()).all()
     orders_data = []
+
     for order in orders:
-        # Fetch related customer and product info if relationships exist
-        customer = Customer.query.get(order.customer_link)
-        product = Product.query.get(order.product_link)
+        cust = order.customer  # Uses relationship backref
+        
+        items_data = []
+        for item in order.items:
+            product = item.product  # Uses relationship on Order_Item
+            items_data.append({
+                'product_id': item.product_link,
+                'product_name': product.product_name if product else 'Unknown Product',
+                'product_picture': product.product_picture if product else None,
+                'quantity': item.quantity,
+                'price': item.price
+            })
+
+        # Fallback to Customer model address if Order record fields are None
+        shipping_address = order.shipping_address or (cust.address_line1 if cust else None)
+        city = order.city or (cust.city if cust else None)
+        province = order.province or (cust.province if cust else None)
+        postal_code = order.postal_code or (cust.postal_code if cust else None)
+        phone = order.phone or (cust.phone_number if cust else None)
 
         orders_data.append({
-            "id": order.id,
-            "quantity": order.quantity,
-            "price": order.price,
-            "status": order.status,
-            "payment_id": order.payment_id,
-            "customer_id": order.customer_link,
-            "customer_email": customer.email if customer else "N/A",
-            "customer_name": f"{customer.first_name} {customer.last_name}" if customer else "Unknown",
-            "product_id": order.product_link,
-            "product_name": product.name if hasattr(product, 'name') else "N/A"
+            'id': order.id,
+            'total_price': order.total_price,
+            'status': order.status,
+            'payment_id': order.payment_id,
+            'date_created': order.date_created.strftime('%Y-%m-%d %H:%M:%S') if order.date_created else None,
+            'customer_name': f"{cust.first_name} {cust.last_name}" if cust else 'Unknown Customer',
+            'customer_email': cust.email if cust else 'No Email',
+            
+            # Shipping & Delivery fields added here
+            'shipping_address': shipping_address,
+            'city': city,
+            'province': province,
+            'postal_code': postal_code,
+            'phone': phone,
+            
+            'items': items_data
         })
 
     return jsonify(orders_data), 200
@@ -293,47 +353,51 @@ def update_order_status(order_id):
     current_user = Customer.query.get(int(get_jwt_identity()))
     if not current_user or not current_user.is_admin():
         return jsonify({"error": "Admins only"}), 403
-
+ 
     data = request.get_json()
     if not data or 'status' not in data:
         return jsonify({"error": "New status is required"}), 400
-
+ 
     order = Order.query.get(order_id)
     if not order:
         return jsonify({"error": "Order not found"}), 404
-
+ 
     # Update status
     order.status = data['status']
     db.session.commit()
-
+ 
+    # ADDED (email): notify the customer about the new status
+    order_customer = Customer.query.get(order.customer_link)
+    if order_customer and order_customer.email:
+        customer_name = f"{getattr(order_customer, 'first_name', '') or ''} {getattr(order_customer, 'last_name', '') or ''}".strip()
+        send_status_update(order_customer.email, customer_name, order.id, order.status)
+ 
     return jsonify({
         "message": f"Order #{order.id} status updated to '{order.status}' successfully.",
         "order": {
             "id": order.id,
             "status": order.status,
-            "quantity": order.quantity,
-            "price": order.price,
+            "total_price": order.total_price,
             "payment_id": order.payment_id,
-            "customer_id": order.customer_link,
-            "product_id": order.product_link
+            "customer_id": order.customer_link
         }
     }), 200
-
+ 
 @admin.route('/api/admin/orders/statuses', methods=['GET'])
 @jwt_required()
 def get_order_statuses():
     current_user = Customer.query.get(int(get_jwt_identity()))
     if not current_user or not current_user.is_admin():
         return jsonify({"error": "Admins only"}), 403
-
+ 
     # List of available order statuses / categories
     statuses = [
-        "Pending",
+        "Paid",
         "Processing",
         "Shipped",
         "Delivered",
         "Cancelled"
     ]
-
+ 
     return jsonify(statuses), 200
 
